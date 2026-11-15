@@ -715,5 +715,19 @@ else
   note SKIP "gate 50: lune absent"
 fi
 
+# gate 51 — feature parity list + user scenarios (roblox/parity/*.txt):
+# every browser feature's proof string still exists, every client/ui module is
+# named, every Roblox "yes / partial" has evidence in roblox/src, scenarios name
+# known features, and roblox/PARITY.md is the generated report
+if command -v node >/dev/null 2>&1; then
+  if out=$(node roblox/selftest/feature-parity.mjs 2>&1); then
+    note PASS "gate 51: $out"
+  else
+    note FAIL "gate 51: feature parity — run: node roblox/selftest/feature-parity.mjs"
+  fi
+else
+  note SKIP "gate 51: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

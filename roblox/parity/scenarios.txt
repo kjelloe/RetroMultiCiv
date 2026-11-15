@@ -1,0 +1,81 @@
+# User scenarios: what a player sets out to do, as steps over feature ids.
+# scenario id | name
+#   step text | feature ids (space separated)
+# A scenario is PLAYABLE when every feature is yes, DEGRADED when some are
+# partial, BLOCKED when any is no. n/a features do not count.
+S01 | Start a game as host
+  choose a civilization | gf-31
+  set map, civs, difficulty, combat, age, seed | gf-32 gf-34 gf-35 gf-36 gf-37 gf-40 gf-41
+  start | mp-02
+S02 | First turn: found a capital
+  select the settlers and read the site rating | hud-09 map-08
+  found the city and name it | uo-04 uo-05
+  choose research | res-01 res-02
+  end the turn | gf-01 hud-05
+S03 | Run a city
+  open the city and read food, mood, production | city-01 city-03 city-05
+  pick a build with its description | city-12 city-13
+  queue more builds | city-14 city-15
+  buy the current build | city-11
+  place workers and reset to automatic | city-08 city-09
+  turn entertainers into taxmen or scientists | city-06 city-07
+  sell a building | city-10
+  go to the next and previous city | city-16
+S04 | Improve the land with settlers
+  irrigate, mine, road, fortress | uo-06 uo-07 uo-08 uo-09
+  automate the settlers | uo-14
+  choose what automation favours | uo-15
+S05 | Move and fight
+  move, go to, wait, fortify, sentry | uo-01 uo-18 uo-16 uo-11 uo-12
+  see the route a unit will take | uo-20
+  read the odds and attack | uo-03 uo-01
+  pillage, disband, upgrade | uo-17 uo-23 uo-25
+S06 | Trade and wonders
+  establish a trade route with a caravan | uo-26
+  help build a wonder with a caravan | uo-24
+S07 | Diplomats
+  embassy, investigate, steal, sabotage, incite, bribe | uo-27 uo-28 uo-29 uo-30 uo-31 uo-32
+S08 | Govern
+  set tax / science / luxury | res-03 res-04
+  change government | res-05
+S09 | Research toward a goal
+  open the tech tree and read a tech | res-06
+  set a beeline goal | res-07
+  see the discovery card | res-09
+S10 | Review the empire
+  all cities at a glance | ov-01
+  all units at a glance | ov-02
+  why the treasury changes | ov-03
+  how the civs compare | gf-22
+S11 | Foreign affairs
+  see who is at war or peace | dip-01 dip-02
+  declare war, offer and accept peace | dip-05 dip-03 dip-04
+  propose a deal | dip-06 dip-07
+  answer an envoy | dip-08
+S12 | Find your way around
+  minimap, overlays, tile card | map-02 map-03 map-04 map-05 map-09
+  controls list and encyclopedia | info-01 info-03
+  search the encyclopedia | info-04
+  turn log with filters and jump | info-12 info-13 info-14
+S13 | Hand the seat to the AI and take it back
+  pick a stance | gf-03 gf-04
+  take back control | gf-05
+S14 | Space race
+  read the ship screen | gf-26
+  launch | gf-27
+S15 | Finish the game
+  end screen with the score table | gf-19
+  statistics, replay, new game | gf-20 gf-22 gf-24
+  reopen the summary | gf-21
+S16 | Save and come back
+  get a resume code | hud-14
+  resume by code | mp-07
+S17 | Play with others
+  join and take a seat | mp-13
+  see who is moving | mp-19
+  skip an absent player | mp-15
+  spectate | mp-18
+S18 | Set preferences
+  auto end turn, auto next unit, hide future items | opt-02 opt-03 opt-05
+  sound volume | opt-11 opt-12
+  colour-blind palette | opt-17

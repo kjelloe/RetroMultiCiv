@@ -1,0 +1,210 @@
+# Where each browser feature stands in the Roblox client:
+# id | status | roblox file (under roblox/src/) | proof (a literal string in that file) | note
+# status: yes = available, partial = available with a stated gap, no = missing,
+#         n/a = not applicable on the platform (the note says why).
+# yes / partial need a file + proof; partial / no / n/a need a note.
+hud-01 | yes | client/Hud.client.luau | game-code chip |
+hud-02 | yes | client/ActionBar.client.luau | researchStatus |
+hud-03 | yes | client/Hud.client.luau | Treasury |
+hud-04 | partial | client/GovernmentPanel.client.luau | setRates | rates and government are in the Government panel, not on the top bar
+hud-05 | yes | client/Hud.client.luau | three-state End Turn |
+hud-06 | partial | client/Hud.client.luau | regencyBtn.Text = "AI" | the AI button lights up; the End Turn label does not change
+hud-07 | partial | client/Options.client.luau | hideNoMovesHint | the option exists; the hint itself is the green End Turn state
+hud-08 | partial | client/Sound.client.luau | SoundMap | turn-start sound cue; no banner
+hud-09 | yes | client/ActionBar.client.luau | sentry toggle lives ON the card |
+hud-10 | yes | client/ViewRenderer.client.luau | DISORDER |
+hud-11 | no | | | no event banner with a zoom button; the turn log's target button covers located events
+hud-12 | yes | client/Options.client.luau | clock |
+hud-13 | partial | server/GameServer.server.luau | spectators | spectators ride the deck; no chip
+hud-14 | yes | client/Lobby.client.luau | GET RESUME CODE |
+hud-15 | n/a | | | the Roblox account is the seat identity; no seat codes
+hud-16 | yes | client/HudDock.luau | DockLayout |
+uo-01 | yes | client/Select.client.luau | type = "moveUnit" |
+uo-02 | partial | client/OddsPreview.client.luau | BillboardGui | odds are shown; no attack / cancel confirm step
+uo-03 | yes | client/OddsPreview.client.luau | BillboardGui |
+uo-04 | yes | client/FoundCity.luau | found city |
+uo-05 | yes | client/CityNames.luau | Colony |
+uo-06 | partial | client/ActionBar.client.luau | type = "startWork" | Irr button; the label does not change to Clear / Drain
+uo-07 | partial | client/ActionBar.client.luau | type = "startWork" | Mine button; the label does not change to Plant / Clear
+uo-08 | partial | client/ActionBar.client.luau | type = "startWork" | Road button; the label does not change to Railroad
+uo-09 | yes | client/ActionBar.client.luau | "Fort" |
+uo-10 | partial | client/ActionBar.client.luau | DISABLED | unavailable orders are greyed; no reason on hover
+uo-11 | yes | client/ActionBar.client.luau | Fortify |
+uo-12 | yes | client/ActionBar.client.luau | ClientState.toggleSentry(id) |
+uo-13 | yes | client/ClientState.luau | onSentryWake |
+uo-14 | yes | client/SettlerAuto.client.luau | settler automation |
+uo-15 | no | | | no automation priority choice
+uo-16 | yes | client/ActionBar.client.luau | Wait |
+uo-17 | yes | client/ActionBar.client.luau | type = "pillage" |
+uo-18 | yes | client/GoToPlan.luau | arm |
+uo-19 | partial | client/SettlerAuto.client.luau | manual order cancels | a new order replaces the route; no Cancel route button
+uo-20 | no | | | no route line drawn on the map
+uo-21 | no | | | no long-press GoTo
+uo-22 | yes | client/Possess.client.luau | N next unit |
+uo-23 | partial | client/ActionBar.client.luau | Disband | one press; no second confirmation
+uo-24 | no | | | no Help Wonder order (the server accepts helpWonder; no button sends it)
+uo-25 | yes | client/ActionBar.client.luau | type = "upgradeUnit" |
+uo-26 | yes | client/ActionBar.client.luau | type = "establishTradeRoute" |
+uo-27 | no | | | no diplomat missions
+uo-28 | no | | | no diplomat missions
+uo-29 | no | | | no diplomat missions
+uo-30 | no | | | no diplomat missions
+uo-31 | no | | | no diplomat missions
+uo-32 | no | | | no diplomat missions
+uo-33 | yes | client/ActionBar.client.luau | card.LayoutOrder = i |
+uo-35 | yes | client/MoveHints.client.luau | move hints |
+city-01 | yes | client/Select.client.luau | open city |
+city-02 | partial | client/CityPanel.client.luau | popColor | name and population badge; no capital star
+city-03 | partial | client/CityPanel.client.luau | food stored | food stored is shown; no growth box or turns-to-grow
+city-04 | no | | | no starving warning in the city panel (the turn log reports famine)
+city-05 | yes | client/CityPanel.client.luau | moodFaces |
+city-06 | no | | | specialists are shown on the worker board; no buttons to change them
+city-07 | no | | | no specialist reset
+city-08 | yes | client/WorkedTiles.luau | type = "setWorkers" |
+city-09 | yes | client/WorkedTiles.luau | auto = true |
+city-10 | yes | client/CityPanel.client.luau | type = "sellBuilding" |
+city-11 | yes | client/CityPanel.client.luau | Rush buy |
+city-12 | yes | client/CityPanel.client.luau | CatalogInfo.availability |
+city-13 | yes | client/CatalogInfo.luau | function M.card |
+city-14 | partial | client/BuildQueue.luau | removeAt | add with Q+, remove the last; no reorder
+city-15 | yes | client/BuildQueue.luau | onChanged |
+city-16 | partial | client/WorkedTiles.luau | VIEW NEXT CITY | next only; no previous
+city-17 | partial | client/CityList.client.luau | DISORDER | chip in the Cities list and on the map label; no banner in the city panel
+city-18 | yes | client/CityPanel.client.luau | We Love the King Day |
+city-19 | partial | client/CityPanel.client.luau | tradeRouteReport | routes are in the yields hover card, not a list
+city-20 | no | | | no quick production keys
+city-21 | no | | | no build cycling key
+city-22 | yes | client/WorkedTiles.luau | CLOSE CITY VIEW |
+res-01 | yes | client/ResearchPicker.client.luau | setResearch |
+res-02 | yes | client/ResearchPicker.client.luau | setResearch |
+res-03 | yes | client/GovernmentPanel.client.luau | type = "setRates" |
+res-04 | yes | client/GovernmentPanel.client.luau | lux = lux |
+res-05 | yes | client/GovernmentPanel.client.luau | type = "setGovernment" |
+res-06 | yes | client/TechTree.client.luau | Layout.layout(techs) |
+res-07 | yes | client/Beeline.luau | return M |
+res-08 | partial | client/TechTree.client.luau | Beeline | the goal clears when reached; no note
+res-09 | yes | client/DiscoveryCard.client.luau | tech-discovery card |
+res-10 | yes | client/TechGlyphs.luau | return M |
+res-11 | yes | client/DiscoveryCard.client.luau | techBlurbs |
+ov-01 | partial | client/CityList.client.luau | Click a city to go there and open it. | population, build and progress per city; no yields, upkeep or specialists columns
+ov-02 | yes | client/MilitaryView.luau | military-overview.js twin |
+ov-03 | no | | | no economy overview (the income hover card on the gold chip gives the totals only)
+ov-04 | n/a | | | browser component; Roblox panels share PanelDress + UiTheme instead
+ov-05 | no | | | no per-city upkeep figures in the client
+ov-06 | yes | client/ClientState.luau | panelOpened |
+dip-01 | yes | client/Diplomacy.client.luau | Diplomacy (Y) |
+dip-02 | yes | client/DiplomacyView.luau | return M |
+dip-03 | no | | | the panel is read-only: no offer peace
+dip-04 | no | | | the panel is read-only: no accept peace
+dip-05 | no | | | the panel is read-only: no declare war
+dip-06 | no | | | no deal proposals
+dip-07 | no | | | no deal proposals
+dip-08 | no | | | no envoy popup (the regent answers AI proposals while it holds the seat)
+map-01 | yes | client/Camera.client.luau | wheel zoom |
+map-02 | yes | client/Minimap.client.luau | Minimap |
+map-03 | yes | client/Overlays.client.luau | map-overlays panel |
+map-04 | yes | client/Overlays.client.luau | city influence |
+map-05 | yes | client/Overlays.client.luau | unit presence |
+map-06 | no | | | no fly-to-capital key (C opens the Cities list; a click there goes to a city)
+map-07 | partial | client/RidePad.client.luau | RidePad | a touch pad steers the ridden unit; the camera uses the platform's own touch controls
+map-08 | yes | client/ViewRenderer.client.luau | site stars |
+map-09 | yes | client/Select.client.luau | RMCTileCard |
+map-10 | yes | client/ClientState.luau | mutually |
+info-01 | yes | client/LegendData.luau | M.SECTIONS |
+info-02 | partial | client/PediaConcepts.luau | return | the same topics are Encyclopedia concept entries; no separate help panel
+info-03 | yes | client/Pedia.client.luau | key = "concepts" |
+info-04 | no | | | no encyclopedia search
+info-05 | yes | client/PediaConcepts.luau | return |
+info-06 | yes | client/Tooltip.luau | function M.attach |
+info-07 | yes | client/CityPanel.client.luau | worked-tile totals |
+info-08 | yes | client/AdviceCards.client.luau | OK, got it |
+info-09 | partial | client/AdviceCards.client.luau | adviceCards | seen-state lasts for the session, not across sessions
+info-10 | partial | client/Intro.client.luau | boot intro | a boot intro and the advice cards; no pointing arrows
+info-11 | partial | client/Legend.client.luau | Controls | the Controls panel is always one click away; nothing to re-show
+info-12 | yes | client/TurnLog.client.luau | TurnLogView.rowText |
+info-13 | yes | client/TurnLogClasses.luau | LOG_CLASSES |
+info-14 | yes | client/TurnLog.client.luau | ClientState.focusCamera(loc.x, loc.y) |
+info-15 | yes | client/Historian.client.luau | score %d - %d cities |
+info-16 | yes | client/CatalogText.luau | function M.make |
+info-17 | yes | client/PediaBlurbs.luau | M.UNIT_BLURBS |
+info-18 | no | | | no wonder-complete splash (the turn log and a sound cue report it)
+info-19 | partial | client/CivGallery.luau | Choose your civilization | the civilization gallery shows the civ before the start; no card at game start
+info-20 | n/a | | | name constant
+gf-01 | yes | client/Select.client.luau | type = "endTurn" |
+gf-03 | yes | client/RegentDialog.client.luau | regent stance picker |
+gf-04 | yes | client/RegentDialog.client.luau | 5 stances |
+gf-05 | yes | client/ClientState.luau | OFF (your seat) |
+gf-06 | yes | server/GameServer.server.luau | playRegentSeat |
+gf-07 | n/a | | | hotseat is one screen shared by turns; each Roblox player has an own device
+gf-09 | n/a | | | no local files on the platform; the host's resume code is the save
+gf-10 | partial | client/Lobby.client.luau | GET RESUME CODE | the host gets a resume code; no file
+gf-11 | partial | client/Lobby.client.luau | t = "resume" | resume by code in the lobby; no file
+gf-15 | yes | client/Lobby.client.luau | t = "resume" |
+gf-16 | yes | server/GameServer.server.luau | seatOfUser |
+gf-18 | no | | | no end-game moment before the scoreboard
+gf-19 | yes | client/EndScreen.client.luau | pop %d + happy %d + techs %d |
+gf-20 | yes | client/EndScreen.client.luau | ClientState.toggleStats(true) |
+gf-21 | yes | client/ClientState.luau | onReshowEndScreen |
+gf-22 | partial | client/StatsView.luau | function M.chartDots | score chart, battles and wonders, available during play too; no Population / Cities / Techs charts
+gf-23 | yes | server/GameServer.server.luau | statsBattles |
+gf-24 | partial | client/ReplayTheater.client.luau | perspective | jump bar and view-as; no play / pause or speed control
+gf-25 | no | | | no replay event feed
+gf-26 | yes | client/Ship.client.luau | launchShip |
+gf-27 | yes | client/Ship.client.luau | irreversible |
+gf-28 | yes | client/Ship.client.luau | rival-launch |
+gf-29 | yes | client/FastForward.client.luau | Advancing the world |
+gf-30 | n/a | | | the server sends the end screen from full state
+gf-31 | yes | client/CivGallery.luau | "random" |
+gf-32 | yes | client/Lobby.client.luau | "Civilizations", civVals |
+gf-33 | n/a | | | hotseat does not apply; "Human seats" sets how many players join
+gf-34 | partial | client/Lobby.client.luau | SETUP_SIZES | xsmall / small / medium only (large and huge are not offered)
+gf-35 | yes | client/Lobby.client.luau | SETUP_MAPTYPES |
+gf-36 | yes | client/Lobby.client.luau | SETUP_DIFFICULTY |
+gf-37 | yes | client/Lobby.client.luau | SETUP_COMBAT |
+gf-38 | no | | | no nuclear weapons switch in the host setup
+gf-39 | partial | client/Lobby.client.luau | marathon | Marathon (play to victory) only; no victory-condition presets
+gf-40 | yes | client/Lobby.client.luau | SETUP_AGES |
+gf-41 | yes | client/Lobby.client.luau | key = "seed" |
+gf-45 | n/a | | | a link from the browser to this client
+gf-46 | n/a | | | a link to the native desktop client
+gf-47 | n/a | | | title constant
+mp-01 | n/a | | | the platform's own server list
+mp-02 | yes | client/Lobby.client.luau | setupDone |
+mp-03 | yes | client/Lobby.client.luau | sendSetup("spectators", 1) |
+mp-04 | n/a | | | the platform's own chat
+mp-06 | yes | client/Lobby.client.luau | Idle limit (minutes) |
+mp-07 | yes | client/Lobby.client.luau | t = "resume" |
+mp-08 | n/a | | | players join through the platform; no join codes
+mp-13 | yes | server/Deck.luau | DeckPlan.status |
+mp-15 | no | | | no skip vote (the idle limit hands an absent seat to the regent)
+mp-17 | partial | client/WaitStatus.luau | return M | the wait line names who is moving; no disconnected mark
+mp-18 | yes | server/GameServer.server.luau | spectators[player.UserId] |
+mp-19 | yes | client/WaitStatusHud.client.luau | WaitStatus |
+mp-20 | partial | client/WaitStatus.luau | return M | wait line with a timer; no turn-log note
+mp-21 | yes | client/ClientState.luau | onRejected |
+opt-01 | yes | client/Options.client.luau | autoEndTurn |
+opt-02 | yes | client/Options.client.luau | autoEndTurn |
+opt-03 | yes | client/Options.client.luau | autoNextUnit |
+opt-04 | no | | | no slow-GoTo option
+opt-05 | yes | client/Options.client.luau | hideFuture |
+opt-06 | yes | client/Options.client.luau | hideNoMovesHint |
+opt-07 | no | | | no your-turn banner to mute
+opt-08 | no | | | no reduce-animation option
+opt-09 | yes | client/Options.client.luau | clock |
+opt-10 | no | | | no slow-player threshold
+opt-11 | no | | | no volume control in Options (the platform's own volume applies)
+opt-12 | no | | | no sound-effects switch
+opt-13 | n/a | | | no music in this client
+opt-14 | yes | client/Options.client.luau | adviceCards |
+opt-15 | yes | client/Options.client.luau | discoveryCards |
+opt-16 | no | | | no minimap switch
+opt-17 | yes | client/Options.client.luau | civPalette |
+opt-18 | partial | client/Options.client.luau | look | a look choice (retro / enhanced), not graphics levels
+opt-22 | yes | client/Palette.luau | deuteranopia |
+opt-25 | yes | client/SoundMap.luau | return |
+opt-26 | yes | client/Sound.client.luau | SoundAssets |
+dbg-01 | yes | client/DebugMenu.client.luau | Debug (Studio) |
+dbg-02 | yes | client/Strategic.client.luau | AI strategy |
+dbg-03 | partial | server/GameServer.server.luau | [R4LOG] | the server prints the recording to the log; node roblox/acceptance/assemble.js replays it
+dbg-04 | no | | | no in-client bug report
+dbg-06 | partial | client/Diag.luau | RMC-DIAG | diagnostics go to the log; the host can enable the log for players

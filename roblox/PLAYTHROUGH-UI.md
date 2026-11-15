@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 49 gates on tip
+- `roblox/check.sh` ALL GREEN — 51 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -178,8 +178,18 @@ items only if they block reading or tapping.
     - Likely wrong: a cap running into the text column; the last rows
       cut off under the panel edge.
 
+12d. **Military** 📷
+    - Tap: Military in the top row.
+    - Expect: a "Military" panel: a totals line (units, combat, civil,
+      veteran), a count per unit type, then one row per unit (name,
+      attack / defense, moves, where it is, which city supports it). A
+      click on a row closes the panel, moves the camera there and
+      selects the unit.
+    - Likely wrong: the top row now holds five buttons; on a narrow
+      window it can reach the turn chip on the left.
+
 12c. **Statistics** 📷
-    - Tap: J (after a few turns, so the chart has samples).
+    - Tap: Statistics (J) in the top row, or J (after a few turns, so the chart has samples); also the Statistics button on the end screen.
     - Expect: a "Statistics" panel top centre: one card per civ (colour
       disc, name, You / Human / Perfectionist chips, labelled figures;
       your own card adds Gold, Techs, Rule and Research, a rival card

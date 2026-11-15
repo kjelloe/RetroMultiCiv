@@ -1072,7 +1072,22 @@ seat/reset flow; JS engine untouched). Delivered:
   (four downward rays on a probe part, `[RMC-DIAG] NOTE terrain: corner
   wedge apex measured at local (x, z)`); no fill is built until it
   succeeds, and six failed tries log one FAIL. The tile cache key now
-  carries the four diagonal neighbours. `TechInfo.luau` = the one tech text builder (tree hover card
+  carries the four diagonal neighbours.
+  Session 09:27Z follow-up (user: no statistics visible, no military
+  list): top-row buttons Military and Statistics (J)
+  (`ClientState.toggleMilitary` / `toggleStats`); the end screen has a
+  Statistics button. `Military.client.luau` + `MilitaryView.luau` = the
+  browser's military overview (every own unit: attack / defense / moves,
+  where, supporting city; click goes to it and selects it), gate 50.
+  FEATURE PARITY: `roblox/parity/browser-features.txt` (205 browser
+  features, each with a proof string in `client/`),
+  `roblox-status.txt` (yes / partial / no / n-a per feature, with
+  evidence in `roblox/src`), `scenarios.txt` (18 user scenarios as steps
+  over feature ids). `node roblox/selftest/feature-parity.mjs`
+  checks all three and generates `roblox/PARITY.md` (gate 51); a new
+  `client/ui` module or a reworded browser string fails the gate until
+  the list is updated. Statuses are read from the sources, not from a
+  Studio run. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

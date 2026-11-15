@@ -1,0 +1,209 @@
+# The browser (three.js) client's player-facing features, one per line:
+# id | group | name | how the player reaches it | browser file (under client/) | proof (a literal string in that file)
+# roblox/selftest/feature-parity.mjs fails when a proof string is gone (the list is stale)
+# or when a client/ui module is named by no row.
+hud-01 | hud | Status line (turn, year, civ, government; scores + code at game over) | top-left | ui/hud.js | 👁 spectator
+hud-02 | hud | Research bar: current tech, bulbs/cost, turns left (click opens research) | top centre | ui/hud.js | choose research
+hud-03 | hud | Gold chip with per-turn change, plus science per turn | research bar | ui/hud.js | XVII #16: the per-turn science
+hud-04 | hud | Rates + government chip | research bar | ui/hud.js | instead of the cryptic T/S/L
+hud-05 | hud | End Turn button (grey / pulse / green states) | End Turn | ui/input.js | document.getElementById('end-turn')
+hud-06 | hud | End Turn reads Auto Turn while the regent plays | End Turn | ui/hud.js | regent ? 'Auto Turn' : 'End Turn'
+hud-07 | hud | No-moves hint banner with mute | automatic | ui/hud.js | stop showing this hint
+hud-08 | hud | Your-turn banner plus chime (LAN games) | automatic | ui/hud.js | mute your-turn banners
+hud-09 | hud | Selected-unit stat line (name, veteran, A/D/moves, terrain, home city) | above the action bar | ui/hud.js | 🏠 unsupported
+hud-10 | hud | Notes under your city names on the map (build + turns, disorder) | on the map | ui/hud.js | ⚠ DISORDER
+hud-11 | hud | Event banners with a zoom-to-event button | automatic | ui/hud.js | banner-zoom
+hud-12 | hud | Game clock chip (off / minutes played / time of day) | top-right | ui/options.js | <span id="game-clock"></span>
+hud-13 | hud | Spectator chip | ?spectate=1 | main.js | 👁 spectating
+hud-14 | hud | Game-code toast after a save | after a save | ui/saves.js | Every player should note it.
+hud-15 | hud | Seat code in the code toast (rejoin from another device) | server games | ui/saves.js | your seat code
+hud-16 | hud | Mobile top-bar strip | automatic on phones | ui/top-bar.js | export function initTopBar()
+uo-01 | unit-orders | Move / attack one step | WASD, arrows, click a neighbouring tile | ui/input.js | w: 'N', ArrowUp: 'N'
+uo-02 | unit-orders | Attack / Cancel confirm with odds (touch) | tap an enemy tile | ui/input.js | atk.className = 'ac-attack'
+uo-03 | unit-orders | Combat odds preview when hovering an enemy | hover | ui/input.js | attack preview: red hover ring + odds line
+uo-04 | unit-orders | Found city | B / Found city | ui/input.js | 🏛 Found city
+uo-05 | unit-orders | City-name dialog with a suggested name | after B | index.html | <input id="name-input"
+uo-06 | unit-orders | Irrigate (Clear/Drain on convertible terrain) | I | ui/input.js | 🌿 Clear/Drain
+uo-07 | unit-orders | Mine (Plant/Clear) | M | ui/input.js | 🌲 Plant/Clear
+uo-08 | unit-orders | Road, or Railroad on a road with the tech | R | ui/input.js | 🚂 Railroad
+uo-09 | unit-orders | Fortress | O | ui/input.js | 🏰 Fortress
+uo-10 | unit-orders | Unavailable settler jobs greyed with the reason on hover | action bar | ui/input.js | 💧 Irrigate
+uo-11 | unit-orders | Fortify | F | ui/input.js | 🛡 Fortify
+uo-12 | unit-orders | Sentry / Wake toggle | V | ui/input.js | 😴 Sentry
+uo-13 | unit-orders | Sentry wakes when an enemy is seen | automatic | ui/automate.js | wakes — enemy
+uo-14 | unit-orders | Automate settlers / stop | U | ui/input.js | 🤖 Automate
+uo-15 | unit-orders | Automation priority cycle (Balanced / Food / Shield / Trade) | action bar while automated | ui/input.js | click to cycle Balanced / Food / Shield / Trade
+uo-16 | unit-orders | Skip / wait this turn | Space | ui/input.js | ⏭ Skip
+uo-17 | unit-orders | Pillage | P | ui/input.js | 🔥 Pillage
+uo-18 | unit-orders | GoTo: arm, then click a destination | G | ui/input.js | 🎯 Go to
+uo-19 | unit-orders | Cancel GoTo route | Cancel route | ui/input.js | ✕ Cancel route
+uo-20 | unit-orders | GoTo route preview on the map | select a unit with a route | ui/input.js | gotoPreviewPath
+uo-21 | unit-orders | Touch long-press: distant tile = GoTo, adjacent enemy = odds | long-press | ui/input.js | #13: non-adjacent → GoTo
+uo-22 | unit-orders | Next idle unit | N | ui/input.js | ⏩ Next unit
+uo-23 | unit-orders | Disband (press twice) | X | ui/input.js | ☠ Disband
+uo-24 | unit-orders | Help Wonder (caravan is used up) | H | ui/input.js | 🏛 Help Wonder
+uo-25 | unit-orders | Upgrade unit (gold cost shown) | K | ui/input.js | ⬆ Upgrade to
+uo-26 | unit-orders | Establish trade route | Y | ui/input.js | 🐫 Trade route (consumed)
+uo-27 | unit-orders | Diplomat: Establish Embassy | action bar | ui/input.js | 🏛 Establish Embassy
+uo-28 | unit-orders | Diplomat: Investigate City | action bar | ui/input.js | 🔎 Investigate
+uo-29 | unit-orders | Diplomat: Steal Tech | action bar | ui/input.js | 🕵 Steal Tech
+uo-30 | unit-orders | Diplomat: Sabotage | action bar | ui/input.js | 💣 Sabotage
+uo-31 | unit-orders | Diplomat: Incite Revolt | action bar | ui/input.js | ✊ Incite Revolt
+uo-32 | unit-orders | Diplomat: Bribe Unit | action bar | ui/input.js | 💰 Bribe Unit
+uo-33 | unit-orders | Unit list for a stacked tile | click a tile with several units | ui/panels.js | ·fort
+uo-35 | unit-orders | Tap-to-move arrows on reachable tiles | unit selected | ui/move-hints.js | export function reachableSteps
+city-01 | city | Open city view | click a city | ui/input.js | double-click a city: open the city view
+city-02 | city | City title (capital star, pop, owner) | city panel header | ui/panels.js | corruption grows with distance from here
+city-03 | city | Food / growth line (eaten, net, box, turns to grow) | city panel | ui/panels.js | population grows in ~
+city-04 | city | Starving / stalled warning | city panel | ui/panels.js | rehome or expend settlers to free food
+city-05 | city | Mood row (happy / content / unhappy + specialists) with tooltips | city panel | ui/panels.js | Content citizen — neither happy nor unhappy
+city-06 | city | Specialist buttons (entertainer to taxman / scientist) | city panel | ui/panels.js | entertainer → taxman
+city-07 | city | Reset specialists | city panel | ui/panels.js | all specialists back to entertainers
+city-08 | city | Worked-tile map (click to assign / unassign a worker) | city view | ui/panels.js | click to (un)assign a worker
+city-09 | city | Reset to automatic tile assignment | city view | ui/panels.js | ↺ reset to automatic assignment
+city-10 | city | Built-buildings list with two-click Sell | city panel | ui/panels.js | Confirm? 💰
+city-11 | city | Buy (rush-buy the current build) | city panel | ui/panels.js | finish it now for gold
+city-12 | city | Production catalog in units / buildings / wonders groups | city panel | ui/panels.js | addGroup('wonders')
+city-13 | city | Catalog hover tooltips with encyclopedia text | hover a catalog item | ui/panels.js | Civilopedia flavor blurb on hover
+city-14 | city | Build queue (add; reorder / remove) | city panel | ui/panels.js | queue: empty — tap + on a production item
+city-15 | city | Build queue auto-advance | automatic | ui/build-queue.js | export function initBuildQueue(ctx)
+city-16 | city | Previous / next city | arrows in the city view | index.html | title="previous city (←)"
+city-17 | city | Civil-disorder banner | city panel | ui/panels.js | CIVIL DISORDER — no production or taxes
+city-18 | city | We Love the King Day banner | city panel | ui/panels.js | WE LOVE THE KING DAY
+city-19 | city | Trade routes list | city panel | ui/panels.js | A89: empty until routes exist in state
+city-20 | city | Quick production keys (militia / phalanx / settlers) | 1 / 2 / 3 with a city selected | ui/input.js | { 1: 'militia', 2: 'phalanx', 3: 'settlers' }
+city-21 | city | Cycle buildings / wonders | C with a city selected | ui/input.js | C on a city keeps cycling builds
+city-22 | city | Close city view | Close city view | index.html | Close city view
+res-01 | research | Research panel | T | ui/input.js | panels.toggleResearchPanel()
+res-02 | research | Choose research | research list | ui/panels.js | type: 'setResearch'
+res-03 | research | Tax / science rate control | research panel | index.html | id="rate-slider"
+res-04 | research | Luxury rate control | research panel | index.html | more luxuries (happiness)
+res-05 | research | Government: revolution buttons, anarchy countdown | research panel | ui/panels.js | ⚡ Anarchy —
+res-06 | research | Graphical tech tree | Shift+T | ui/tech-tree.js | 🌳 View technology tree
+res-07 | research | Beeline goal (click a locked tech; auto-advances) | tech tree | ui/tech-tree.js | ◇ beeline goal
+res-08 | research | Beeline-reached note | automatic | ui/tech-tree.js | beeline reached:
+res-09 | research | Tech discovery card | automatic | ui/discovery-card.js | ADVANCE DISCOVERED
+res-10 | research | Tech glyphs (procedural icons) | automatic | ui/tech-glyphs.js | export function glyphImg
+res-11 | research | Tech descriptions | data | ui/tech-blurbs.js | export const TECH_BLURBS
+ov-01 | overviews | City overview (every city on one row; click opens it) | top bar | ui/city-overview.js | entertainers / tax collectors / scientists
+ov-02 | overviews | Military overview (every unit: A/D/M, home city, location; click selects) | top bar | ui/military-overview.js | the home city that supports this unit
+ov-03 | overviews | Economy overview (income sources and costs summing to the per-turn gold) | top bar | ui/econ-overview.js | Source / Sink
+ov-04 | overviews | Shared overview panel component | support | ui/overview-panel.js | btn.textContent = opts.icon
+ov-05 | overviews | Upkeep figures used by the overviews | support | ui/upkeep.js | export function cityUpkeep
+ov-06 | overviews | Top-centre panels close each other | automatic | ui/top-panels.js | top-center panels are mutually exclusive
+dip-01 | diplomacy | Foreign relations panel (every civ: war / peace) | Diplomacy | ui/diplomacy.js | 🤝 Foreign relations
+dip-02 | diplomacy | Unmet civs show as unnamed rows | Diplomacy panel | ui/diplomacy.js | is a rumour, not a negotiating partner
+dip-03 | diplomacy | Offer peace | Diplomacy panel | ui/diplomacy.js | 🕊 Offer peace
+dip-04 | diplomacy | Accept peace | Diplomacy panel | ui/diplomacy.js | ✔ Accept peace
+dip-05 | diplomacy | Declare war | Diplomacy panel | ui/diplomacy.js | ⚔ Declare war
+dip-06 | diplomacy | Propose a deal: peace / tribute / tech swap | Diplomacy panel | ui/diplomacy.js | 🔬 Tech swap
+dip-07 | diplomacy | Tribute gold amount | Propose dialog | ui/diplomacy.js | Tribute gold
+dip-08 | diplomacy | Incoming envoy popup (accept / reject / later) | automatic | ui/diplomacy.js | Consider later
+map-01 | map | Camera pan / zoom | mouse / touch | index.html | pan the camera
+map-02 | map | Minimap (click to jump) | corner | ui/minimap.js | box.id = 'minimap'
+map-03 | map | Map overlays panel | left stack | ui/overlays.js | 🗺 Map overlays
+map-04 | map | Overlay: city influence | checkbox | ui/overlays.js | 🏛 City influence
+map-05 | map | Overlay: units | checkbox | ui/overlays.js | id: 'units', label: '⚔ Units'
+map-06 | map | Fly to capital | C with no city selected | ui/input.js | no capital yet — found a city first
+map-07 | map | Touch d-pad compass | touch | ui/dpad.js | show/hide the map compass
+map-08 | map | Settler city-site rating when hovering | settlers selected | ui/input.js | cannot settle at sea
+map-09 | map | Tile yield card | hover / long-press | ui/input.js | hover-yields
+map-10 | map | Left stack: one panel open at a time | automatic | ui/left-stack.js | MUTUALLY EXCLUSIVE
+info-01 | info | Controls help list | left stack | index.html | ⌨ Controls
+info-02 | info | Gameplay help panel | help button | ui/options.js | ❓ Gameplay help
+info-03 | info | Encyclopedia (units, buildings, wonders, advances, governments, terrain, concepts) | Encyclopedia | ui/pedia.js | const CAT_ORDER = ['units', 'buildings'
+info-04 | info | Encyclopedia search | search box | ui/pedia.js | search by name…
+info-05 | info | Encyclopedia concept entries | Concepts tab | ui/pedia-concepts.js | Zones of control
+info-06 | info | Shared hover card | hover | ui/hover-card.js | export function createHoverCard()
+info-07 | info | City-panel breakdown tooltips (worked tiles, food math) | hover in the city panel | ui/panels.js | worked tiles (food/shields/trade):
+info-08 | info | First-time advice cards | automatic | ui/advice.js | OK, got it
+info-09 | info | Advice already-seen memory | support | ui/advice-gate.js | retromulticiv-advice-seen
+info-10 | info | Onboarding arrows | automatic once | ui/onboarding.js | Pick a unit — its actions appear here
+info-11 | info | Re-show the controls guide | Options | ui/options.js | 🧭 Show controls guide
+info-12 | info | Turn log | Turn log | ui/turnlog.js | ⚙ filters
+info-13 | info | Turn-log filters by class | Turn log | ui/turnlog-classes.js | 👀 rivals
+info-14 | info | Turn-log jump-to-location | on an entry | ui/turnlog.js | log-jump
+info-15 | info | Historian report on a new age | automatic | ui/historian.js | The world enters the
+info-16 | info | Catalog effect text | support | ui/catalog-text.js | export function makeCatalogText
+info-17 | info | Unit / building descriptions | data | ui/unit-building-blurbs.js | export const BUILDING_BLURBS
+info-18 | info | Wonder-complete splash | automatic | ui/discovery-card.js | WONDER COMPLETE
+info-19 | info | Civilization intro card | game start | ui/discovery-card.js | A NEW WORLD BEGINS
+info-20 | info | Encyclopedia name constant | support | ui/pedia-name.js | Encyclopedia
+gf-01 | game-flow | End turn | Enter / End Turn | ui/input.js | e.key === 'Enter' || e.key === 'e'
+gf-03 | game-flow | AI regency: hand your seat to the AI | regent button | ui/regency.js | 🤖 Hand your seat to the AI
+gf-04 | game-flow | Regency stances (five) | regency dialog | ui/regency.js | garrison and hold
+gf-05 | game-flow | Take back control from the regent | Take back control | ui/regency.js | ✋ Take back control
+gf-06 | game-flow | Regent turn loop | support | ui/regent-driver.js | export function createRegentDriver
+gf-07 | game-flow | Hotseat hand-off cover | between human turns | ui/handoff.js | Take the keyboard, then click or press any key.
+gf-09 | game-flow | Quick save / quick load | F5 / F9 | ui/saves.js | quick save (classic)
+gf-10 | game-flow | Save game file | Shift+S | ui/saves.js | Shift+S: download a JSON save file
+gf-11 | game-flow | Load game file | Shift+L | ui/saves.js | Shift+L: load from a JSON file
+gf-15 | game-flow | Resume a saved game from the start screen | setup screen | ui/setup.js | Resume your local game?
+gf-16 | game-flow | Rejoin a server game | setup screen | ui/rejoin.js | ↩ Rejoin
+gf-18 | game-flow | End-game moment (fall / chronicle / Alpha Centauri) | game over | ui/endscreen.js | Chronicle of the World
+gf-19 | game-flow | End screen: verdict + score table with breakdown | game over | ui/endscreen.js | <th>Wonders</th>
+gf-20 | game-flow | End-screen buttons: replay / statistics / new game | end screen | ui/endscreen.js | ⏵ Watch the replay
+gf-21 | game-flow | Reopen the end screen | View game summary | ui/endscreen.js | 📊 View game summary
+gf-22 | game-flow | Statistics: Score, Population, Cities, Techs charts + battles table + wonders timeline | end screen | ui/stats.js | chart('Population', data, 'pop')
+gf-23 | game-flow | Statistics data | support | ui/stats-data.js | export function collectStats
+gf-24 | game-flow | Replay theater (play / pause, speed, jump, view as a civ) | end screen | ui/replay.js | whose eyes
+gf-25 | game-flow | Replay event feed | replay | ui/replay-events.js | export function majorEvents
+gf-26 | game-flow | Spaceship screen | ship button | ui/ship.js | Success chance
+gf-27 | game-flow | Spaceship launch with confirm | Launch | ui/ship.js | launch is IRREVERSIBLE
+gf-28 | game-flow | Rival spaceship launch banner | automatic | ui/ship.js | has LAUNCHED a spaceship
+gf-29 | game-flow | Fast-forward screen for later-age starts | automatic | ui/ff-overlay.js | Simulating history…
+gf-30 | game-flow | Score helper (hides rival techs under fog) | support | ui/score-view.js | export function techSafeState
+gf-31 | game-flow | Setup: your civilization | setup screen | ui/setup.js | Your civilization
+gf-32 | game-flow | Setup: number of civilizations | setup screen | ui/setup.js | Human players
+gf-33 | game-flow | Setup: hotseat | setup screen | ui/setup.js | Enable hotseat game
+gf-34 | game-flow | Setup: map size | setup screen | ui/setup.js | Medium (Civ 1)
+gf-35 | game-flow | Setup: map type | setup screen | ui/setup.js | Novelty shapes
+gf-36 | game-flow | Setup: difficulty | setup screen | ui/setup.js | God-Emperor
+gf-37 | game-flow | Setup: combat rule | setup screen | ui/setup.js | Combat calculations
+gf-38 | game-flow | Setup: nuclear weapons on / off | setup screen | ui/setup.js | Nuclear weapons
+gf-39 | game-flow | Setup: victory conditions | setup screen | ui/setup.js | Victory conditions
+gf-40 | game-flow | Setup: starting age | setup screen | ui/setup.js | Starting age
+gf-41 | game-flow | Setup: world seed | setup screen | ui/setup.js | World seed
+gf-45 | game-flow | Play-on-Roblox link | setup screen | ui/roblox-link.js | 🎮 Play on Roblox
+gf-46 | game-flow | Native client download line | setup screen | ui/native-links.js | ⬇ Native client (desktop):
+gf-47 | game-flow | Game title | title | ui/game-name.js | export const GAME_NAME = 'A World Begun'
+mp-01 | multiplayer | Find a public game | Find game | ui/setup.js | No public games right now
+mp-02 | multiplayer | Host lobby options | Host | ui/lobby.js | Late joining
+mp-03 | multiplayer | Host option: allow spectators | host form | ui/lobby.js | Allow spectators
+mp-04 | multiplayer | Lobby chat | waiting room | ui/lobby.js | Enable lobby chat
+mp-06 | multiplayer | Host option: AI takeover of an absent seat | host form | ui/lobby.js | Auto AI takeover
+mp-07 | multiplayer | Resume a server game by game code | Resume game | ui/lobby.js | Validate and start
+mp-08 | multiplayer | Invite: join code / link / QR | waiting room | ui/lobby.js | 📋 Copy
+mp-13 | multiplayer | Join form (name, join code, seat, spectate) | Join | ui/lobby.js | placeholder="Q7F2M"
+mp-15 | multiplayer | Skip-turn vote | in game, while waiting | ui/lobby.js | propose skip
+mp-17 | multiplayer | Waiting-for-disconnected-player line | in game | ui/lobby.js | (disconnected)
+mp-18 | multiplayer | Game already started: spectate | Spectate | ui/lobby.js | 👁 Spectate
+mp-19 | multiplayer | Wait-status line (who is moving) | above End Turn | ui/hud.js | waitLine.id = 'wait-line'
+mp-20 | multiplayer | Slow-player note + timer | automatic | ui/wait-status.js | is moving
+mp-21 | multiplayer | Messages explaining a refusal | lobby | ui/reject-copy.js | export function rejectText
+opt-01 | options | Options panel | Options | ui/options.js | data-opt="autoEndTurn"
+opt-02 | options | Auto end turn | Options | ui/options.js | data-opt="autoEndTurn"
+opt-03 | options | Auto-select the next unit | Options | ui/options.js | data-opt="autoNextUnit"
+opt-04 | options | Slow down GoTo moves to follow them | Options | ui/options.js | data-opt="showUnitMove"
+opt-05 | options | Hide future items in the city catalog | Options | ui/options.js | data-opt="hideFuture"
+opt-06 | options | Hide the no-moves hint | Options | ui/options.js | data-opt="hideNoMovesHint"
+opt-07 | options | Mute the your-turn banner | Options | ui/options.js | data-opt="muteTurnBanner"
+opt-08 | options | Reduce animation | Options | ui/options.js | data-opt="reduceAnimation"
+opt-09 | options | Clock mode | Options | ui/options.js | data-opt="clock"
+opt-10 | options | Slow-player note threshold | Options | ui/options.js | data-opt="slowPokeSecs"
+opt-11 | options | Master volume | Options | ui/options.js | data-opt="soundMaster"
+opt-12 | options | Sound effects on / off | Options | ui/options.js | data-opt="soundEffects"
+opt-13 | options | Music on / off | Options | ui/options.js | data-opt="soundMusic"
+opt-14 | options | First-time advice on / off | Options | ui/options.js | data-opt="firstTimeTips"
+opt-15 | options | Tech discovery cards on / off | Options | ui/options.js | data-opt="discoveryCards"
+opt-16 | options | Show minimap | Options | ui/options.js | data-opt="showMinimap"
+opt-17 | options | Civ colours: default / deuteranopia-safe | Options | ui/options.js | data-opt="civPalette"
+opt-18 | options | Graphics level | Options | ui/options.js | data-opt="graphics"
+opt-22 | options | Colour-blind palette table | support | ui/palette.js | 'deuteranopia-safe': {
+opt-25 | options | Event sound cues | automatic | ui/sound-map.js | 'combat-win', 'combat-loss'
+opt-26 | options | Sound engine | automatic | ui/sound.js | WebAudio CHIPTUNE synth
+dbg-01 | debug | Debug panel (grant gold / unit / tech, reveal map) | debug games | ui/debug-panel.js | 💰 Grant gold
+dbg-02 | debug | Live AI strategy overlay | debug / spectator | ui/strategic-overlay.js | 🧠 AI strategy
+dbg-03 | debug | Diagnostics recording download | Shift+D | ui/saves.js | Shift+D: diagnostics recording
+dbg-04 | debug | Bug report dialog | Options | ui/bug-report.js | Download report
+dbg-06 | debug | Mobile on-screen log | ?mlog=1 | ui/mlog.js | MOBILE DEBUG OVERLAY

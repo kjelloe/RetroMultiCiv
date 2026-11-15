@@ -230,15 +230,29 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19v. T2b slope corner fills [done: 2026-11-15 — shot20 confirmed the skirt orientation; `TerrainSkirts.corners` + CornerWedgePart fill, apex corner measured at run time by raycast (`probeApex`), diagonals in the cache key; gate 37 pins. Wants one close shot. gamesim-golden-neutral]
 
+## 19w. Military, Statistics access, feature list [done: 2026-11-15 — top-row Military and Statistics (J) buttons, Statistics button on the end screen; `Military.client.luau` + `MilitaryView.luau` (military-overview.js twin, gate 50); feature parity list `roblox/parity/*.txt` + `roblox/selftest/feature-parity.mjs` + generated `roblox/PARITY.md` (gate 51): 205 browser features = 115 available, 37 partial, 39 missing, 14 n/a; 18 user scenarios = 6 playable, 2 degraded, 10 blocked. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.
 
 Waiting on a Studio look (built, not yet seen): slope corner fills + the `corner wedge apex measured` log line; city catalog hover cards and the absent Barbarian Leader; Statistics cards; Legend ("Controls"); Turn log chips and kind words; Diplomacy / Map overlays beside the button column; city panel and host setup cards; bare hills; civilization gallery; Cities / Government / Research panels; tech tree graph + hover card.
 
-Open work, in order:
+Open work from `roblox/PARITY.md` (the missing list there is the source; regenerate after each item), proposed order by how many scenarios it unblocks:
+a. City: specialist buttons + reset (city-06, city-07), previous city (city-16), growth box / turns to grow and a starving warning (city-03, city-04) - unblocks S03.
+b. Economy overview (ov-03, ov-05; needs the `playerIncome` / `cityEconOutput` read helpers from `luau/tech`) and Population / Cities / Techs charts (gf-22) - unblocks S10.
+c. Help Wonder button (uo-24; the server already accepts `helpWonder`) - unblocks S06.
+d. GoTo route line on the map (uo-20) - unblocks S05.
+e. Encyclopedia search (info-04) - unblocks S12.
+f. Sound volume / effects switch in Options (opt-11, opt-12) - unblocks S18.
+g. Settler automation priority (uo-15) - unblocks S04.
+h. Diplomat missions (uo-27..32) - S07; needs a check that `luau/` carries the six commands.
+i. Diplomacy actions (dip-03..08) - S11; docs/13 rules D4-D6 client surfaces post-1.0, so this waits for a ruling.
+j. Skip vote (mp-15) - S17; the idle limit + regent covers the case today.
+
+Earlier open items:
 1. Phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen) - wants one run in Studio's phone emulator for the `cut to` list.
-2. Statistics has no on-screen button (J only): a touch player cannot open it. Needs a `stats` icon in MenuIcons and a slot in the top row (DockLayout widths are pinned by gate ui-dock).
+2. (done 19w) Statistics button.
 3. Touch: a long-press on a city catalog row both shows the hover card (0.5 s) and picks-and-closes (0.5 s). One of the two has to move (proposal: long-press = card, tap = pick, the green "building" row + X closes).
 4. Diplomacy and Options panels in the card style (last two on the old row layout).
 5. Two-player civilization pick contention; owner paths on a published server (need a second account / a published place).
