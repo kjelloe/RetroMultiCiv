@@ -80,7 +80,7 @@ function M.attach(target, textFn)
 		gen += 1
 		local myGen = gen
 		task.delay(0.35, function()
-			if gen == myGen and target.Visible ~= false then
+			if gen == myGen and target.Visible ~= false and target.Parent ~= nil then
 				showAt(target, textFn())
 			end
 		end)

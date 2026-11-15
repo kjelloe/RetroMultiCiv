@@ -1054,7 +1054,16 @@ seat/reset flow; JS engine untouched). Delivered:
   Statistics (J): civ cards + wonders + score chart in one scrolling
   body; what a card may carry is decided in `StatsView.card` (the fog
   rule: a rival card = cities seen + units in sight, nothing else), gate
-  48. Unit card Zz / Au chips and the combat odds label are 14 px. `TechInfo.luau` = the one tech text builder (tree hover card
+  48. Unit card Zz / Au chips and the combat odds label are 14 px.
+  shot19: the city catalog offered the Barbarian Leader (`barbOnly`,
+  tech "" so the tech filter passed it). The list now follows
+  `CatalogInfo.availability`, the mirror of setProduction's rejections:
+  barb-only and obsolete units are not listed; a sea unit in an inland
+  city reads "needs a coastal city"; a nuclear unit without nukes
+  enabled reads "needs the Manhattan Project". Every catalog and
+  Built-here row has a hover card (`CatalogInfo.card`: name, kind,
+  encyclopedia prose from PediaBlurbs, effect line, figures,
+  requirement, lock reason). Gate 49 runs over data/*.json. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

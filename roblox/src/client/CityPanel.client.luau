@@ -22,6 +22,8 @@ local happinessModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitFor
 local governmentModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("government"))
 local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
+local CatalogInfo = require(script.Parent:WaitForChild("CatalogInfo")) -- which rows, and their hover card
+local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -401,7 +403,7 @@ local function addSection(order, label, color)
 	return 26
 end
 
-local function addRow(order, kind, id, def, lockReason, effects, current)
+local function addRow(order, kind, id, def, lockReason, effects, current, cardText)
 	local twoLine = effects ~= nil and effects ~= ""
 	local h = twoLine and 46 or 28
 	local row = Instance.new("TextButton")
@@ -413,6 +415,9 @@ local function addRow(order, kind, id, def, lockReason, effects, current)
 	row.ClipsDescendants = true
 	row.Parent = list
 	UiTheme.row(row, { locked = lockReason ~= nil }) -- U5
+	Tooltip.attach(row, function() -- shot19 (user): the encyclopedia entry on hover
+		return cardText, "card"
+	end)
 	local stripe = Instance.new("Frame")
 	stripe.Size = UDim2.new(0, 4, 1, 0)
 	stripe.BackgroundColor3 = KIND_COLOR[kind]
@@ -498,7 +503,7 @@ end
 -- (soldThisTurn greys the strip), the Palace never sells. Server judges all.
 local sellConfirm = { key = nil, until_ = 0 }
 
-local function addBuildingRow(order, id, def, price, sold)
+local function addBuildingRow(order, id, def, price, sold, cardText)
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1, -10, 0, 28)
 	row.LayoutOrder = order
@@ -506,6 +511,10 @@ local function addBuildingRow(order, id, def, price, sold)
 	row.BorderSizePixel = 0
 	row.Parent = list
 	round(row, 6)
+	row.Active = true
+	Tooltip.attach(row, function()
+		return cardText, "card"
+	end)
 	local name = text(row, 12, 4, W - 26 - 12 - 100, 20, 15, nil, Color3.fromRGB(210, 218, 230))
 	name.Text = def.name or id
 	if def.effect ~= nil and def.effect.isPalace == true then
@@ -585,6 +594,7 @@ local function refresh()
 	prodFill.BackgroundColor3 = share >= 1 and Color3.fromRGB(110, 210, 120) or kindColor
 	prodNum.Text = ("%d/%d"):format(city.shields or 0, prodCost)
 
+	Tooltip.hide() -- a card may be up over a row about to be rebuilt
 	for _, child in ipairs(list:GetChildren()) do
 		if not child:IsA("UIListLayout") then
 			child:Destroy()
@@ -613,26 +623,27 @@ local function refresh()
 	end
 	local order = 0
 	local canvasY = 0
-	local HIDE = "\0hide"
+	local HIDE = CatalogInfo.HIDE
+	local function techName(techId)
+		local techDef = rs.techs[techId]
+		return techDef and techDef.name or techId
+	end
+	-- shot19 (user): the Barbarian Leader was offered. The list now follows
+	-- CatalogInfo.availability, the mirror of the engine's setProduction
+	-- rejections (barb-only, obsolete, coast, nukes, tech, built, taken).
+	local shim = { map = view.map, players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, units = view.units, wonders = view.wonders, playerOrder = view.playerOrder }
+	local okCoast, coastal = pcall(citiesModule.cityIsCoastal, shim, city, rs)
+	local okNukes, nukes = pcall(citiesModule.nukesEnabled, shim, rs)
+	local ctx = { techs = myTechs, reachable = techReachable, techName = techName,
+		hideFuture = ClientState.options.hideFuture == true, built = built, wondersTaken = view.wonders or {},
+		coastal = not okCoast or coastal == true, nukes = okNukes and nukes == true }
 	local function lockFor(kind, id, def)
-		if def.tech ~= nil and def.tech ~= "" and not myTechs[def.tech] then
-			if not techReachable(def.tech) then
-				return HIDE
-			end
-			-- R16 wire: hideFuture hides even the one-tech-lookahead rows
-			if ClientState.options.hideFuture then
-				return HIDE
-			end
-			local techDef = rs.techs[def.tech]
-			return "needs " .. (techDef and techDef.name or def.tech)
-		end
-		if kind == "building" and built[id] then
-			return "built"
-		end
-		if kind == "wonder" and view.wonders ~= nil and view.wonders[id] ~= nil then
-			return "taken"
-		end
-		return nil
+		return CatalogInfo.availability(kind, id, def, ctx)
+	end
+	local function cardFor(kind, id, def, effects, lock)
+		local blurb = kind == "unit" and PediaBlurbs.UNIT_BLURBS[id] or kind == "building" and PediaBlurbs.BUILDING_BLURBS[id] or nil
+		return CatalogInfo.card(kind, id, def, { blurb = blurb, effects = effects, techName = techName, lock = lock })
 	end
 
 	-- R13: the built-buildings strip (sell affordance) sits above the catalog
@@ -644,7 +655,8 @@ local function refresh()
 			local def = rs.buildings[id]
 			if def ~= nil then
 				order += 1
-				addBuildingRow(order, id, def, (def.cost or 0) * ratio, city.soldThisTurn == true)
+				addBuildingRow(order, id, def, (def.cost or 0) * ratio, city.soldThisTurn == true,
+					cardFor("building", id, def, catalogText.effectText(def), nil))
 				canvasY += 32
 			end
 		end
@@ -673,7 +685,8 @@ local function refresh()
 					end
 				end
 				canvasY += addRow(order, group[1], id, def, lock, effects,
-					city.producing.kind == group[1] and city.producing.id == id)
+					city.producing.kind == group[1] and city.producing.id == id,
+					cardFor(group[1], id, def, effects, lock))
 			end
 		end
 	end

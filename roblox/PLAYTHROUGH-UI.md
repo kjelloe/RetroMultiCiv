@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 48 gates on tip
+- `roblox/check.sh` ALL GREEN — 49 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -129,8 +129,13 @@ items only if they block reading or tapping.
      a colour stripe by kind, the cost and a Q+ chip on the right, the
      item being built tinted green; worked tiles in the world
      (single-tap toggles a worked tile).
+     Hovering any row (0.35 s; long-press on touch) shows a card: name,
+     kind, the encyclopedia text, the effect, figures, what it requires.
+     The Barbarian Leader is never listed; an obsolete unit leaves the
+     list; in an inland city ships read "needs a coastal city".
    - Likely wrong: a long name running under the cost or the lock
-     reason; the queue strip at the bottom not appearing after Q+ (it
+     reason; on touch, the long-press both shows the card and picks the
+     row (the 0.5 s pick-and-close is older); the queue strip at the bottom not appearing after Q+ (it
      never showed before 2026-11-15: a variable was read before its
      declaration).
    - Likely wrong: worked-tile toggle not applying (it was rebuilt from
