@@ -30,7 +30,7 @@ anchor.Size = Vector3.new(0.2, 0.2, 0.2)
 anchor.Parent = world
 
 local bb = Instance.new("BillboardGui")
-bb.Size = UDim2.new(0, 340, 0, 40)
+bb.Size = UDim2.new(0, 380, 0, 46)
 bb.StudsOffset = Vector3.new(0, 6, 0)
 bb.AlwaysOnTop = true
 bb.Enabled = false
@@ -41,8 +41,8 @@ text.Size = UDim2.new(1, 0, 1, 0)
 text.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 text.BackgroundTransparency = 0.2
 text.TextColor3 = Color3.fromRGB(240, 220, 160)
-text.Font = Enum.Font.Code
-text.TextSize = 12
+text.Font = Enum.Font.GothamMedium
+text.TextSize = 14
 text.TextWrapped = true
 text.Parent = bb
 

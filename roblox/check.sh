@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -661,6 +661,22 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 47: lune absent"
+fi
+
+# gate 48 — statistics content (StatsView): rival cards carry only
+# view-derived counts (the fog rule), own card fields, wonders window, chart
+# dots inside the box, block layout; Statistics.client draws from it
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/stats-view.luau >/dev/null 2>&1 \
+     && grep -q 'StatsView.cards(view, rs, lastBattles)' roblox/src/client/Statistics.client.luau \
+     && grep -q 'StatsView.chartDots(lastSeries' roblox/src/client/Statistics.client.luau \
+     && ! grep -qE 'Enum.Font.(Code|SourceSans)' roblox/src/client/Statistics.client.luau; then
+    note PASS "gate 48: statistics cards, fog rule, chart, layout (lune) + Statistics wiring"
+  else
+    note FAIL "gate 48: statistics view — run: lune run roblox/selftest/stats-view.luau"
+  fi
+else
+  note SKIP "gate 48: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

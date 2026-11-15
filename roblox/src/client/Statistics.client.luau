@@ -17,70 +17,123 @@ gui.Enabled = false
 gui:SetAttribute("CloseByEnabled", true) -- PanelDress adds the X: this panel opens by gui.Enabled
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
+local StatsView = require(script.Parent:WaitForChild("StatsView"))
+
+-- 2026-11-15: civ cards (colour disc, name, tags, labelled figures, battle
+-- record), a wonders list and the score chart, in one scrolling body. What a
+-- card may show is decided in StatsView (the fog rule); this file only draws.
+local W = StatsView.W
+local INK = Color3.fromRGB(226, 231, 242)
+local MUTED = Color3.fromRGB(143, 155, 179)
+
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 460, 0, 200)
--- SO8 (ruling @d1ce4920): score-over-time chart drawn from the PULLED
--- world-public series ({t="stats"}); flat 3px dots per civ per column,
--- downsampled to <=88 columns. Requested on every J-expand, never pushed.
-local CHART_H = 110
-local chart = Instance.new("Frame")
-chart.Name = "Chart"
-chart.Size = UDim2.new(1, -16, 0, CHART_H)
-chart.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
-chart.BorderSizePixel = 0
-chart.Visible = false
-panel.Position = UDim2.new(0.5, -230, 0, 42)
+panel.Size = UDim2.new(0, W, 0, StatsView.HEAD_H + 120)
+panel.Position = UDim2.new(0.5, -W / 2, 0, 44)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-panel.BackgroundTransparency = 0.08
+panel.BackgroundTransparency = 0.05
 panel.BorderSizePixel = 0
 panel.Parent = gui
 
-local rows = Instance.new("Frame")
-rows.Size = UDim2.new(1, -16, 1, -12)
-rows.Position = UDim2.new(0, 8, 0, 6)
-rows.BackgroundTransparency = 1
-rows.Parent = panel
-local layout = Instance.new("UIListLayout")
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 2)
-layout.Parent = rows
-
-local function hexColor(hex)
-	local n = tonumber(string.sub(hex, 2), 16) or 0
-	return Color3.fromRGB(math.floor(n / 65536) % 256, math.floor(n / 256) % 256, n % 256)
+local function text(parent, x, y, w, h, size, font, color)
+	local l = Instance.new("TextLabel")
+	l.Position = UDim2.new(0, x, 0, y)
+	l.Size = UDim2.new(0, w, 0, h)
+	l.BackgroundTransparency = 1
+	l.Font = font or UiTheme.BODY_FONT
+	l.TextSize = size
+	l.TextColor3 = color or INK
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.Text = ""
+	l.Parent = parent
+	return l
+end
+local function round(inst, r)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r)
+	c.Parent = inst
+end
+local function civColor(hex)
+	return Color3.fromHex(Palette.displayColor(hex)) -- SO14
 end
 
-local function addRow(order, text, color, bold)
-	local holder = Instance.new("Frame")
-	holder.Size = UDim2.new(1, 0, 0, 18)
-	holder.LayoutOrder = order
-	holder.BackgroundTransparency = 1
-	holder.Parent = rows
-	if color ~= nil then
-		local chip = Instance.new("Frame")
-		chip.Size = UDim2.new(0, 12, 0, 12)
-		chip.Position = UDim2.new(0, 2, 0, 3)
-		chip.BorderSizePixel = 0
-		chip.BackgroundColor3 = color
-		chip.Parent = holder
-	end
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -20, 1, 0)
-	label.Position = UDim2.new(0, 20, 0, 0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.fromRGB(235, 235, 235)
-	label.Font = bold and Enum.Font.SourceSansBold or Enum.Font.Code
-	label.TextSize = bold and 15 or 13
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextTruncate = Enum.TextTruncate.AtEnd
-	label.Text = text
-	label.Parent = holder
-end
+local heading = text(panel, 14, 8, W - 70, 28, 22, UiTheme.FONT, Color3.fromRGB(240, 242, 248))
+heading.Name = "Heading"
+heading.Text = "Statistics"
+text(panel, 14, 36, W - 28, 18, 14, nil, MUTED).Text = "What your envoys can see. Rivals show only what is in your sight."
 
--- SO8: the last pulled battles/wonders tallies (world-public); refresh() folds
--- the per-civ battle record into its row + lists the wonders timeline.
+local body = Instance.new("ScrollingFrame")
+body.Name = "Body"
+body.Position = UDim2.new(0, 8, 0, StatsView.HEAD_H)
+body.Size = UDim2.new(1, -16, 0, 120)
+body.BackgroundTransparency = 1
+body.BorderSizePixel = 0
+body.ScrollBarThickness = 8
+body.Parent = panel
+local INNER = W - 16 - 12
+
+-- SO8: the last pulled series / battles / wonders (world-public, pulled on
+-- every expand, never pushed)
+local lastSeries = {}
 local lastBattles = {}
 local lastWonders = {}
+
+local function section(y, label, color)
+	local h = text(body, 6, y + 4, INNER, 20, 15, Enum.Font.GothamBold, color)
+	h.Text = label
+end
+
+local function drawCard(y, card)
+	local row = Instance.new("Frame")
+	row.Position = UDim2.new(0, 0, 0, y)
+	row.Size = UDim2.new(0, INNER, 0, StatsView.CARD_H)
+	row.BackgroundColor3 = card.you and Color3.fromRGB(46, 58, 82) or Color3.fromRGB(40, 48, 66)
+	row.BorderSizePixel = 0
+	row.Parent = body
+	round(row, 8)
+	local disc = Instance.new("Frame")
+	disc.Position = UDim2.new(0, 10, 0, 6)
+	disc.Size = UDim2.new(0, 16, 0, 16)
+	disc.BackgroundColor3 = civColor(card.color)
+	disc.BorderSizePixel = 0
+	disc.Parent = row
+	round(disc, 8)
+	local name = text(row, 34, 3, 0, 22, 16, Enum.Font.GothamBold)
+	name.AutomaticSize = Enum.AutomaticSize.X
+	name.TextTruncate = Enum.TextTruncate.None
+	name.Text = card.name
+	local tagX = 34 + math.min(190, #card.name * 10 + 12)
+	for _, tag in ipairs(card.tags) do
+		local chip = text(row, tagX, 4, 0, 20, 14, Enum.Font.GothamBold, Color3.fromRGB(18, 20, 28))
+		chip.AutomaticSize = Enum.AutomaticSize.X
+		chip.TextTruncate = Enum.TextTruncate.None
+		chip.BackgroundTransparency = 0
+		chip.BackgroundColor3 = tag == "You" and Color3.fromRGB(140, 196, 255) or Color3.fromRGB(170, 178, 196)
+		chip.Text = " " .. tag .. " "
+		round(chip, 10)
+		tagX += #tag * 9 + 18
+	end
+	if card.record ~= nil then
+		local rec = text(row, 0, 4, 150, 20, 14, Enum.Font.GothamBold)
+		rec.Position = UDim2.new(1, -160, 0, 4)
+		rec.TextXAlignment = Enum.TextXAlignment.Right
+		rec.RichText = true
+		rec.Text = ('Battles  <font color="#8fd17a">%d won</font>  <font color="#f0846c">%d lost</font>'):format(card.record.won, card.record.lost)
+	end
+	local bits = {}
+	for _, f in ipairs(card.facts) do
+		bits[#bits + 1] = ('<font color="#8f9bb3">%s</font> <b>%s</b>'):format(f.label, f.value)
+	end
+	if card.research ~= nil then
+		bits[#bits + 1] = ('<font color="#8f9bb3">Research</font> <b>%s</b>'):format(card.research)
+	elseif card.researchUnset then
+		bits[#bits + 1] = '<font color="#f0846c"><b>No research chosen</b></font>'
+	end
+	local facts = text(row, 34, 26, INNER - 44, 20, 14)
+	facts.RichText = true
+	facts.Text = table.concat(bits, "    ")
+end
 
 local function refresh()
 	local view = ClientState.view
@@ -88,114 +141,58 @@ local function refresh()
 		return
 	end
 	local rs = ClientState.rulesets()
-	for _, child in ipairs(rows:GetChildren()) do
-		if child:IsA("Frame") then
-			child:Destroy()
+	for _, child in ipairs(body:GetChildren()) do
+		child:Destroy()
+	end
+	local cards = StatsView.cards(view, rs, lastBattles)
+	local wonders = StatsView.wonderRows(lastWonders, view, rs)
+	local hasChart = #lastSeries >= 2
+	local plan = StatsView.layout(#cards, #wonders, hasChart)
+	for i, card in ipairs(cards) do
+		drawCard(plan.cardsY + (i - 1) * (StatsView.CARD_H + StatsView.CARD_GAP), card)
+	end
+	if plan.wondersY ~= nil then
+		section(plan.wondersY, "Wonders", Color3.fromRGB(255, 225, 130))
+		for i, w in ipairs(wonders) do
+			local y = plan.wondersY + StatsView.SECTION_H + (i - 1) * StatsView.WONDER_H
+			local line = text(body, 6, y, INNER - 12, 20, 14)
+			line.RichText = true
+			line.Text = ('<font color="#8f9bb3">T%d</font>   <b>%s</b>   <font color="#8f9bb3">built by</font> %s'):format(w.turn, w.name, w.owner)
 		end
 	end
-	addRow(0, "Statistics (J)  -  what your envoys can see", nil, true)
-	local order = 0
-	for _, pid in ipairs(view.playerOrder or {}) do
-		local p = view.players[pid]
-		if p ~= nil then
-			order += 1
-			local cities, units = 0, 0
-			for _, c in pairs(view.cities) do
-				if c.owner == pid then
-					cities += 1
-				end
-			end
-			for _, u in pairs(view.units) do
-				if u.owner == pid then
-					units += 1
-				end
-			end
-			-- R21 (unblocked by marker-0045: filterView passes stance for ALL
-			-- players — intentionally public, Civ1 showed leader personalities
-			-- openly): same authentic trait name the Lobby seat rows use
-			local stanceTag = p.stance == "builder" and " [Perfectionist]" or ""
-			local text
-			if pid == view.you then
-				-- engine default: unset government = despotism (run-4 fix)
-				local gov = rs.governments[p.government or "despotism"]
-				text = ("%s (you)%s - %d cities, %d units, gold %d, techs %d, %s%s"):format(
-					p.name, stanceTag, cities, units, p.gold or 0, #(p.techs or {}),
-					gov and gov.name or "?",
-					p.researching ~= nil
-						and (", researching " .. ((rs.techs[p.researching] or {}).name or p.researching))
-						or ", research UNSET")
-			else
-				text = ("%s%s - %d cities seen, %d units in sight%s"):format(
-					p.name, stanceTag, cities, units, p.human == true and " (human)" or "")
-			end
-				local b = lastBattles[pid]
-				if b ~= nil and (b.won ~= 0 or b.lost ~= 0) then
-					text = text .. (" · ⚔ %d-%d"):format(b.won or 0, b.lost or 0)
-				end
-				addRow(order, text, hexColor(Palette.displayColor(p.color or "#888888")))
-		end
-	end
-	-- SO8: the wonders timeline (last few world-public wonderBuilt, newest last)
-	if #lastWonders > 0 then
-		order += 1
-		addRow(order, "🏛 Wonders", nil, true)
-		local startAt = math.max(1, #lastWonders - 7)
-		for i = startAt, #lastWonders do
-			local w = lastWonders[i]
-			order += 1
-			local owner = w.owner ~= nil and view.players[w.owner] or nil
-			local rs2 = ClientState.rulesets()
-			local wname = (rs2.wonders[w.wonder] or {}).name or w.wonder
-			addRow(order, ("  T%d  %s — %s"):format(w.turn or 0, owner and owner.name or "?", wname))
-		end
-	end
-	panel.Size = UDim2.new(0, 460, 0, 40 + order * 20 + (chart.Visible and CHART_H + 12 or 0))
-	chart.Position = UDim2.new(0, 8, 0, 34 + order * 20)
-	chart.Parent = panel
-end
-
-local function drawChart(series)
-	chart:ClearAllChildren()
-	if #series < 2 or ClientState.view == nil then
-		chart.Visible = false
-		return
-	end
-	local view = ClientState.view
-	local maxScore = 1
-	for _, sm in ipairs(series) do
-		for _, sc in pairs(sm.scores) do
-			if sc > maxScore then
-				maxScore = sc
-			end
-		end
-	end
-	local cols = math.min(#series, 88)
-	local stepIdx = #series / cols
-	local w = 444
-	for _, pid in ipairs(view.playerOrder or {}) do
-		local p = view.players[pid]
-		local color = hexColor(Palette.displayColor((p ~= nil and p.color) or "#888888"))
-		for c = 1, cols do
-			local sm = series[math.max(1, math.floor(c * stepIdx))]
-			local sc = sm ~= nil and sm.scores[pid] or nil
-			if sc ~= nil then
+	if plan.chartY ~= nil then
+		section(plan.chartY, "Score over time", Color3.fromRGB(140, 196, 255))
+		local chart = Instance.new("Frame")
+		chart.Name = "Chart"
+		chart.Position = UDim2.new(0, 0, 0, plan.chartY + StatsView.SECTION_H)
+		chart.Size = UDim2.new(0, INNER, 0, StatsView.CHART_H)
+		chart.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+		chart.BorderSizePixel = 0
+		chart.Parent = body
+		round(chart, 6)
+		local maxScore = StatsView.maxScore(lastSeries)
+		for _, card in ipairs(cards) do
+			local color = civColor(card.color)
+			for _, d in ipairs(StatsView.chartDots(lastSeries, card.pid, INNER - 4, maxScore)) do
 				local dot = Instance.new("Frame")
 				dot.Size = UDim2.new(0, 4, 0, 3)
-				dot.Position = UDim2.new(0, math.floor((c - 1) / cols * w),
-					0, CHART_H - 4 - math.floor(sc / maxScore * (CHART_H - 8)))
+				dot.Position = UDim2.new(0, d.x, 0, d.y)
 				dot.BorderSizePixel = 0
 				dot.BackgroundColor3 = color
 				dot.Parent = chart
 			end
 		end
 	end
-	chart.Visible = true
-	refresh() -- resize the panel around the chart
+	body.Size = UDim2.new(1, -16, 0, plan.body)
+	body.CanvasSize = UDim2.new(0, 0, 0, plan.content)
+	panel.Size = UDim2.new(0, W, 0, plan.panelH)
 end
+
 ClientState.onStats(function(series, battles, wonders)
+	lastSeries = series or {}
 	lastBattles = battles or {}
 	lastWonders = wonders or {}
-	drawChart(series) -- draws the chart, then refresh() folds in battles/wonders
+	refresh()
 end)
 
 ClientState.onView(function()
@@ -217,8 +214,6 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			ClientState.panelOpened("stats") -- runI item 18: closes the city view
 			refresh()
 			ClientState.requestStats() -- SO8: pull the series on expand
-		else
-			chart.Visible = false
 		end
 	end
 end)

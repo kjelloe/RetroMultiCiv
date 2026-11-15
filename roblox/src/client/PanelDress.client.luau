@@ -22,7 +22,7 @@ local SKIP = {
 -- edge, so the name goes on a tab ABOVE the frame (nothing inside moves).
 local TAB_TITLE = {
 	RMCOptions = "Options", RMCDiplomacy = "Diplomacy", RMCTurnLog = "Turn log",
-	RMCStats = "Statistics", RMCCityPanel = "City", -- RMCLegend carries its own Heading since shot18
+	RMCCityPanel = "City", -- RMCStats too (2026-11-15), -- RMCLegend carries its own Heading since shot18
 	-- run-S log: the first row of these was taken for a heading and restyled
 	RMCOverlays = "Map overlays", RMCDebugMenu = "Debug",
 }

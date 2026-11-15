@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 47 gates on tip
+- `roblox/check.sh` ALL GREEN — 48 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -172,6 +172,17 @@ items only if they block reading or tapping.
       Diplomacy and Map overlays panels also open beside the column.
     - Likely wrong: a cap running into the text column; the last rows
       cut off under the panel edge.
+
+12c. **Statistics** 📷
+    - Tap: J (after a few turns, so the chart has samples).
+    - Expect: a "Statistics" panel top centre: one card per civ (colour
+      disc, name, You / Human / Perfectionist chips, labelled figures;
+      your own card adds Gold, Techs, Rule and Research, a rival card
+      shows only Cities seen and Units in sight), "Battles n won n lost"
+      at a card's right once it has fought, a Wonders list, then "Score
+      over time" with one dotted line per civ; an X closes it.
+    - Likely wrong: a long civ name running under its chips; with 14
+      civs the body must scroll, not grow past the screen.
 
 13. **Research + discovery moment** — Tier 1 📷
     - Tap: the research chip; pick a tech (or open the Tech Tree graph - boxes by level with dependency lines, scrolls sideways - and

@@ -38,7 +38,7 @@ needIn(clientState, 'ClientState.luau', 'msg.battles or {}', 'ClientState forwar
 needIn(clientState, 'ClientState.luau', 'msg.wonders or {}', 'ClientState forwards wonders');
 needIn(client, 'Statistics.client.luau', 'lastBattles', 'client stores battles');
 needIn(client, 'Statistics.client.luau', 'lastWonders', 'client stores wonders');
-needIn(client, 'Statistics.client.luau', '🏛 Wonders', 'client renders the wonders timeline');
+needIn(client, 'Statistics.client.luau', 'StatsView.wonderRows(lastWonders', 'client renders the wonders timeline');
 
 if (errs.length > 0) {
   for (const e of errs) console.error(e);

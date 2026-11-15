@@ -231,13 +231,13 @@ RunService.Heartbeat:Connect(function()
 		card.Parent = stackBar
 		-- CP20 (ruling @1e2f43eb): the sentry toggle lives ON the card
 		local zz = Instance.new("TextButton")
-		zz.Size = UDim2.new(0, 26, 0, 16)
-		zz.Position = UDim2.new(1, -28, 0, 2)
+		zz.Size = UDim2.new(0, 30, 0, 18)
+		zz.Position = UDim2.new(1, -32, 0, 2)
 		zz.BackgroundColor3 = ClientState.sentried[id] == true
 			and Color3.fromRGB(90, 90, 150) or Color3.fromRGB(40, 44, 58)
 		zz.TextColor3 = Color3.fromRGB(200, 210, 235)
-		zz.Font = Enum.Font.SourceSansBold
-		zz.TextSize = 12
+		zz.Font = Enum.Font.GothamBold
+		zz.TextSize = 14
 		zz.Text = "Zz"
 		zz.Parent = card
 		local zc = Instance.new("UICorner")
@@ -251,13 +251,13 @@ RunService.Heartbeat:Connect(function()
 		-- CP20 (ruling @6679e9c0): settlers also get an Au automation toggle
 		if def ~= nil and u.type == "settlers" then
 			local au = Instance.new("TextButton")
-			au.Size = UDim2.new(0, 26, 0, 16)
-			au.Position = UDim2.new(1, -56, 0, 2)
+			au.Size = UDim2.new(0, 30, 0, 18)
+			au.Position = UDim2.new(1, -64, 0, 2)
 			au.BackgroundColor3 = ClientState.autoSettlers[id] == true
 				and Color3.fromRGB(70, 130, 90) or Color3.fromRGB(40, 44, 58)
 			au.TextColor3 = Color3.fromRGB(210, 235, 215)
-			au.Font = Enum.Font.SourceSansBold
-			au.TextSize = 12
+			au.Font = Enum.Font.GothamBold
+			au.TextSize = 14
 			au.Text = "Au"
 			au.Parent = card
 			local ac = Instance.new("UICorner")

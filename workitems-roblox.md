@@ -224,7 +224,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19s. shot18 [done: 2026-11-15 — Legend rebuilt as a Controls panel from `LegendData` (key caps, three sections; gate 46: every bound key documented or exempt); Turn log filter chips from `TurnLogView.chipLayout` (the six emoji headers collided), rows with a coloured kind word, reading face (gate 47); Turn log / Legend / Diplomacy / Map overlays panels open beside the button column instead of over it. gamesim-golden-neutral]
 
-## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); T2b skirt corner fills (wants a close shot of a hill beside lower land); two-player civ pick contention; owner paths on a published server.
+## 19t. Statistics [done: 2026-11-15 — panel rebuilt from `StatsView` (civ cards with labelled figures and battle record, wonders list, captioned score chart, scrolls past 460 px); the fog rule is pinned by gate 48; Zz / Au chips and the odds label raised to 14 px. gamesim-golden-neutral]
+
+## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: Statistics, Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); T2b skirt corner fills (wants a close shot of a hill beside lower land); two-player civ pick contention; owner paths on a published server.
 
 ---
 

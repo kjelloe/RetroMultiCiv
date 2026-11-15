@@ -1050,7 +1050,11 @@ seat/reset flow; JS engine untouched). Delivered:
   tag, escaped body; the narrator strings themselves are unchanged, so
   the browser parity gates 17 / 22 / 28 / 29 hold); gate 47. The four
   bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
-  at x = 206, beside the 190 px button column, not over it. `TechInfo.luau` = the one tech text builder (tree hover card
+  at x = 206, beside the 190 px button column, not over it.
+  Statistics (J): civ cards + wonders + score chart in one scrolling
+  body; what a card may carry is decided in `StatsView.card` (the fog
+  rule: a rival card = cities seen + units in sight, nothing else), gate
+  48. Unit card Zz / Au chips and the combat odds label are 14 px. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis
