@@ -48,7 +48,7 @@ for what the tour does not open (lobby, gallery, end screen, replay).
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 56 gates on tip
+- `roblox/check.sh` ALL GREEN — 57 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -221,9 +221,13 @@ for what the tour does not open (lobby, gallery, end screen, replay).
 13. **Research + discovery moment** — Tier 1 📷
     - Tap: the research chip; pick a tech (or open the Tech Tree graph - boxes by level with dependency lines, scrolls sideways - and
       set a beeline goal); end turns until it lands.
-    - Expect: picker lists techs with turn costs; on completion the
-      DISCOVERY CARD presents the tech with its procedural glyph and
-      blurb; dismiss returns play.
+    - Expect: picker lists techs with turn costs; on completion a
+      DISCOVERY SPLASH: the map dims and a centred card shows "ADVANCE
+      DISCOVERED", the name on an era-coloured band, the encyclopedia
+      text, chips for every new unit / building / wonder (a click opens
+      that encyclopedia entry), "You can now research ...", and Choose
+      research / Encyclopedia / Continue. It stays until you press one.
+      Under the AI regent it leaves by itself after 7 s.
     - Likely wrong: the discovery card appearing during the AI round
       instead of at your turn start (event-order bug), or a glyph
       rendering as a blank frame.

@@ -90,39 +90,22 @@ local TECH_BLURBS = {
 	["writing"] = "Words can now travel across time and distance without changing. Records give rulers, merchants, and scholars a longer memory.",
 }
 
-local AUTO_S = 6
+local DiscoveryView = require(script.Parent:WaitForChild("DiscoveryView"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCDiscoveryCard"
 gui.ResetOnSpawn = false
+gui.DisplayOrder = 25 -- above the panels, below the tour caption
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local queue = {}
-local card = nil
+local card = nil -- the splash's root (backdrop) while one is up
 local cardGen = 0
-
-local function unlocksOf(rs, techId)
-	local out = {}
-	for _, pair in ipairs({ { "units", rs.units }, { "buildings", rs.buildings }, { "wonders", rs.wonders } }) do
-		local cat, tbl = pair[1], pair[2]
-		local ids = {}
-		for id in pairs(tbl) do
-			table.insert(ids, id)
-		end
-		table.sort(ids)
-		for _, id in ipairs(ids) do
-			if tbl[id].tech == techId then
-				table.insert(out, { cat = cat, id = id, name = tbl[id].name or id })
-			end
-		end
-	end
-	return out
-end
 
 -- the tech tree's hover card reads the same text and unlock list (a
 -- LocalScript cannot be required; ClientState is the shared table)
 ClientState.techBlurbs = TECH_BLURBS
-ClientState.techUnlocks = unlocksOf
+ClientState.techUnlocks = DiscoveryView.unlocks
 
 local pump -- forward: close() pumps the queue
 
@@ -135,147 +118,209 @@ local function close()
 	pump()
 end
 
+local function label(parent, y, h, size, font, color, text)
+	local l = Instance.new("TextLabel")
+	l.Position = UDim2.new(0, DiscoveryView.PAD, 0, y)
+	l.Size = UDim2.new(1, -2 * DiscoveryView.PAD, 0, h)
+	l.BackgroundTransparency = 1
+	l.Font = font
+	l.TextSize = size
+	l.TextColor3 = color
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.TextYAlignment = Enum.TextYAlignment.Top
+	l.TextWrapped = true
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+local function round(inst, r)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r)
+	c.Parent = inst
+end
+local function measure(text, size, font, width)
+	local ok, v = pcall(function()
+		return TextService:GetTextSize(text, size, font, Vector2.new(width, 2000))
+	end)
+	return ok and (v.Y + 4) or (math.ceil(#text * size * 0.55 / width) * (size + 4) + 4)
+end
+
+-- user, 2026-11-15: "a bigger splash screen and panel with what has just been
+-- invented, with info from the pedia". A dimmed backdrop and a centred card:
+-- era band with the badge, the name, the encyclopedia text, everything the
+-- advance lets you build as chips that open their encyclopedia entry, what
+-- it opens next, and Choose research / Encyclopedia / Continue. It stays up
+-- until dismissed; only under the AI regent does it time out.
 local function show(techId)
 	local view = ClientState.view
 	local rs = ClientState.rulesets()
-	local def = rs.techs[techId]
-	if view == nil or def == nil then
+	local me = view ~= nil and view.players[view.you] or nil
+	local m = view ~= nil and DiscoveryView.model(techId, rs, me, TECH_BLURBS[techId], ClientState.away == true) or nil
+	if m == nil then
 		pump()
 		return
 	end
-	local blurb = TECH_BLURBS[techId]
-	local unlocks = unlocksOf(rs, techId)
-	local me = view.players[view.you]
-	local wantsResearch = false
-	if me ~= nil and (me.researching == "" or me.researching == nil) then
-		local ok, avail = pcall(techModule.availableTechs,
-			{ players = { [view.you] = me } }, view.you, rs)
-		wantsResearch = ok and #avail > 0
-	end
+	local W, PAD = DiscoveryView.W, DiscoveryView.PAD
+	local INNER = W - 2 * PAD
+	local eraCol = TechGlyphs.colorOf(m.era)
 
-	local shownUnlocks = math.min(#unlocks, 3)
-	local W = math.min(540, math.max(280, math.floor(gui.AbsoluteSize.X) - 16)) -- run-R (user): reading-size copy; height follows the content
+	local backdrop = Instance.new("TextButton") -- swallows clicks meant for the map
+	backdrop.Name = "Splash"
+	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.BackgroundColor3 = Color3.fromRGB(6, 8, 14)
+	backdrop.BackgroundTransparency = 0.45
+	backdrop.AutoButtonColor = false
+	backdrop.Text = ""
+	backdrop.Parent = gui
+	card = backdrop
 
-	card = Instance.new("TextButton") -- whole card click = dismiss
-	card.Size = UDim2.new(0, W, 0, 40)
-	card.Position = UDim2.new(0.5, -W / 2, 0.12, 0)
-	card.BackgroundColor3 = Color3.fromRGB(26, 30, 44)
-	card.BackgroundTransparency = 0.05
-	card.Text = ""
-	card.AutoButtonColor = false
-	card.Parent = gui
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
-	corner.Parent = card
-	-- CP-art (glyphs fallback b): the card wears its tech's ERA colour
-	local eraCol = TechGlyphs.colorOf(def.era or "ancient")
+	local box = Instance.new("Frame")
+	box.Name = "Card"
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.Position = UDim2.fromScale(0.5, 0.48)
+	box.BackgroundColor3 = Color3.fromRGB(26, 30, 44)
+	box.BorderSizePixel = 0
+	box.Parent = backdrop
+	round(box, 14)
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = eraCol.edge
-	stroke.Transparency = 0.4
-	stroke.Thickness = 2
-	stroke.Parent = card
+	stroke.Thickness = 3
+	stroke.Parent = box
+	-- larger screens get a larger card; a small screen cuts it to fit
+	local scale = Instance.new("UIScale")
+	scale.Parent = box
 
-	local y = 8
-	local head = Instance.new("TextLabel")
-	head.Size = UDim2.new(1, -24, 0, 30)
-	head.Position = UDim2.new(0, 12, 0, y)
-	head.BackgroundTransparency = 1
-	head.RichText = true
-	head.TextColor3 = eraCol.ink
-	head.Font = UiTheme.FONT
-	head.TextSize = 24
-	head.TextXAlignment = Enum.TextXAlignment.Left
-	head.Text = ("%s  <font size=\"16\" color=\"#9db2c8\">%s</font>"):format(def.name or techId, def.era or "")
-	head.Parent = card
-	y += 36
+	local band = Instance.new("Frame")
+	band.Size = UDim2.new(1, 0, 0, 92)
+	band.BackgroundColor3 = eraCol.fill
+	band.BorderSizePixel = 0
+	band.Parent = box
+	round(band, 14)
+	local badge = TechGlyphs.badge(band, m.era, 56)
+	badge.Position = UDim2.new(0, PAD, 0, 18)
+	local kicker = label(band, 14, 18, 15, Enum.Font.GothamBold, eraCol.ink,
+		m.future and "BEYOND THE KNOWN TREE" or "ADVANCE DISCOVERED")
+	kicker.Position = UDim2.new(0, PAD + 72, 0, 14)
+	kicker.Size = UDim2.new(1, -(2 * PAD + 72), 0, 18)
+	local name = label(band, 32, 40, 34, UiTheme.FONT, Color3.fromRGB(250, 250, 250), m.name)
+	name.Name = "Heading"
+	name.Position = UDim2.new(0, PAD + 72, 0, 32)
+	name.Size = UDim2.new(1, -(2 * PAD + 72), 0, 40)
+	name.TextWrapped = false
+	name.TextTruncate = Enum.TextTruncate.AtEnd
+	local era = label(band, 70, 16, 14, Enum.Font.GothamMedium, eraCol.ink, (TechGlyphs.ERA_NAME[m.era] or "") .. " ERA")
+	era.Position = UDim2.new(0, PAD + 72, 0, 70)
+	era.Size = UDim2.new(1, -(2 * PAD + 72), 0, 16)
 
-	if blurb ~= nil then
-		local b = Instance.new("TextLabel")
-		local okSize, measured = pcall(function()
-			return TextService:GetTextSize(blurb, UiTheme.TEXT.body, UiTheme.BODY_FONT, Vector2.new(W - 24, 1000))
-		end)
-		local bh = okSize and (measured.Y + 4) or 66
-		b.Size = UDim2.new(1, -24, 0, bh)
-		b.Position = UDim2.new(0, 12, 0, y)
-		b.BackgroundTransparency = 1
-		b.TextColor3 = Color3.fromRGB(220, 226, 238)
-		b.Font = UiTheme.BODY_FONT
-		b.TextSize = UiTheme.TEXT.body
-		b.TextWrapped = true
-		b.TextXAlignment = Enum.TextXAlignment.Left
-		b.TextYAlignment = Enum.TextYAlignment.Top
-		b.Text = blurb
-		b.Parent = card
-		y += bh + 6
+	local y = 92 + 14
+	if m.blurb ~= nil then
+		local h = measure(m.blurb, 18, UiTheme.BODY_FONT, INNER)
+		label(box, y, h, 18, UiTheme.BODY_FONT, Color3.fromRGB(226, 231, 242), m.blurb)
+		y += h + 12
 	end
-
-	for i = 1, shownUnlocks do
-		local u = unlocks[i]
-		local link = Instance.new("TextButton")
-		link.Size = UDim2.new(1, -24, 0, 30)
-		link.Position = UDim2.new(0, 12, 0, y)
-		link.BackgroundColor3 = Color3.fromRGB(40, 52, 70)
-		link.TextColor3 = Color3.fromRGB(180, 220, 255)
-		link.Font = UiTheme.BODY_FONT
-		link.TextSize = 16
-		link.TextXAlignment = Enum.TextXAlignment.Left
-		link.Text = "  unlocks: " .. u.name .. "  (pedia)"
-		link.Parent = card
-		local lc = Instance.new("UICorner")
-		lc.CornerRadius = UDim.new(0, 6)
-		lc.Parent = link
-		link.Activated:Connect(function()
-			close()
-			ClientState.openPedia(u.cat, u.id)
-		end)
-		y += 34
-	end
-	if #unlocks > shownUnlocks then
-		local more = Instance.new("TextLabel")
-		more.Size = UDim2.new(1, -24, 0, 20)
-		more.Position = UDim2.new(0, 12, 0, y)
-		more.BackgroundTransparency = 1
-		more.TextColor3 = Color3.fromRGB(150, 160, 175)
-		more.Font = UiTheme.BODY_FONT
-		more.TextSize = UiTheme.TEXT.small
-		more.TextXAlignment = Enum.TextXAlignment.Left
-		more.Text = ("  +%d more in the Pedia"):format(#unlocks - shownUnlocks)
-		more.Parent = card
+	local function section(text, color)
+		label(box, y, 18, 14, Enum.Font.GothamBold, color, text)
 		y += 22
 	end
-	if wantsResearch then
-		local r = Instance.new("TextLabel")
-		r.Size = UDim2.new(1, -24, 0, 24)
-		r.Position = UDim2.new(0, 12, 0, y)
-		r.BackgroundTransparency = 1
-		r.TextColor3 = Color3.fromRGB(255, 220, 120)
-		r.Font = UiTheme.FONT
-		r.TextSize = UiTheme.TEXT.body
-		r.TextXAlignment = Enum.TextXAlignment.Left
-		r.Text = "Choose new research - press T or the Research button"
-		r.Parent = card
-		y += 26
+	local function chips(items, color)
+		local names = {}
+		for i, it in ipairs(items) do
+			names[i] = it.name
+		end
+		local lay = DiscoveryView.chipLayout(names, INNER)
+		for _, c in ipairs(lay.chips) do
+			local it = items[c.i]
+			local b = Instance.new("TextButton")
+			b.Name = "Unlock"
+			b.Position = UDim2.new(0, PAD + c.x, 0, y + c.y)
+			b.Size = UDim2.new(0, c.w, 0, DiscoveryView.CHIP_H)
+			b.BackgroundColor3 = Color3.fromRGB(44, 54, 76)
+			b.TextColor3 = color
+			b.Font = Enum.Font.GothamBold
+			b.TextSize = 15
+			b.TextTruncate = Enum.TextTruncate.AtEnd
+			b.Text = it.name
+			b.Parent = box
+			round(b, 8)
+			b.Activated:Connect(function()
+				close()
+				ClientState.openPedia(it.cat, it.id) -- the full entry
+			end)
+		end
+		y += lay.height + 10
 	end
-	local hint = Instance.new("TextLabel")
-	hint.Size = UDim2.new(1, -24, 0, 18)
-	hint.Position = UDim2.new(0, 12, 0, y)
-	hint.BackgroundTransparency = 1
-	hint.TextColor3 = Color3.fromRGB(130, 140, 155)
-	hint.Font = UiTheme.BODY_FONT
-	hint.TextSize = UiTheme.TEXT.small
-	hint.TextXAlignment = Enum.TextXAlignment.Left
-	hint.Text = "click to dismiss"
-	hint.Parent = card
-	card.Size = UDim2.new(0, W, 0, y + 24)
+	if m.empty then
+		label(box, y, 20, 15, UiTheme.BODY_FONT, Color3.fromRGB(143, 155, 179),
+			"Nothing new to build yet: this advance opens the way to others.")
+		y += 28
+	end
+	for _, g in ipairs(m.groups) do
+		section(("NEW %s (click one for its encyclopedia entry)"):format(g.label:upper()), Color3.fromHex(g.color))
+		chips(g.items, Color3.fromHex(g.color))
+	end
+	if #m.governments > 0 then
+		section("NEW FORM OF GOVERNMENT", Color3.fromRGB(201, 168, 255))
+		label(box, y, 22, 17, Enum.Font.GothamBold, Color3.fromRGB(226, 231, 242), table.concat(m.governments, ", "))
+		y += 30
+	end
+	if #m.nowOpen > 0 then
+		section("YOU CAN NOW RESEARCH", Color3.fromRGB(143, 209, 122))
+		local text = table.concat(m.nowOpen, ", ")
+		local h = measure(text, 16, UiTheme.BODY_FONT, INNER)
+		label(box, y, h, 16, UiTheme.BODY_FONT, Color3.fromRGB(226, 231, 242), text)
+		y += h + 8
+	end
+	if #m.leadsTo > 0 then
+		section("LATER, WITH OTHER ADVANCES", Color3.fromRGB(143, 155, 179))
+		local text = table.concat(m.leadsTo, ", ")
+		local h = measure(text, 16, UiTheme.BODY_FONT, INNER)
+		label(box, y, h, 16, UiTheme.BODY_FONT, Color3.fromRGB(190, 198, 214), text)
+		y += h + 8
+	end
 
-	card.Activated:Connect(close)
+	y += 6
+	local buttons = DiscoveryView.buttons(m)
+	local bw, gap = 180, 10
+	local x = W - PAD - (#buttons * bw + (#buttons - 1) * gap)
+	for _, def in ipairs(buttons) do
+		local b = Instance.new("TextButton")
+		b.Name = "Do_" .. def.id
+		b.Position = UDim2.new(0, x, 0, y)
+		b.Size = UDim2.new(0, bw, 0, 42)
+		b.BackgroundColor3 = UiTheme.COLOR[def.color]
+		b.TextColor3 = Color3.fromRGB(250, 250, 250)
+		b.Font = UiTheme.FONT
+		b.TextSize = 18
+		b.Text = def.label
+		b.Parent = box
+		UiTheme.apply(b, { color = def.color, radius = 10 })
+		b.Activated:Connect(function()
+			close()
+			if def.id == "research" then
+				ClientState.openResearch()
+			elseif def.id == "pedia" then
+				ClientState.openPedia("techs", m.id)
+			end
+		end)
+		x += bw + gap
+	end
+	y += 42 + PAD
+	box.Size = UDim2.new(0, W, 0, y)
+	local cam = workspace.CurrentCamera
+	local v = cam ~= nil and cam.ViewportSize or Vector2.new(1280, 720)
+	scale.Scale = math.clamp(math.min((v.X - 24) / W, (v.Y - 80) / y, v.Y / 720 * 1.1), 0.5, 1.5)
+
 	cardGen += 1
 	local gen = cardGen
-	task.delay(AUTO_S, function()
-		if gen == cardGen and card ~= nil then
-			close()
-		end
-	end)
+	if m.auto ~= nil then
+		task.delay(m.auto, function()
+			if gen == cardGen and card ~= nil then
+				close()
+			end
+		end)
+	end
+	print(("[DiscoveryCard] splash: %s (%d to build, %d now open%s)"):format(m.name, #DiscoveryView.unlocks(rs, m.id),
+		#m.nowOpen, m.auto ~= nil and ", auto-dismiss" or ""))
 end
 
 pump = function()
@@ -294,7 +339,26 @@ ClientState.onEvents(function(events, view)
 			table.insert(queue, e.tech)
 		end
 	end
+	-- under the regent a long queue would play for minutes: keep the newest two
+	while ClientState.away == true and #queue > 2 do
+		table.remove(queue, 1)
+	end
 	pump()
 end)
 
-print("[DiscoveryCard] SO3 tech-discovery card up (options.discoveryCards mutes)")
+-- UI tour: show the splash for an advance the player knows (or Alphabet)
+ClientState.registerPanel("discovery", function()
+	return card ~= nil and card:FindFirstChild("Card") or nil
+end, function()
+	local view = ClientState.view
+	local me = view ~= nil and view.players[view.you] or nil
+	local known = me ~= nil and me.techs or {}
+	close()
+	queue = {}
+	show(known[#known] or "alphabet")
+end, function()
+	queue = {}
+	close()
+end)
+
+print("[DiscoveryCard] discovery splash up (options.discoveryCards mutes; stays until dismissed)")

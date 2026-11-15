@@ -1113,7 +1113,16 @@ seat/reset flow; JS engine untouched). Delivered:
   same refusal). Now passed at the top level; `assemble.js` tries
   debug true / false the same way. Studio games are debug-ENABLED from
   here on: the initial hash differs from a published game with the same
-  seed, and the DEBUG mark appears only after a debug command is used. `TechInfo.luau` = the one tech text builder (tree hover card
+  seed, and the DEBUG mark appears only after a debug command is used.
+  DISCOVERY SPLASH (user, 2026-11-15): `DiscoveryCard.client.luau` now
+  draws a centred card on a dimmed backdrop from `DiscoveryView.model`:
+  era band + badge, "ADVANCE DISCOVERED", name, the encyclopedia text,
+  everything the advance lets you build as chips (each opens its
+  encyclopedia entry), new government, "you can now research" vs
+  "later, with other advances", buttons Choose research / Encyclopedia /
+  Continue. It stays until dismissed; only while the regent holds the
+  seat does it time out (7 s, newest two of a queue). Tour stop
+  `discovery`; gate 57. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

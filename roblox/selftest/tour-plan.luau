@@ -83,6 +83,7 @@ check("several findings are all reported", #f == 4, #f)
 
 -- lines
 check("pass line", T.line(3, 18, { id = "cities" }, {}) == "[RMC-TOUR] 03/18 cities PASS")
+check("the discovery splash is toured", toured.RMCDiscoveryCard == true)
 check("fail line", T.line(3, 18, { id = "cities" }, { "a", "b" }) == "[RMC-TOUR] 03/18 cities FAIL a; b")
 check("skip line", T.line(4, 18, { id = "city" }, {}, "no city yet") == "[RMC-TOUR] 04/18 city SKIP no city yet")
 local pass, fail, skip, line = T.summary({ { id = "a", findings = {} }, { id = "b", findings = { "x" } }, { id = "c", findings = {}, skipped = "why" } })

@@ -238,6 +238,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19z. Run A findings [done: 2026-11-15 — tour 18/18, 0 DIAG FAIL; fixed: `debug` passed inside `options` at game creation (engine reads the top level), so Studio games were never debug-enabled and all debug commands were refused; same fix in `roblox/acceptance/assemble.js`; tour reports refused staging. gamesim-golden-neutral]
 
+## 19za. Discovery splash [done: 2026-11-15 — user: a discovery needs a bigger splash with the encyclopedia information. `DiscoveryView.luau` (content: unlock chips, now-open vs later, research prompt, regent-only timeout; gate 57) + `DiscoveryCard.client.luau` redrawn as a centred card on a dimmed backdrop; tour stop `discovery`. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

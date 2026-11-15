@@ -83,7 +83,7 @@ res-05 | yes | client/GovernmentPanel.client.luau | type = "setGovernment" |
 res-06 | yes | client/TechTree.client.luau | Layout.layout(techs) |
 res-07 | yes | client/Beeline.luau | return M |
 res-08 | partial | client/TechTree.client.luau | Beeline | the goal clears when reached; no note
-res-09 | yes | client/DiscoveryCard.client.luau | tech-discovery card |
+res-09 | yes | client/DiscoveryCard.client.luau | ADVANCE DISCOVERED |
 res-10 | yes | client/TechGlyphs.luau | return M |
 res-11 | yes | client/DiscoveryCard.client.luau | techBlurbs |
 ov-01 | partial | client/CityList.client.luau | Click a city to go there and open it. | population, build and progress per city; no yields, upkeep or specialists columns

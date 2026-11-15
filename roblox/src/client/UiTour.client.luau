@@ -150,6 +150,13 @@ local function run()
 			local view = ClientState.view
 			local skipped, findings = nil, {}
 			local reg = stop.panel ~= nil and ClientState.tourPanels[stop.panel] or nil
+			-- a surface built on demand registers a function that finds its root
+			local function rootOf()
+				if reg == nil then
+					return nil
+				end
+				return type(reg.root) == "function" and reg.root() or reg.root
+			end
 			if stop.needsCity and ownCity(view) == nil then
 				skipped = "no city yet (found one, then run the tour again)"
 			elseif stop.always then
@@ -172,7 +179,7 @@ local function run()
 				elseif stop.hover then
 					-- show the first catalog row's card and judge the card itself
 					local row = nil
-					for _, d in ipairs(reg.root:GetDescendants()) do
+					for _, d in ipairs(rootOf():GetDescendants()) do
 						if d:IsA("TextButton") and d.Parent:IsA("ScrollingFrame") then
 							row = d
 							break
@@ -191,8 +198,9 @@ local function run()
 						end
 					end
 				else
-					local visible = shown(reg.root, reg.root)
-					findings = TourPlan.judge(stop, visible and rectOf(reg.root) or nil, viewport(), itemsOf(reg.root))
+					local root = rootOf()
+					local visible = root ~= nil and shown(root, root)
+					findings = TourPlan.judge(stop, visible and rectOf(root) or nil, viewport(), visible and itemsOf(root) or {})
 				end
 				task.wait(TourPlan.HOLD)
 				Tooltip.hide()

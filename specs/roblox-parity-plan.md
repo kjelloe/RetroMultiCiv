@@ -91,6 +91,12 @@ surface adds its tour stop and its parity row in the same commit.
 Also built: gate 55, no top-level local read above its declaration (the
 bug class behind the city panel's missing queue strip).
 
+### Added 2026-11-15 (user): discovery splash - BUILT (gate 57)
+The discovery card was a 540 px strip that left after 6 s. It is now a
+centred splash with the encyclopedia text and everything the advance
+unlocks; see roblox/SPEC.md. Tour stop `discovery`. Follow-up in step
+5.4: the same splash for a completed wonder.
+
 ### Step 1: the city screen (scenario S03; most time is spent here)
 1.1 Specialist buttons (entertainer to taxman / scientist) and reset.
 1.2 Previous city next to "next city".
