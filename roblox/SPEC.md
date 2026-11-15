@@ -1041,7 +1041,16 @@ seat/reset flow; JS engine untouched). Delivered:
   `paintQueue` and read there as a nil global - the queue strip never
   showed; declared first now. A toast carries attribute `Transient` and
   is skipped by the DiagAudit overlap check (it was the one DIAG FAIL
-  of that session). `TechInfo.luau` = the one tech text builder (tree hover card
+  of that session). shot18: Legend = "Controls" panel from
+  `LegendData.luau` (sections, key caps via `capLayout`, text column at
+  `KEY_COL`); gate 46 fails when a key bound anywhere in `src/client` is
+  in no legend row and not in `LegendData.EXEMPT`. Turn log: filter
+  chips placed by `TurnLogView.chipLayout` (wrap, never overlap), rows
+  = `TurnLogView.rowText` (turn, kind word from the narrator's bracket
+  tag, escaped body; the narrator strings themselves are unchanged, so
+  the browser parity gates 17 / 22 / 28 / 29 hold); gate 47. The four
+  bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
+  at x = 206, beside the 190 px button column, not over it. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -628,6 +628,39 @@ if grep -q 'msg.t == "pickCiv"' roblox/src/server/GameServer.server.luau \
   note PASS "gate 45: civ pick wiring, panel close X, shared tech info, half-height hills, reading face, no text under 14 px in the new panels (grep pins)"
 else
   note FAIL "gate 45: run-S wiring pins — civ pick / PanelClose / tech hover card"
+fi
+
+# gate 46 — controls legend (LegendData): every key the client binds is in a
+# legend row or EXEMPT with a reason, no row names an unbound key, caps and
+# text fit their columns; Legend.client draws from it
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/legend.luau >/dev/null 2>&1 \
+     && grep -q 'LegendData.capLayout(row)' roblox/src/client/Legend.client.luau \
+     && grep -q 'heading.Name = "Heading"' roblox/src/client/Legend.client.luau \
+     && ! grep -q 'Enum.Font.Code' roblox/src/client/Legend.client.luau; then
+    note PASS "gate 46: legend covers every bound key, caps fit (lune) + Legend wiring"
+  else
+    note FAIL "gate 46: legend — run: lune run roblox/selftest/legend.luau"
+  fi
+else
+  note SKIP "gate 46: lune absent"
+fi
+
+# gate 47 — turn log presentation (TurnLogView): filter chips never overlap at
+# any width, a chip per filter class, a shown word per narrator tag, escaped
+# RichText rows; TurnLog.client places chips from the layout
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/turnlog-view.luau >/dev/null 2>&1 \
+     && grep -q 'TurnLogView.chipLayout(classIds, STRIP_W)' roblox/src/client/TurnLog.client.luau \
+     && grep -q 'TurnLogView.rowText(turn, text)' roblox/src/client/TurnLog.client.luau \
+     && ! grep -q 'Enum.Font.Code' roblox/src/client/TurnLog.client.luau \
+     && [ "$(grep -l 'panel.Position = UDim2.new(0, 206, 1,' roblox/src/client/TurnLog.client.luau roblox/src/client/Legend.client.luau roblox/src/client/Diplomacy.client.luau roblox/src/client/Overlays.client.luau | wc -l)" = 4 ]; then
+    note PASS "gate 47: turn log chips and rows (lune) + TurnLog wiring; left-column panels stand beside the buttons"
+  else
+    note FAIL "gate 47: turn log view — run: lune run roblox/selftest/turnlog-view.luau"
+  fi
+else
+  note SKIP "gate 47: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

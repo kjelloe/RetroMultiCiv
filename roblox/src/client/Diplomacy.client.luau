@@ -41,7 +41,7 @@ end
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
 panel.Size = UDim2.new(0, 360, 0, 200)
-panel.Position = UDim2.new(0, 8, 1, -340)
+panel.Position = UDim2.new(0, 206, 1, -256) -- beside the 190 px button column (it sat over the buttons), above the action bar
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0

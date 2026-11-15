@@ -10,6 +10,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local TurnLogClasses = require(script.Parent:WaitForChild("TurnLogClasses"))
+local TurnLogView = require(script.Parent:WaitForChild("TurnLogView"))
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 
 local MAX_ROWS = 150
 
@@ -25,7 +27,7 @@ toggle.Position = UDim2.new(0, 8, 1, -48) -- run-M: the stack sat 8 px below the
 toggle.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 toggle.BackgroundTransparency = 0.25
 toggle.TextColor3 = Color3.fromRGB(235, 235, 235)
-toggle.Font = Enum.Font.Code
+toggle.Font = Enum.Font.GothamBold
 toggle.TextSize = 18
 toggle.TextXAlignment = Enum.TextXAlignment.Left
 toggle.Text = "  Turn log (L)"
@@ -38,12 +40,17 @@ do -- session-E: big rounded buttons (CLOSE CITY VIEW as the template)
 	c.Parent = toggle
 end
 
+-- shot18 (user): the filter headers ran into each other (six emoji labels
+-- in 62 px buttons). The panel is wider and sits beside the button column;
+-- the filters are chips placed by TurnLogView.chipLayout (they wrap, never
+-- overlap), and each line shows turn, a coloured kind word, then the text.
+local W, H = 560, 260
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 400, 0, 220)
-panel.Position = UDim2.new(0, 8, 1, -276)
+panel.Size = UDim2.new(0, W, 0, H)
+panel.Position = UDim2.new(0, 206, 1, -(H + 56)) -- right of the 190 px button column, above the action bar
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-panel.BackgroundTransparency = 0.15
+panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = gui
@@ -51,33 +58,32 @@ panel.Parent = gui
 -- SO6 class-filter strip: one toggle per LOG_CLASS ('world' has no toggle —
 -- always shown). Enabled classes start all-on; toggling re-applies visibility.
 local filterEnabled = {}
+local classIds = {}
 for _, c in ipairs(TurnLogClasses.LOG_CLASSES) do
 	filterEnabled[c.id] = true
+	classIds[#classIds + 1] = c.id
 end
 
+local STRIP_W = W - 16
+local chipPlan = TurnLogView.chipLayout(classIds, STRIP_W)
 local strip = Instance.new("Frame")
 strip.Name = "FilterStrip"
-strip.Size = UDim2.new(1, -8, 0, 22)
-strip.Position = UDim2.new(0, 4, 0, 4)
+strip.Size = UDim2.new(0, STRIP_W, 0, chipPlan.height)
+strip.Position = UDim2.new(0, 8, 0, 8)
 strip.BackgroundTransparency = 1
 strip.Parent = panel
-do
-	local lay = Instance.new("UIListLayout")
-	lay.FillDirection = Enum.FillDirection.Horizontal
-	lay.Padding = UDim.new(0, 3)
-	lay.Parent = strip
-end
 
+local LIST_TOP = 8 + chipPlan.height + 8
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -8, 1, -32)
-list.Position = UDim2.new(0, 4, 0, 28)
+list.Size = UDim2.new(1, -16, 1, -(LIST_TOP + 8))
+list.Position = UDim2.new(0, 8, 0, LIST_TOP)
 list.BackgroundTransparency = 1
 list.BorderSizePixel = 0
-list.ScrollBarThickness = 6
+list.ScrollBarThickness = 8
 list.Parent = panel
 local layout = Instance.new("UIListLayout")
 layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 1)
+layout.Padding = UDim.new(0, 2)
 layout.Parent = list
 
 -- a row is visible when its filter class is enabled; 'world' and unclassified
@@ -94,27 +100,52 @@ local function applyFilter()
 	end
 end
 
-local function makeFilterButton(cls)
+local function makeFilterChip(at)
+	local def = TurnLogView.CHIP[at.id]
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, 62, 1, 0)
-	b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
-	b.TextColor3 = Color3.fromRGB(235, 235, 235)
-	b.Font = Enum.Font.Code
+	b.Name = "Filter_" .. at.id
+	b.Position = UDim2.new(0, at.x, 0, at.y)
+	b.Size = UDim2.new(0, at.w, 0, TurnLogView.CHIP_H)
+	b.AutoButtonColor = true
+	b.Font = Enum.Font.GothamBold
 	b.TextSize = 14
-	b.Text = cls.label
+	b.TextXAlignment = Enum.TextXAlignment.Left
+	b.Text = def.label
 	b.Parent = strip
+	do
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 12)
+		c.Parent = b
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft = UDim.new(0, TurnLogView.CHIP_PAD + TurnLogView.CHIP_DOT + 6)
+		pad.Parent = b
+	end
+	local dot = Instance.new("Frame")
+	dot.Size = UDim2.new(0, TurnLogView.CHIP_DOT, 0, TurnLogView.CHIP_DOT)
+	dot.AnchorPoint = Vector2.new(0, 0.5)
+	dot.Position = UDim2.new(0, -(TurnLogView.CHIP_DOT + 6), 0.5, 0)
+	dot.BorderSizePixel = 0
+	dot.Parent = b
+	do
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(1, 0)
+		c.Parent = dot
+	end
 	local function paint()
-		b.BackgroundTransparency = filterEnabled[cls.id] and 0.15 or 0.72
+		local on = filterEnabled[at.id]
+		b.BackgroundColor3 = on and Color3.fromRGB(52, 64, 90) or Color3.fromRGB(30, 34, 44)
+		b.TextColor3 = on and Color3.fromRGB(235, 238, 246) or Color3.fromRGB(120, 128, 146)
+		dot.BackgroundColor3 = on and Color3.fromHex(def.color) or Color3.fromRGB(70, 76, 90)
 	end
 	paint()
 	b.Activated:Connect(function()
-		filterEnabled[cls.id] = not filterEnabled[cls.id]
+		filterEnabled[at.id] = not filterEnabled[at.id]
 		paint()
 		applyFilter()
 	end)
 end
-for _, c in ipairs(TurnLogClasses.LOG_CLASSES) do
-	makeFilterButton(c)
+for _, at in ipairs(chipPlan.chips) do
+	makeFilterChip(at)
 end
 
 local COLORS = {
@@ -126,21 +157,23 @@ local COLORS = {
 }
 
 local rowCount = 0
+local ROW_H = 20
 local unseen = 0
 
 local function put(turn, text, cls, fclass, loc)
 	rowCount += 1
 	fclass = fclass or "world"
 	local row = Instance.new("TextLabel")
-	row.Size = UDim2.new(1, -8, 0, 16)
+	row.Size = UDim2.new(1, -12, 0, ROW_H)
 	row.LayoutOrder = rowCount
 	row.BackgroundTransparency = 1
 	row.TextColor3 = COLORS[cls or ""] or COLORS[""]
-	row.Font = Enum.Font.Code
-	row.TextSize = 14
+	row.Font = UiTheme.BODY_FONT
+	row.TextSize = 15
 	row.TextXAlignment = Enum.TextXAlignment.Left
 	row.TextTruncate = Enum.TextTruncate.AtEnd
-	row.Text = ("T%d %s"):format(turn, text)
+	row.RichText = true
+	row.Text = TurnLogView.rowText(turn, text)
 	row:SetAttribute("fclass", fclass) -- SO6: the filter class (hidden when its toggle is off)
 	row.Visible = rowVisible(fclass)
 	row.Parent = list
@@ -153,15 +186,18 @@ local function put(turn, text, cls, fclass, loc)
 		jump.Name = "Jump"
 		jump.AnchorPoint = Vector2.new(1, 0.5)
 		jump.Position = UDim2.new(1, -2, 0.5, 0)
-		jump.Size = UDim2.fromOffset(16, 14)
-		jump.BackgroundTransparency = 0.4
+		jump.Size = UDim2.fromOffset(26, 18)
+		jump.BackgroundTransparency = 0
 		jump.BackgroundColor3 = Color3.fromRGB(40, 52, 70)
 		jump.TextColor3 = Color3.fromRGB(210, 226, 243)
-		jump.Font = Enum.Font.Code
-		jump.TextSize = 14
+		jump.Font = Enum.Font.GothamBold
+		jump.TextSize = 15
 		jump.Text = "⌖"
 		jump.AutoButtonColor = true
 		jump.Parent = row
+		local jc = Instance.new("UICorner")
+		jc.CornerRadius = UDim.new(0, 6)
+		jc.Parent = jump
 		jump.Activated:Connect(function()
 			ClientState.focusCamera(loc.x, loc.y)
 		end)
@@ -175,7 +211,7 @@ local function put(turn, text, cls, fclass, loc)
 			end
 		end
 	end
-	list.CanvasSize = UDim2.new(0, 0, 0, math.min(rowCount, MAX_ROWS) * 17)
+	list.CanvasSize = UDim2.new(0, 0, 0, math.min(rowCount, MAX_ROWS) * (ROW_H + 2))
 	list.CanvasPosition = Vector2.new(0, list.CanvasSize.Y.Offset) -- the engine clamps to the bottom (AbsoluteSize is scaled by PanelDress)
 	if not panel.Visible then
 		unseen += 1

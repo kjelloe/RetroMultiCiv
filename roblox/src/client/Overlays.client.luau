@@ -56,7 +56,7 @@ end
 
 local panel = Instance.new("Frame")
 panel.Size = UDim2.new(0, 232, 0, 116)
-panel.Position = UDim2.new(0, 8, 1, -256) -- runJ item 2: just above the Map-overlays button
+panel.Position = UDim2.new(0, 206, 1, -172) -- beside the 190 px button column (it sat over the buttons), above the action bar
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0

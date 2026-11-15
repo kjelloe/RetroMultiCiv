@@ -22,7 +22,7 @@ local SKIP = {
 -- edge, so the name goes on a tab ABOVE the frame (nothing inside moves).
 local TAB_TITLE = {
 	RMCOptions = "Options", RMCDiplomacy = "Diplomacy", RMCTurnLog = "Turn log",
-	RMCStats = "Statistics", RMCCityPanel = "City", RMCLegend = "Legend",
+	RMCStats = "Statistics", RMCCityPanel = "City", -- RMCLegend carries its own Heading since shot18
 	-- run-S log: the first row of these was taken for a heading and restyled
 	RMCOverlays = "Map overlays", RMCDebugMenu = "Debug",
 }
@@ -37,7 +37,8 @@ local NO_CLOSE = {
 -- run-S shot16 (user): "other panels that still have the same basic fonts".
 -- In these guis the old faces become the reading face; a themed button
 -- already carries the display font. Ledgers whose columns must line up
--- (turn log, statistics, legend, AI strategy, debug) keep monospace.
+-- (statistics, AI strategy, debug) keep monospace; the turn log and the
+-- legend set the reading face themselves.
 local REFONT = {
 	RMCOptions = true, RMCOverlays = true, RMCLobby = true, RMCDiplomacy = true, RMCRegentDialog = true,
 	RMCFoundCity = true, RMCEndScreen = true, RMCFastForward = true, RMCCityPanel = true, RMCPedia = true,

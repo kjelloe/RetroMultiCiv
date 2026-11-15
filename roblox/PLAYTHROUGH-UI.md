@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 45 gates on tip
+- `roblox/check.sh` ALL GREEN — 47 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -154,10 +154,24 @@ items only if they block reading or tapping.
 12. **Turn log: classes, filters, jump-to** — Tier 2 (SO6) 📷
     - Tap: open the turn log; toggle a class filter; tap a row with a
       location.
-    - Expect: rows are class-coloured; filters hide/show classes; tapping
-      a row centres the camera on its tile (centerOn — gates 28/29 pin
-      the mirror).
-    - Likely wrong: jump-to centring on the wrong tile after map wrap.
+    - Expect: the panel stands to the RIGHT of the bottom-left button
+      column (no button drawn over it); one row of six filter chips
+      (coloured dot + Combat / Cities / Research / Rivals / Saves /
+      Regent, none touching); each line reads turn, a coloured kind word
+      (City, War, World ...), then the text; filters hide/show classes
+      (an off chip is dark); the target button on a located row centres
+      the camera on its tile (centerOn — gates 28/29 pin the mirror).
+    - Likely wrong: jump-to centring on the wrong tile after map wrap;
+      the Turn log tab's X sitting on a chip.
+
+12b. **Legend** 📷
+    - Tap: Legend in the bottom-left column.
+    - Expect: a "Controls" panel beside the column: three sections
+      (Units, Game, Camera and mouse), each row = key caps on the left
+      and one line of text on the right; scrolls; an X closes it. The
+      Diplomacy and Map overlays panels also open beside the column.
+    - Likely wrong: a cap running into the text column; the last rows
+      cut off under the panel edge.
 
 13. **Research + discovery moment** — Tier 1 📷
     - Tap: the research chip; pick a tech (or open the Tech Tree graph - boxes by level with dependency lines, scrolls sideways - and

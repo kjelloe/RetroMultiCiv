@@ -222,7 +222,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19r. session 2026-11-15 00:00Z [done: 2026-11-15 — shot17: hill ridges removed (read as eggs), hill = bare half-height block, resource marker and mine visible on it (gate 36 pin); city panel and host setup panel in the card style; CityPanel `openCityId` declared before `paintQueue` (queue strip never showed); toast exempt from the DiagAudit overlap check (the one DIAG FAIL of the session). gamesim-golden-neutral]
 
-## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); T2b skirt corner fills (wants a close shot of a hill beside lower land); two-player civ pick contention; owner paths on a published server.
+## 19s. shot18 [done: 2026-11-15 — Legend rebuilt as a Controls panel from `LegendData` (key caps, three sections; gate 46: every bound key documented or exempt); Turn log filter chips from `TurnLogView.chipLayout` (the six emoji headers collided), rows with a coloured kind word, reading face (gate 47); Turn log / Legend / Diplomacy / Map overlays panels open beside the button column instead of over it. gamesim-golden-neutral]
+
+## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); T2b skirt corner fills (wants a close shot of a hill beside lower land); two-player civ pick contention; owner paths on a published server.
 
 ---
 

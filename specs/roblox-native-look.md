@@ -218,6 +218,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 19 | tech tree graph, income card (ellipsoid summits withdrawn after shot16, see 21) | built (gate 44) | a look at each |
 | 20 | civilization gallery (pick before start, default random), close X on every click-opened panel, tech hover card | built (gate 45) | a look; two players picking the same civ |
 | 21 | hills = bare half block (ridges withdrawn, shot17), mountains = cone massif; Cities / Government / Research panels; reading face in the remaining panels | built (gate 36) | a look at each; text clipping in the refaced panels |
+| 23 | Legend as a Controls panel (key caps), Turn log filter chips + kind words, bottom-left panels beside the button column | built (gates 46, 47) | a look at each |
 | 22 | city panel and host setup panel in the card style | built (session 2026-11-15) | a look at each; catalog row widths, option card scroll |
 | 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
