@@ -839,7 +839,7 @@ if command -v lune >/dev/null 2>&1; then
      && grep -q 'CityView.food(city' roblox/src/client/CityPanel.client.luau \
      && grep -q 'CityView.specialistCommand(city, mood, workers, action)' roblox/src/client/CityPanel.client.luau \
      && grep -q 'CityView.neighbour(view, openCityId, dir)' roblox/src/client/CityPanel.client.luau \
-     && grep -q 'CityView.subtitle(city, rs)' roblox/src/client/CityPanel.client.luau; then
+     && grep -q 'CityView.subtitle(city, rs, view)' roblox/src/client/CityPanel.client.luau; then
     note PASS "gate 59: city screen rules (lune) + CityPanel wiring"
   else
     note FAIL "gate 59: city view — run: lune run roblox/selftest/city-view.luau"

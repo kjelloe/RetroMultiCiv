@@ -622,7 +622,7 @@ local function refresh()
 	badge.BackgroundColor3 = popColor(city.pop)
 	-- W4 WLTKD (1.0-close #2): the celebrate line (browser panels.js banner twin;
 	-- fog-honest — filterView strips `celebrating` from rival shells)
-	local subText, subTone = CityView.subtitle(city, rs) -- capital mark, disorder, celebration
+	local subText, subTone = CityView.subtitle(city, rs, view) -- capital mark, disorder, celebration
 	subtitle.Text = subText
 	subtitle.TextColor3 = subTone == "bad" and Color3.fromRGB(240, 110, 96)
 		or subTone == "good" and Color3.fromRGB(255, 225, 130) or MUTED

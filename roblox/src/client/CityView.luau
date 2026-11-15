@@ -92,7 +92,7 @@ function M.specialistCommand(city, mood, workers, action)
 	return { type = "setWorkers", cityId = city.id, workers = sorted, taxmen = taxmen, scientists = scientists }
 end
 
-function M.isCapital(city, rs)
+local function hasPalace(city, rs)
 	for _, b in ipairs(city.buildings or {}) do
 		local def = rs.buildings[b]
 		if def ~= nil and def.effect ~= nil and def.effect.isPalace == true then
@@ -100,6 +100,27 @@ function M.isCapital(city, rs)
 		end
 	end
 	return false
+end
+
+-- the engine's capitalOf: the palace city, else the owner's first city in cityOrder
+function M.isCapital(city, rs, view)
+	if hasPalace(city, rs) then
+		return true
+	end
+	if view == nil then
+		return false
+	end
+	local first = nil
+	for _, id in ipairs(view.cityOrder or {}) do
+		local c = view.cities[id]
+		if c ~= nil and c.owner == city.owner then
+			if hasPalace(c, rs) then
+				return false
+			end
+			first = first or id
+		end
+	end
+	return first ~= nil and first == city.id
 end
 
 -- report: the engine's tradeRouteReport rows { partnerCityId, arrows, counted }
@@ -131,14 +152,14 @@ function M.neighbour(view, cityId, dir)
 end
 
 -- the line under the city name
-function M.subtitle(city, rs)
+function M.subtitle(city, rs, view)
 	if city.disorder == true then
 		return "CIVIL DISORDER - no production or taxes until the mood improves", "bad"
 	end
 	if city.celebrating == true then
 		return "We Love the King Day - no corruption while it lasts", "good"
 	end
-	return ("population %d%s"):format(city.pop or 1, M.isCapital(city, rs) and "  -  capital" or ""), "plain"
+	return ("population %d%s"):format(city.pop or 1, M.isCapital(city, rs, view) and "  -  capital" or ""), "plain"
 end
 
 return M

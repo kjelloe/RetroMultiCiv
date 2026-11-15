@@ -72,6 +72,12 @@ for id, def in pairs(rs.buildings) do
 end
 check("the ruleset has a palace", palace ~= nil)
 check("capital", V.isCapital({ buildings = { "temple", palace } }, rs) and not V.isCapital({ buildings = { "temple" } }, rs) and not V.isCapital({}, rs))
+do
+	local v = { cityOrder = { "c1", "c2" }, cities = { c1 = { id = "c1", owner = "p1" }, c2 = { id = "c2", owner = "p1" } } }
+	check("capital falls back to the first city", V.isCapital(v.cities.c1, rs, v) and not V.isCapital(v.cities.c2, rs, v))
+	v.cities.c2.buildings = { palace }
+	check("a palace elsewhere wins over the first city", V.isCapital(v.cities.c2, rs, v) and not V.isCapital(v.cities.c1, rs, v))
+end
 local text, tone = V.subtitle({ pop = 7, buildings = { palace } }, rs)
 check("subtitle: capital", text == "population 7  -  capital" and tone == "plain", text)
 text, tone = V.subtitle({ pop = 7, disorder = true, celebrating = true }, rs)
