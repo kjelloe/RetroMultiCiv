@@ -238,6 +238,8 @@ Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score 
 
 Waiting on a Studio look (built, not yet seen): slope corner fills + the `corner wedge apex measured` log line; city catalog hover cards and the absent Barbarian Leader; Statistics cards; Legend ("Controls"); Turn log chips and kind words; Diplomacy / Map overlays beside the button column; city panel and host setup cards; bare hills; civilization gallery; Cities / Government / Research panels; tech tree graph + hover card.
 
+**Plan of record: `specs/roblox-parity-plan.md` (2026-11-15) - step 0 (UI tour + after-run report + viewport pins) comes before any feature. The lettered list below is the earlier order, kept for reference.**
+
 Open work from `roblox/PARITY.md` (the missing list there is the source; regenerate after each item), proposed order by how many scenarios it unblocks:
 a. City: specialist buttons + reset (city-06, city-07), previous city (city-16), growth box / turns to grow and a starving warning (city-03, city-04) - unblocks S03.
 b. Economy overview (ov-03, ov-05; needs the `playerIncome` / `cityEconOutput` read helpers from `luau/tech`) and Population / Cities / Techs charts (gf-22) - unblocks S10.
