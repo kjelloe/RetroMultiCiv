@@ -145,6 +145,7 @@ local function run()
 		return
 	end
 	running = true
+	ClientState.tourRunning = true -- DiscoveryCard: no splashes for the staged advances
 	gui.Enabled = true
 	local ok, err = pcall(function()
 		caption.Text = "Tour: staging the game"
@@ -224,6 +225,7 @@ local function run()
 		print("[RMC-TOUR] ABORT " .. tostring(err))
 	end
 	gui.Enabled = false
+	ClientState.tourRunning = false
 	running = false
 end
 

@@ -807,7 +807,9 @@ if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/discovery-view.luau >/dev/null 2>&1 \
      && grep -q 'DiscoveryView.model(techId' roblox/src/client/DiscoveryCard.client.luau \
      && grep -q 'ADVANCE DISCOVERED' roblox/src/client/DiscoveryCard.client.luau \
-     && grep -q 'registerPanel("discovery"' roblox/src/client/DiscoveryCard.client.luau; then
+     && grep -q 'registerPanel("discovery"' roblox/src/client/DiscoveryCard.client.luau \
+     && grep -q 'ClientState.tourRunning == true' roblox/src/client/DiscoveryCard.client.luau \
+     && grep -q 'never two splashes' roblox/src/client/DiscoveryCard.client.luau; then
     note PASS "gate 57: discovery splash content (lune) + DiscoveryCard wiring"
   else
     note FAIL "gate 57: discovery splash — run: lune run roblox/selftest/discovery-view.luau"

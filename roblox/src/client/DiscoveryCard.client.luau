@@ -160,6 +160,10 @@ local function show(techId)
 		pump()
 		return
 	end
+	if card ~= nil then -- never two splashes: an orphan backdrop would swallow every click
+		card:Destroy()
+		card = nil
+	end
 	local W, PAD = DiscoveryView.W, DiscoveryView.PAD
 	local INNER = W - 2 * PAD
 	local eraCol = TechGlyphs.colorOf(m.era)
@@ -331,7 +335,8 @@ pump = function()
 end
 
 ClientState.onEvents(function(events, view)
-	if ClientState.options.discoveryCards == false or view == nil then
+	-- the UI tour grants advances while staging: no splashes over its stops
+	if ClientState.options.discoveryCards == false or view == nil or ClientState.tourRunning == true then
 		return
 	end
 	for _, e in ipairs(events) do
@@ -353,8 +358,8 @@ end, function()
 	local view = ClientState.view
 	local me = view ~= nil and view.players[view.you] or nil
 	local known = me ~= nil and me.techs or {}
+	queue = {} -- before close(): close pumps the queue (run A 19:04Z showed two splashes at once)
 	close()
-	queue = {}
 	show(known[#known] or "alphabet")
 end, function()
 	queue = {}

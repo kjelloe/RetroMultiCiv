@@ -28,7 +28,8 @@ function analyse(text) {
     const msg = m ? m[5] : line.trim();
     const t = m ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000 : null;
     let x;
-    if (msg.startsWith('[R4INIT]')) r.init = msg.slice(9);
+    if (msg.startsWith('[R4INIT]')) { r.init = msg.slice(9); r.final = null; r.endscreen = null; } // a final line above the game start is the previous Play's
+   
     else if ((x = /^\[R4CODE\] turn=(\d+)/.exec(msg))) {
       r.lastTurn = Math.max(r.lastTurn, +x[1]);
       if (t !== null) stamp[+x[1]] = t;

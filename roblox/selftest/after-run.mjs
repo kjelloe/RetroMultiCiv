@@ -71,6 +71,9 @@ check('two tours: the report says so', render(twice, {}).includes('tour (last of
 const aborted = analyse(['  09:00:00.000  [DebugMenu] UI tour started', '  09:00:00.100  [RMC-TOUR] ABORT the regent has the seat'].join('\n'));
 check('aborted tour', aborted.tourAbort === 'ABORT the regent has the seat' && render(aborted, {}).includes('tour: ABORT'), aborted.tourAbort);
 
+const stale = analyse(['  09:00:00.000  [R4FINAL] hash=0xdead0000', '  09:00:01.000  [R4INIT] seed=1', '  09:00:02.000  [R4CODE] turn=3 code=x'].join('\n'));
+check("a final hash printed before the game start is not this game's", stale.final === null && stale.lastTurn === 3, stale.final);
+
 const empty = analyse('  09:00:00.000  [Lobby] up');
 check('no game', empty.init === null && empty.commands === 0 && empty.turnTimes.length === 0);
 check('no game report', render(empty, {}).includes('game: none started') && render(empty, {}).includes('tour: not run'));

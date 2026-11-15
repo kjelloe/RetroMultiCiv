@@ -95,6 +95,13 @@ surface adds its tour stop and its parity row in the same commit.
     played failed two stops that pass in a still game (city hover card,
     legend); the tour now refuses to start while the regent holds the
     seat, and `after-run.js` reports the last tour of a session.
+    RUN A repeat 19:03Z: 19 of 19 stops pass, staging applied (0
+    refused), 0 diagnostics failures. Found and fixed: the staged
+    advances raised discovery splashes over the tour's stops, and the
+    tour's own splash stop left a second splash on screen (its backdrop
+    takes every click) - splashes are now off while the tour runs, and
+    the splash code never keeps two. Step 0.4 is closed for what the
+    tour measures; the looks still want the user's eye or screenshots.
 Also built: gate 55, no top-level local read above its declaration (the
 bug class behind the city panel's missing queue strip).
 
