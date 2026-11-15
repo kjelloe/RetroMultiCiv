@@ -138,6 +138,12 @@ local function run()
 	if running or ClientState.view == nil then
 		return
 	end
+	-- run A 18:37Z: a tour while the regent played failed two stops that pass
+	-- in a still game (view pushes rebuild rows and close panels mid-measure)
+	if ClientState.away then
+		print("[RMC-TOUR] ABORT the regent has the seat: take it back (AI button), then run the tour")
+		return
+	end
 	running = true
 	gui.Enabled = true
 	local ok, err = pcall(function()

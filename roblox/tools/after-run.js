@@ -20,7 +20,7 @@ function analyse(text) {
   const r = {
     init: null, lastTurn: 0, final: null, commands: 0, refused: 0, refusedBy: {}, refusedByType: {},
     clientRejects: 0, notSent: 0, diagFail: [], warnings: 0, errors: 0,
-    tour: [], tourDone: null, tourAbort: null, turnTimes: [], regent: [], endscreen: null,
+    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null,
   };
   const stamp = {};
   for (const line of lines) {
@@ -46,7 +46,10 @@ function analyse(text) {
         }
       }
     } else if (msg.includes('[RMC-DIAG] FAIL')) r.diagFail.push(msg.replace(/^.*\[RMC-DIAG\] FAIL /, ''));
-    else if (msg.startsWith('[RMC-TOUR] DONE')) r.tourDone = msg.slice(11);
+    else if (msg.startsWith('[DebugMenu] UI tour started')) {
+      // several tours in one session: the report is about the last one
+      r.tourRuns += 1; r.tour = []; r.tourDone = null; r.tourAbort = null;
+    } else if (msg.startsWith('[RMC-TOUR] DONE')) r.tourDone = msg.slice(11);
     else if (msg.startsWith('[RMC-TOUR] ABORT')) r.tourAbort = msg.slice(11);
     else if ((x = /^\[RMC-TOUR\] (\d\d)\/(\d\d) (\S+) (PASS|FAIL|SKIP)(.*)$/.exec(msg))) {
       r.tour.push({ id: x[3], verdict: x[4], detail: x[5].trim() });
@@ -80,7 +83,7 @@ function render(r, extra) {
   for (const f of r.diagFail) out.push(`  FAIL ${f}`);
   if (r.tour.length === 0 && !r.tourAbort) out.push('tour: not run (Debug menu > Run UI tour)');
   else {
-    out.push(`tour: ${r.tourDone || r.tourAbort || 'started, no DONE line (interrupted?)'}`);
+    out.push(`tour${r.tourRuns > 1 ? ` (last of ${r.tourRuns} runs)` : ''}: ${r.tourDone || r.tourAbort || 'started, no DONE line (interrupted?)'}`);
     for (const s of r.tour) if (s.verdict !== 'PASS') out.push(`  ${s.verdict} ${s.id} ${s.detail}`);
   }
   if (r.commands > 0) {

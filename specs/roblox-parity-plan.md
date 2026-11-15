@@ -87,7 +87,14 @@ surface adds its tour stop and its parity row in the same commit.
     was ever debug-enabled; `assemble.js` had the same slip. Both fixed
     (gate 53 pins); the tour now prints `stage: REFUSED n` when staging
     is refused. Run A needs one repeat to see the staged units. The looks
-    themselves still want the user's eye. RUN C in progress.
+    themselves still want the user's eye.
+    RUN C done 18:36-18:50Z: 546 turns, score victory, 0 diagnostics
+    failures; 1,793 of 21,805 logged commands refused (zoc 839,
+    impassable 825, techRequired 110, debugDisabled 19); 0.2-1.4 s per
+    turn on the 40x25 / 3-civ map. A third tour started WHILE the regent
+    played failed two stops that pass in a still game (city hover card,
+    legend); the tour now refuses to start while the regent holds the
+    seat, and `after-run.js` reports the last tour of a session.
 Also built: gate 55, no top-level local read above its declaration (the
 bug class behind the city panel's missing queue strip).
 

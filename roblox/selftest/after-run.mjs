@@ -57,6 +57,20 @@ check('report: only non-passing stops listed', text.includes('FAIL stats') && te
 check('report: replay line', text.includes('replay: R4 ACCEPTANCE: ALL HASHES MATCH'));
 check('report: seconds per turn', text.includes('seconds per turn: 1 (turns 1-3)'), text);
 
+const twice = analyse([
+  '  09:00:00.000  [DebugMenu] UI tour started',
+  '  09:00:01.000  [RMC-TOUR] 01/02 research FAIL did not open',
+  '  09:00:02.000  [RMC-TOUR] DONE 2 stops: 1 pass, 1 fail, 0 skipped - failed: research',
+  '  09:01:00.000  [DebugMenu] UI tour started',
+  '  09:01:01.000  [RMC-TOUR] 01/02 research PASS',
+  '  09:01:02.000  [RMC-TOUR] 02/02 cities PASS',
+  '  09:01:03.000  [RMC-TOUR] DONE 2 stops: 2 pass, 0 fail, 0 skipped',
+].join('\n'));
+check('two tours: the last one is reported', twice.tourRuns === 2 && twice.tour.length === 2 && twice.tour.every(s => s.verdict === 'PASS') && twice.tourDone.includes('2 pass'), twice);
+check('two tours: the report says so', render(twice, {}).includes('tour (last of 2 runs): DONE 2 stops: 2 pass'), render(twice, {}));
+const aborted = analyse(['  09:00:00.000  [DebugMenu] UI tour started', '  09:00:00.100  [RMC-TOUR] ABORT the regent has the seat'].join('\n'));
+check('aborted tour', aborted.tourAbort === 'ABORT the regent has the seat' && render(aborted, {}).includes('tour: ABORT'), aborted.tourAbort);
+
 const empty = analyse('  09:00:00.000  [Lobby] up');
 check('no game', empty.init === null && empty.commands === 0 && empty.turnTimes.length === 0);
 check('no game report', render(empty, {}).includes('game: none started') && render(empty, {}).includes('tour: not run'));
