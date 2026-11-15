@@ -45,8 +45,8 @@ do
 end
 
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 250, 0, 246)
-panel.Position = UDim2.new(0, 8, 1, -476)
+panel.Size = UDim2.new(0, 250, 0, 276)
+panel.Position = UDim2.new(0, 8, 1, -506)
 panel.BackgroundColor3 = Color3.fromRGB(34, 22, 22)
 panel.BackgroundTransparency = 0.06
 panel.BorderSizePixel = 0
@@ -142,6 +142,16 @@ for i, unitType in ipairs(SPAWNS) do
 			unitType = unitType, x = tx, y = ty })
 	end)
 end
+
+-- specs/roblox-parity-plan.md step 0: stage the game, open every surface,
+-- check each, print [RMC-TOUR] lines (node roblox/tools/after-run.js reads them)
+row(244, "Run UI tour (stages + checks all panels)", function()
+	panel.Visible = false
+	if ClientState.runTour ~= nil then
+		print("[DebugMenu] UI tour started")
+		ClientState.runTour()
+	end
+end)
 
 toggle.Activated:Connect(function()
 	panel.Visible = not panel.Visible

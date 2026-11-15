@@ -232,6 +232,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19w. Military, Statistics access, feature list [done: 2026-11-15 — top-row Military and Statistics (J) buttons, Statistics button on the end screen; `Military.client.luau` + `MilitaryView.luau` (military-overview.js twin, gate 50); feature parity list `roblox/parity/*.txt` + `roblox/selftest/feature-parity.mjs` + generated `roblox/PARITY.md` (gate 51): 205 browser features = 115 available, 37 partial, 39 missing, 14 n/a; 18 user scenarios = 6 playable, 2 degraded, 10 blocked. gamesim-golden-neutral]
 
+## 19x. Plan step 0 harness [done: 2026-11-15 — UI tour (`UiTour` / `TourPlan`, Debug menu > Run UI tour, 18 stops, gate 52), `roblox/tools/after-run.js` (gate 53), `TopRowPlan` for the five-button top row (gate 54), gate 55 (local read before declaration); badges added to the plan as step 8. Step 0.4 (run A + C) is the user's. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

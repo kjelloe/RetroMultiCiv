@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -727,6 +727,61 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 51: node absent"
+fi
+
+# gate 52 — the UI tour (TourPlan): every ScreenGui the audit expects is a tour
+# stop or exempt with a reason, every toured panel registers itself, judge()
+# finds off-screen / empty / clipped / small text (lune); the tour is wired
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/tour-plan.luau >/dev/null 2>&1 \
+     && grep -q 'TourPlan.judge(stop' roblox/src/client/UiTour.client.luau \
+     && grep -q 'ClientState.runTour()' roblox/src/client/DebugMenu.client.luau \
+     && grep -q 'RMC-TOUR' roblox/tools/after-run.js; then
+    note PASS "gate 52: UI tour covers every gui or exempts it, judging rules (lune) + Debug menu and after-run wiring"
+  else
+    note FAIL "gate 52: UI tour — run: lune run roblox/selftest/tour-plan.luau"
+  fi
+else
+  note SKIP "gate 52: lune absent"
+fi
+
+# gate 53 — the after-run report (roblox/tools/after-run.js): tour lines,
+# refusals by reason and type, seconds per turn, diagnostics read correctly
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/after-run.mjs >/dev/null 2>&1; then
+    note PASS "gate 53: after-run report reads a session (node)"
+  else
+    note FAIL "gate 53: after-run — run: node roblox/selftest/after-run.mjs"
+  fi
+else
+  note SKIP "gate 53: node absent"
+fi
+
+# gate 54 — the top-centre button row (TopRowPlan): clear of the turn chip
+# and the menu row at every width 320-2600, labels never lost by widening
+# (lune); ActionBar places the row from the plan
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/top-row.luau >/dev/null 2>&1 \
+     && grep -q 'TopRowPlan.plan(vw)' roblox/src/client/ActionBar.client.luau \
+     && [ "$(grep -c 'joinCluster(' roblox/src/client/ActionBar.client.luau)" -ge 5 ]; then
+    note PASS "gate 54: top row plan at every width (lune) + ActionBar wiring"
+  else
+    note FAIL "gate 54: top row — run: lune run roblox/selftest/top-row.luau"
+  fi
+else
+  note SKIP "gate 54: lune absent"
+fi
+
+# gate 55 — no top-level local is read on a line above its declaration (Luau
+# makes that a nil global, silently: the city panel's queue strip bug)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/local-order.mjs >/dev/null 2>&1; then
+    note PASS "gate 55: no top-level local read before its declaration (node)"
+  else
+    note FAIL "gate 55: local order — run: node roblox/selftest/local-order.mjs"
+  fi
+else
+  note SKIP "gate 55: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

@@ -764,4 +764,18 @@ buyNo.Activated:Connect(function()
 	buyConfirm.Visible = false
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("city", panel, function()
+	local view = ClientState.view
+	for _, cid in ipairs(view ~= nil and view.cityOrder or {}) do
+		local c = view.cities[cid]
+		if c ~= nil and c.owner == view.you and c.pop ~= nil then
+			ClientState.openCity(cid)
+			return
+		end
+	end
+end, function()
+	closePanel()
+end)
+
 print("[CityPanel] city panel up (R13 sell strip, R15 effects sublines, hideFuture wired)")

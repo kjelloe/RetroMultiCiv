@@ -89,4 +89,11 @@ ClientState.openRegent = function()
 	gui.Enabled = true
 end
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("regent", panel, function()
+	gui.Enabled = true
+end, function()
+	gui.Enabled = false
+end)
+
 print("[RegentDialog] MP4 regent stance picker up (🤖 opens; 5 stances)")

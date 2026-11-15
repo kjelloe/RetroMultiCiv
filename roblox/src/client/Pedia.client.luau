@@ -363,4 +363,13 @@ ClientState.onPediaOpen(function(catKey, id)
 	frame.Visible = true
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("pedia", frame, function()
+	if not frame.Visible then
+		toggle()
+	end
+end, function()
+	frame.Visible = false
+end)
+
 print("[Pedia] R19 Encyclopedia up (PEDIA button, top right)")

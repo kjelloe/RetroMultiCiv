@@ -71,11 +71,18 @@ Each step ends with gates green and a local commit. A step that adds a
 surface adds its tour stop and its parity row in the same commit.
 
 ### Step 0: the harness (before any feature)
-0.1 `UiTour` script + Debug menu entry + `[RMC-TOUR]` lines; stops for
-    every surface that exists today.
-0.2 `roblox/tools/after-run.js`.
-0.3 Viewport-width pins for the top row and the panel fit.
-0.4 Run A + C once. Fix what they show. This clears the unseen backlog.
+0.1 BUILT 2026-11-15 (gate 52): `UiTour.client.luau` + `TourPlan.luau`,
+    Debug menu > "Run UI tour", `[RMC-TOUR]` lines; 18 stops, 20 guis
+    exempt with the run that covers each. Panels register with
+    `ClientState.registerPanel(id, root, open, close)`.
+0.2 BUILT (gate 53): `node roblox/tools/after-run.js [--no-replay]`.
+0.3 BUILT for the top row (gate 54): `TopRowPlan.luau`, swept 320-2600 px;
+    the row goes icon-only, moves left, or drops a row instead of
+    overlapping. Panel fit was already pinned (gate 42).
+0.4 OPEN: run A + C once. Fix what they show. This clears the unseen
+    backlog.
+Also built: gate 55, no top-level local read above its declaration (the
+bug class behind the city panel's missing queue strip).
 
 ### Step 1: the city screen (scenario S03; most time is spent here)
 1.1 Specialist buttons (entertainer to taxman / scientist) and reset.
@@ -123,6 +130,43 @@ Needs a staged diplomat beside a rival city in the tour.
 7.3 A second list for Roblox-only features (ride a unit, start deck,
     gallery), so the report shows both directions.
 7.4 Diplomacy and Options panels in the card style.
+
+### Step 8: badges (user, 2026-11-15)
+About 50 Roblox badges, from the first city to a win on the hardest
+difficulty with the most civs on the map. Runs beside steps 1-7; it does
+not depend on them.
+8.1 `BadgeRules.luau` (pure, server-side): the 50 badges as data (key,
+    name, description, tier, condition) and one function that turns a
+    round's engine events plus the end-of-game state into the keys earned.
+    Pinned headless: unique keys, every condition reachable from a real
+    event or state field, each difficulty / civ-count ladder strictly
+    harder step by step.
+8.2 Draft ladder (final wording with the list):
+    - first steps (about 10): first city, first unit built, first advance,
+      first building, first wonder, first trade route, first contact, first
+      battle won, first city captured, first government change;
+    - growth and economy (about 8): 5 / 10 / 20 cities, a city of size 10 /
+      20, treasury 1,000 / 5,000, We Love the King Day;
+    - science (about 6): finish each era, all advances, first future tech;
+    - wonders (about 5): 3 / 7 / 14 wonders, one from each era;
+    - military (about 6): 10 / 50 / 100 battles won, a veteran unit,
+      eliminate a civ, hold a city against a siege;
+    - space (about 3): build a ship part, launch, arrive;
+    - victories (about 12): win on each of the five difficulties, win with
+      7 / 10 / 14 civs, win from a later starting age, win under the
+      authentic combat rule, win on the hardest difficulty with 14 civs.
+8.3 `BadgeAward` server script: `BadgeService:AwardBadge`, once per
+    player per badge, failures logged as `[RMC-DIAG]` and never blocking
+    play. Ids live in one table, 0 until the badge exists.
+8.4 USER: create the badges on the Creator Hub (name, description, icon
+    each) and paste the ids. Check the current creation fee and daily free
+    allowance there before creating 50.
+8.5 Rulings needed before 8.3: (a) do turns played by the AI regent count
+    (proposal: victory badges need the player to have held the seat for at
+    least half the turns); (b) debug games award nothing (proposal: yes);
+    (c) multiplayer: every human on the winning side, or only the winner.
+Test: run C with a short game awards the first-steps set in Studio
+(Studio reports awards without granting them).
 
 ## 4. Omissions and how each is closed
 

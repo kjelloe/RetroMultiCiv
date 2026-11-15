@@ -372,4 +372,12 @@ ClientState.onView(function(view)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("options", panel, function()
+	panel.Visible = true
+	ClientState.panelOpened("options")
+end, function()
+	panel.Visible = false
+end)
+
 print("[Options] options up (collapsible panel; auto-next/auto-end/auto-research ON)")

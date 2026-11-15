@@ -39,7 +39,7 @@ local EXPECTED_GUIS = {
 	"RMCCivGallery", "RMCHistorian", "RMCHud", "RMCLegend", "RMCLobby", "RMCMinimap", "RMCOptions",
 	"RMCOverlays", "RMCPedia", "RMCRegentDialog", "RMCTheater", "RMCResearch",
 	"RMCRidePad", "RMCTileCard", "RMCShip", "RMCStats", "RMCMilitary", "RMCStrategic",
-	"RMCTechTree", "RMCTooltip", "RMCTurnLog", "RMCWaitStatus", "RMCResume",
+	"RMCTechTree", "RMCTooltip", "RMCTour", "RMCTurnLog", "RMCWaitStatus", "RMCResume",
 }
 -- built on first use or Studio-only: listed when present, never reported missing
 local LAZY_GUIS = { "RMCFoundCity", "RMCDebugMenu", "RMCDebug", "RMCIntro" }

@@ -27,9 +27,28 @@ items only if they block reading or tapping.
 
 ---
 
+## The short way: the UI tour (run A, about 3 minutes)
+
+1. Play. Start the default game. Found the capital (B, confirm the name).
+2. Bottom-left: Debug (Studio) > "Run UI tour (stages + checks all panels)".
+3. Hands off. A yellow caption names each stop ("Tour 07/18 Military");
+   each surface stays up 1.5 s. Watch for anything that looks wrong; the
+   log already has what can be measured.
+4. Afterwards, in the terminal: `node roblox/tools/after-run.js`. It lists
+   only the stops that did not pass, plus diagnostics and the replay
+   verdict.
+5. Optional (run C): press the AI button, pick a stance, leave the game to
+   its end, then run `after-run.js` again.
+
+The tour grants gold and advances and adds three units (a debug game: the
+DEBUG mark stays on). The numbered steps below remain the full hand script
+for what the tour does not open (lobby, gallery, end screen, replay).
+
+---
+
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 51 gates on tip
+- `roblox/check.sh` ALL GREEN — 55 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),

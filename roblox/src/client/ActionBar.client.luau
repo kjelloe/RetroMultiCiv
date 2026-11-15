@@ -359,6 +359,10 @@ do
 	c.Parent = researchBtn
 end
 UiTheme.apply(researchBtn, { icon = "research" })
+local clusterButtons = {} -- { btn, fullW }: the top row, placed by placeCluster below
+local function joinCluster(btn)
+	table.insert(clusterButtons, { btn = btn, fullW = btn.Size.X.Offset })
+end
 
 -- R12 (5): always-visible research status (tech + turns remaining). run-F #10
 -- (user): moved OUT of the button row to a centered line just ABOVE it, so
@@ -391,15 +395,47 @@ do
 		researchStatus.Visible = researchStatus.Text ~= ""
 	end)
 end
+-- step 0.3: the row follows TopRowPlan (labels, icon squares, pushed left,
+-- or a second row) so it never shares pixels with the turn chip or the menu
+-- row. placeCluster is re-run on every viewport change; the buttons join
+-- `clusterButtons` as they are built.
+local TopRowPlan = require(script.Parent:WaitForChild("TopRowPlan"))
+local lastPlanKey = nil
+local function placeCluster()
+	local cam = workspace.CurrentCamera
+	local vw = cam ~= nil and cam.ViewportSize.X or 1280
+	local plan = vw >= 320 and TopRowPlan.plan(vw) or { compact = false, align = "centre", x = 0, row = 0 }
+	local y = clusterY + plan.row * TopRowPlan.ROW_STEP
+	for _, cb in ipairs(clusterButtons) do
+		UiTheme.setCompact(cb.btn, plan.compact)
+		cb.btn.Size = UDim2.new(0, plan.compact and TopRowPlan.COMPACT_W or cb.fullW, 0, 38)
+	end
+	if plan.align == "left" then
+		cluster.AnchorPoint = Vector2.new(0, 0)
+		cluster.Position = UDim2.new(0, plan.x, 0, y)
+	else
+		cluster.AnchorPoint = Vector2.new(0.5, 0)
+		cluster.Position = UDim2.new(0.5, 0, 0, y)
+	end
+	researchStatus.Position = UDim2.new(0.5, 0, 0, y + 52)
+	local key = ("%s/%s/%d"):format(plan.compact and "icons" or "labels", plan.align, plan.row)
+	if key ~= lastPlanKey then
+		lastPlanKey = key
+		require(script.Parent:WaitForChild("Diag")).note("toprow", ("%s at viewport width %d"):format(key, math.floor(vw)))
+	end
+end
 task.spawn(function()
 	for _ = 1, 20 do
 		local y = clusterTop()
 		if y ~= clusterY then
 			clusterY = y
-			cluster.Position = UDim2.new(0.5, 0, 0, y)
-			researchStatus.Position = UDim2.new(0.5, 0, 0, y + 52)
 		end
+		placeCluster()
 		task.wait(0.5)
+	end
+	local cam = workspace.CurrentCamera
+	if cam ~= nil then
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(placeCluster)
 	end
 end)
 
@@ -420,6 +456,8 @@ do
 	c.Parent = citiesBtn
 end
 UiTheme.apply(citiesBtn, { icon = "cities" })
+joinCluster(researchBtn)
+joinCluster(citiesBtn)
 citiesBtn.Activated:Connect(function()
 	if ClientState.view ~= nil then
 		ClientState.toggleCityList()
@@ -442,6 +480,7 @@ local function clusterButton(order, w, label, icon, onClick)
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = b
 	UiTheme.apply(b, { icon = icon })
+	joinCluster(b)
 	b.Activated:Connect(function()
 		if ClientState.view ~= nil then
 			onClick()
@@ -473,6 +512,7 @@ do
 	c.Parent = governmentBtn
 end
 UiTheme.apply(governmentBtn, { icon = "government" })
+joinCluster(governmentBtn)
 
 local function selectedUnit()
 	local view = ClientState.view

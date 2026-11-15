@@ -350,4 +350,11 @@ ClientState.onEvents(function(events, view)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("research", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[Research] research picker up (T toggles; rate steppers live in Government now)")

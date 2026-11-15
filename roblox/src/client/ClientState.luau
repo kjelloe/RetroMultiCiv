@@ -307,6 +307,15 @@ function M.toggleStats(open)
 		cb(open)
 	end
 end
+-- UI tour (specs/roblox-parity-plan.md step 0): each panel registers how to
+-- open and close itself, so the tour can walk them without clicks.
+-- root = the frame the tour measures.
+M.tourPanels = {}
+function M.registerPanel(id, root, open, close)
+	M.tourPanels[id] = { root = root, open = open, close = close }
+end
+M.runTour = nil -- set by UiTour.client
+
 function M.onMilitaryToggle(cb)
 	table.insert(militaryToggleCallbacks, cb)
 end

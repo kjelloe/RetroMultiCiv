@@ -337,4 +337,11 @@ ClientState.onView(function()
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("government", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[Government] R12 government panel up (rate steppers + CP13 government switching)")

@@ -452,4 +452,11 @@ do
 			graph.cols, graph.rows, #lines, graph.width, graph.height))
 	end
 end
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("techtree", frame, function()
+	toggle(true)
+end, function()
+	toggle(false)
+end)
+
 print("[TechTree] tech tree graph up (Tech Tree button / Shift+T; client beeline)")

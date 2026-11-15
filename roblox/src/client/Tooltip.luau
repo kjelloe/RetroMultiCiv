@@ -74,8 +74,24 @@ function M.hide()
 	card.Visible = false
 end
 
+-- UI tour: show the card a target would show on hover, without a pointer
+local attached = setmetatable({}, { __mode = "k" })
+function M.preview(target)
+	local textFn = attached[target]
+	if textFn == nil then
+		return false
+	end
+	gen += 1
+	showAt(target, textFn())
+	return card.Visible
+end
+function M.card()
+	return card
+end
+
 -- attach(guiObject, textFn): hover dwell (mouse) or long-press (touch)
 function M.attach(target, textFn)
+	attached[target] = textFn
 	target.MouseEnter:Connect(function()
 		gen += 1
 		local myGen = gen

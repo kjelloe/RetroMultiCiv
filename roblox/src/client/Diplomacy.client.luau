@@ -162,4 +162,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("diplomacy", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[Diplomacy] D3 Tier-B foreign-relations panel up (Y toggles)")

@@ -204,4 +204,12 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("overlays", panel, function()
+	panel.Visible = true
+	ClientState.panelOpened("overlays")
+end, function()
+	panel.Visible = false
+end)
+
 print("[Overlays] map-overlays panel up (item 8: city influence / unit presence / hide labels)")

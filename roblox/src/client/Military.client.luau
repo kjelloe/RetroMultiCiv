@@ -151,4 +151,13 @@ ClientState.onView(function()
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("military", panel, function()
+	gui.Enabled = true
+	ClientState.panelOpened("military")
+	refresh()
+end, function()
+	gui.Enabled = false
+end)
+
 print("[Military] military overview up (Military button)")

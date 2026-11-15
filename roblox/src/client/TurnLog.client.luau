@@ -508,4 +508,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("turnlog", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[TurnLog] R6 turn log up (L toggles; SO6 class filters)")

@@ -1087,7 +1087,19 @@ seat/reset flow; JS engine untouched). Delivered:
   checks all three and generates `roblox/PARITY.md` (gate 51); a new
   `client/ui` module or a reworded browser string fails the gate until
   the list is updated. Statuses are read from the sources, not from a
-  Studio run. `TechInfo.luau` = the one tech text builder (tree hover card
+  Studio run.
+  PLAN STEP 0 (`specs/roblox-parity-plan.md`): UI TOUR - Debug menu >
+  "Run UI tour" stages the game with debug commands (reveal, gold, six
+  advances, caravan / diplomat / settlers at the first city), opens each
+  registered surface (`ClientState.registerPanel`), judges it with
+  `TourPlan.judge` (did not open, off screen, empty, clipped text, text
+  under 14 px; hover card via `Tooltip.preview`) and prints
+  `[RMC-TOUR] NN/NN id PASS|FAIL|SKIP` + a DONE line (gate 52).
+  `node roblox/tools/after-run.js` = one report per run: diagnostics,
+  tour, refused commands by reason / type, seconds per turn, replay
+  verdict (gate 53). `TopRowPlan.luau` places the five-button top row
+  per viewport width (gate 54). Gate 55: no top-level local read above
+  its declaration. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

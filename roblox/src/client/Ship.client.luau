@@ -392,4 +392,13 @@ ClientState.onEvents(function(events, view)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("ship", frame, function()
+	frame.Visible = true
+	ClientState.panelOpened("ship")
+	render()
+end, function()
+	frame.Visible = false
+end)
+
 print("[Ship] SO11 spaceship screen up (Ship button appears once the race exists)")

@@ -232,4 +232,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("stats", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[Stats] R7d statistics up (J toggles; SO8 score chart + battles/wonders)")

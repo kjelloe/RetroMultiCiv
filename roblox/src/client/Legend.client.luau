@@ -137,4 +137,12 @@ ClientState.onPanelOpen(function(id)
 	end
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("legend", panel, function()
+	panel.Visible = true
+	ClientState.panelOpened("legend")
+end, function()
+	panel.Visible = false
+end)
+
 print("[Legend] keyboard legend up (left-edge button)")

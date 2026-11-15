@@ -203,4 +203,11 @@ ClientState.onCityListToggle(function()
 	setOpen(not gui.Enabled)
 end)
 
+-- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+ClientState.registerPanel("cities", panel, function()
+	setOpen(true)
+end, function()
+	setOpen(false)
+end)
+
 print("[CityList] R7d city list up (C toggles, Cities button)")
