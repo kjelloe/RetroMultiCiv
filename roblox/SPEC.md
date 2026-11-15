@@ -1063,7 +1063,16 @@ seat/reset flow; JS engine untouched). Delivered:
   enabled reads "needs the Manhattan Project". Every catalog and
   Built-here row has a hover card (`CatalogInfo.card`: name, kind,
   encyclopedia prose from PediaBlurbs, effect line, figures,
-  requirement, lock reason). Gate 49 runs over data/*.json. `TechInfo.luau` = the one tech text builder (tree hover card
+  requirement, lock reason). Gate 49 runs over data/*.json.
+  shot20 (T2b): the skirt wedges face the right way; two skirts meeting
+  at a tile corner left a square notch. `TerrainSkirts.corners` = a
+  `CornerWedgePart` fill where a tile has a skirt on both sides of a
+  corner and the diagonal tile is explored and lower. The part's
+  full-height corner is not documented, so `probeApex` MEASURES it once
+  (four downward rays on a probe part, `[RMC-DIAG] NOTE terrain: corner
+  wedge apex measured at local (x, z)`); no fill is built until it
+  succeeds, and six failed tries log one FAIL. The tile cache key now
+  carries the four diagonal neighbours. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

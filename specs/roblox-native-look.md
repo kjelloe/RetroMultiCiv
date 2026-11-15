@@ -180,8 +180,9 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
   gap of the summit ring (`TerrainSculpt.flank`). More than 150 mountain tiles in view → lite massif.
 - **T2** (built, ENHANCED look only — slopes were not part of the ruling
   and retro is deliberately blocky): `TerrainSkirts.luau` wedges against
-  walls ≥ 1 stud. Outer corners between two skirts are open
-  (`CornerWedgePart` fill = T2b).
+  walls ≥ 1 stud. Outer corners between two skirts carry a
+  `CornerWedgePart` fill (T2b, built after shot20; its full-height corner
+  is measured at run time, see `probeApex`).
 - **T3** (built, ENHANCED look only): `TerrainCoast.luau` — a thin sand rim
   along each edge where low land (not hills, mountains, arctic, river)
   meets ocean, on the land tile so the order reads land → sand → the
@@ -206,7 +207,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 7 | first Studio run read from the log | **next** | user presses Play Solo once |
 | 8 | fixes from that log | open | item 7 |
 | 9 | phone: unit cards, bottom-left toggles, research cluster | open | the phone audit's overlap list |
-| 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
+| 10 | T2b skirt corner fills | built (gate 37; shot20 confirmed the wedge orientation) | a close shot of a hill corner; the `corner wedge apex measured` log line |
 | 11 | U5 list rows | built for the city list, research picker and build catalog (`UiTheme.row`: rounded, >= 14 px, lighter under the pointer); panel texts raised to 14 px (gate 42 pins) | a look; Encyclopedia / lobby rows keep their own style |
 | 11b | river banks | built (gate 41 pins) | a close shot of a river |
 | 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
@@ -224,8 +225,8 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 22 | city panel and host setup panel in the card style | built (session 2026-11-15) | a look at each; catalog row widths, option card scroll |
 | 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
-Items 9–11 are held on purpose: T2b stacks a second wedge type on an
-orientation nobody has seen, and U5 touches every panel.
+Items 9–11 were held until a screenshot showed the T2 wedge orientation
+(shot20, 2026-11-15); all three are built now.
 
 ## 6. Assessment
 

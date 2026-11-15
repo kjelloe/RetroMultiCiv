@@ -62,6 +62,60 @@ map.tiles[1].t = "grassland"
 map.tiles[2].visible = false
 check("key changes with the tile's fog state", M.keyOf(map, 1, 0, "enhanced") ~= k1, true)
 
+-- T2b corner fills. 3x3, a hill in the middle:
+--   grass  grass  mount
+--   grass  HILLS  grass
+--   ocean  grass  UNKNOWN
+do
+	local cids = { "grassland", "grassland", "mountains", "grassland", "hills", "grassland", "ocean", "grassland", "unknown" }
+	local tiles = {}
+	for i, id in ipairs(cids) do
+		tiles[i] = { t = id, visible = true }
+	end
+	local cmap = { width = 3, height = 3, wrapX = false, tiles = tiles }
+	local function csig(list)
+		local out = {}
+		for _, c in ipairs(list) do
+			out[#out + 1] = ("%d,%d:%.1f/%.1f/%.1f@%.1f"):format(c.cx, c.cy, c.drop, c.dropX, c.dropY, c.low)
+		end
+		table.sort(out)
+		return table.concat(out, " ")
+	end
+	-- NW (-1,-1) grass diag: fill; SW (-1,1) ocean diag: fill on the ocean;
+	-- NE (1,-1) mountain diag is higher: none; SE (1,1) unknown diag: none
+	check("corners: lower explored diagonals only", csig(M.corners(cmap, 1, 1, topOf)), "-1,-1:2.7/2.7/2.7@0.3 -1,1:3.5/2.7/2.7@-0.5")
+	check("corners: a flat tile owns none", #M.corners(cmap, 0, 0, topOf), 0)
+	tiles[2].t = "mountains" -- north neighbour now higher: no north skirt, so no north corners
+	check("corners: need a skirt on both sides", csig(M.corners(cmap, 1, 1, topOf)), "-1,1:3.5/2.7/2.7@-0.5")
+	tiles[2].t = "grassland"
+	tiles[1].t = "hills" -- NW diagonal level with the tile: nothing to fill
+	check("corners: a level diagonal owns none", csig(M.corners(cmap, 1, 1, topOf)), "-1,1:3.5/2.7/2.7@-0.5")
+	tiles[1].t = "grassland"
+	local k1c = M.keyOf(cmap, 1, 1, "enhanced")
+	tiles[7].t = "grassland"
+	check("key changes when a DIAGONAL neighbour changes", M.keyOf(cmap, 1, 1, "enhanced") ~= k1c, true)
+	check("run: capped", M.runOf(100, 12), 12 * M.MAX_RUN)
+	check("run: by drop", M.runOf(1, 12), M.RUN_PER_DROP)
+end
+-- quarter turns: CFrame.Angles(0, pi/2, 0) sends local +X to world -Z
+do
+	local x, z = M.quarterTurn(1, 0, 1)
+	check("one turn: +X -> -Z", x .. "," .. z, "0,-1")
+	x, z = M.quarterTurn(1, -1, 4)
+	check("four turns: identity", x .. "," .. z, "1,-1")
+	for _, a in ipairs({ { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } }) do
+		local seen = {}
+		for _, w in ipairs({ { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } }) do
+			local k = M.turnsFor(a[1], a[2], w[1], w[2])
+			check(("turnsFor exists %d,%d -> %d,%d"):format(a[1], a[2], w[1], w[2]), k ~= nil, true)
+			local rx, rz = M.quarterTurn(a[1], a[2], k)
+			check("turnsFor lands on the wanted corner", rx == w[1] and rz == w[2], true)
+			check("each wanted corner has its own turn count", seen[k] == nil, true)
+			seen[k] = true
+		end
+	end
+end
+
 if fails > 0 then
 	error(("%d terrain-skirts pin(s) failed"):format(fails))
 end

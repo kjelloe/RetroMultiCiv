@@ -493,8 +493,10 @@ fi
 # map edge, wrap) and the per-tile cache key (lune); ViewRenderer still calls it.
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/terrain-skirts.luau >/dev/null 2>&1 \
-     && grep -q 'TerrainSkirts.update' roblox/src/client/ViewRenderer.client.luau; then
-    note PASS "gate 37: slope-skirt edge pins (lune) + ViewRenderer wiring"
+     && grep -q 'TerrainSkirts.update' roblox/src/client/ViewRenderer.client.luau \
+     && grep -q 'M.turnsFor(apex.x, apex.z, -c.cx, -c.cy)' roblox/src/client/TerrainSkirts.luau \
+     && grep -q 'corner wedge apex not measurable' roblox/src/client/TerrainSkirts.luau; then
+    note PASS "gate 37: slope-skirt edge + corner-fill pins (lune) + ViewRenderer wiring"
   else
     note FAIL "gate 37: slope skirts — run: lune run roblox/selftest/terrain-skirts.luau"
   fi

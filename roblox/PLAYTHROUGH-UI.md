@@ -313,7 +313,8 @@ items only if they block reading or tapping.
   massifs with snow in ALL three looks, a unit on a mountain tile visible
   between the summits, mountain gold on a flank; hills are a low bare block
   (no shapes on top; coal and a mine stand on it in plain sight); (d) enhanced look only:
-  sloped skirts toward lower neighbours, none toward unexplored tiles,
+  sloped skirts toward lower neighbours with the outer corners filled
+  (no square notch where two slopes meet), none toward unexplored tiles,
   none burying a road or unit; (e) panel close buttons red, Buy / START
   GAME green; (f) narrow the Studio window below ~1100 px: Options /
   Encyclopedia / Ship collapse to icon squares, nothing overlaps;

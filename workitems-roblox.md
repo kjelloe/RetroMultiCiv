@@ -228,7 +228,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19u. shot19 [done: 2026-11-15 — city catalog offered the Barbarian Leader: list now follows `CatalogInfo.availability` (mirror of setProduction: barb-only + obsolete hidden, coast, nukes); hover card with the encyclopedia entry on every catalog and Built-here row; gate 49 over the real rulesets. gamesim-golden-neutral]
 
-## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: city catalog hover cards, Statistics, Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); T2b skirt corner fills (wants a close shot of a hill beside lower land); two-player civ pick contention; owner paths on a published server.
+## 19v. T2b slope corner fills [done: 2026-11-15 — shot20 confirmed the skirt orientation; `TerrainSkirts.corners` + CornerWedgePart fill, apex corner measured at run time by raycast (`probeApex`), diagonals in the cache key; gate 37 pins. Wants one close shot. gamesim-golden-neutral]
+
+## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: city catalog hover cards, Statistics, Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); two-player civ pick contention; owner paths on a published server.
 
 ---
 
