@@ -94,21 +94,57 @@ function M.wonderRows(wonders, view, rs)
 	return out
 end
 
-function M.maxScore(series)
+-- the charts, in the order of their switch chips; key = the sample field
+-- GameServer fills every round
+M.METRICS = {
+	{ id = "score", key = "scores", label = "Score" },
+	{ id = "pop", key = "pop", label = "Population" },
+	{ id = "cities", key = "cities", label = "Cities" },
+	{ id = "techs", key = "techs", label = "Techs" },
+}
+
+function M.metric(id)
+	for _, m in ipairs(M.METRICS) do
+		if m.id == id then
+			return m
+		end
+	end
+	return M.METRICS[1]
+end
+
+-- the metrics this series can draw (a series pulled from an older server
+-- sample carries scores only)
+function M.metricsIn(series)
+	local out = {}
+	local last = series[#series]
+	for _, m in ipairs(M.METRICS) do
+		if last ~= nil and last[m.key] ~= nil then
+			out[#out + 1] = m
+		end
+	end
+	return out
+end
+
+function M.maxValue(series, key)
 	local m = 1
 	for _, sample in ipairs(series) do
-		for _, sc in pairs(sample.scores) do
-			if sc > m then
-				m = sc
+		for _, v in pairs(sample[key] or {}) do
+			if v > m then
+				m = v
 			end
 		end
 	end
 	return m
 end
 
--- one civ's score line as dots: { { x, y } } inside a w x CHART_H box
--- (y grows downward; the highest score sits 4 px under the top edge)
-function M.chartDots(series, pid, w, maxScore)
+function M.maxScore(series)
+	return M.maxValue(series, "scores")
+end
+
+-- one civ's line as dots: { { x, y } } inside a w x CHART_H box
+-- (y grows downward; the highest value sits 4 px under the top edge)
+function M.chartDots(series, pid, w, maxValue, key)
+	key = key or "scores"
 	local out = {}
 	if #series < 2 then
 		return out
@@ -117,14 +153,27 @@ function M.chartDots(series, pid, w, maxScore)
 	local step = #series / cols
 	for c = 1, cols do
 		local sample = series[math.max(1, math.floor(c * step))]
-		local sc = sample ~= nil and sample.scores[pid] or nil
-		if sc ~= nil then
+		local v = sample ~= nil and sample[key] ~= nil and sample[key][pid] or nil
+		if v ~= nil then
 			out[#out + 1] = { x = math.floor((c - 1) / cols * w),
-				y = M.CHART_H - 4 - math.floor(sc / maxScore * (M.CHART_H - 8)) }
+				y = M.CHART_H - 4 - math.floor(v / maxValue * (M.CHART_H - 8)) }
 		end
 	end
 	return out
 end
+
+-- the chart caption: what is drawn, the top of the scale, the span
+function M.chartCaption(series, metricId)
+	local m = M.metric(metricId)
+	if #series < 2 then
+		return m.label .. " over time"
+	end
+	return ("%s over time  -  top of scale %d, turns %d to %d"):format(m.label, M.maxValue(series, m.key),
+		series[1].turn, series[#series].turn)
+end
+
+M.CHIP_H = 26
+M.CHIP_W = 104
 
 -- where each block starts inside the scrolling body, and the panel height
 function M.layout(nCards, nWonders, hasChart)
@@ -139,7 +188,7 @@ function M.layout(nCards, nWonders, hasChart)
 	local chartY = nil
 	if hasChart then
 		chartY = y
-		y += M.SECTION_H + M.CHART_H + M.CARD_GAP
+		y += M.SECTION_H + M.CHIP_H + 6 + M.CHART_H + M.CARD_GAP
 	end
 	local body = math.min(y, M.BODY_MAX)
 	return { cardsY = cardsY, wondersY = wondersY, chartY = chartY, content = y, body = body,

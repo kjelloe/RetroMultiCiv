@@ -521,9 +521,21 @@ local function chainAndRound(collected, pushProgress)
 		hash = statehash.hashState(state) })
 	print(("[R4CODE] turn=%d code=%s"):format(state.turn, gamecode.gameCode(state)))
 	-- SO8: sample the world-public standings every round (score twin)
-	local sample = { turn = state.turn, scores = {} }
+	-- plan step 2.2: cities, population and tech counts beside the score
+	-- (stats-data.js twin; the score is already a sum over the same figures)
+	local sample = { turn = state.turn, scores = {}, cities = {}, pop = {}, techs = {} }
 	for _, pid in ipairs(state.playerOrder) do
 		sample.scores[pid] = scoreModule.score(state, pid, ruleset)
+		sample.cities[pid] = 0
+		sample.pop[pid] = 0
+		sample.techs[pid] = #(state.players[pid].techs or {})
+	end
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and sample.cities[c.owner] ~= nil then
+			sample.cities[c.owner] += 1
+			sample.pop[c.owner] += c.pop
+		end
 	end
 	table.insert(statsSeries, sample)
 end

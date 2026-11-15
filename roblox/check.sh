@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules DiscoveryView CityView; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules DiscoveryView CityView EmpireView; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -846,6 +846,26 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 59: lune absent"
+fi
+
+# gate 60 — empire overview rules (EmpireView, plan step 2): the Economy
+# statement sums to tech.playerIncome for every civ of a real game, from the
+# state and from the player's view; city rows; the income readers use the
+# own-cities shim (the raw view breaks playerIncome once rival cities are known)
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/empire-view.luau >/dev/null 2>&1 \
+     && grep -q 'EmpireView.economy, EmpireView.shim(view)' roblox/src/client/CityList.client.luau \
+     && grep -q 'EmpireView.cityRow, shim, c, rs, DEPS, worked' roblox/src/client/CityList.client.luau \
+     && grep -q 'EmpireView.shim(view)' roblox/src/client/Hud.client.luau \
+     && grep -q 'EmpireView.shim(view)' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'EmpireView.shim(view)' roblox/src/client/ResearchPicker.client.luau \
+     && grep -q 'StatsView.chartDots(lastSeries, card.pid, INNER - 4, maxValue, key)' roblox/src/client/Statistics.client.luau; then
+    note PASS "gate 60: empire overview rules (lune) + Cities / Economy / income wiring"
+  else
+    note FAIL "gate 60: empire view — run: lune run roblox/selftest/empire-view.luau"
+  fi
+else
+  note SKIP "gate 60: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

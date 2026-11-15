@@ -13,6 +13,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
@@ -738,8 +739,7 @@ local function researchLine(view, me)
 	local def = rs.techs[me.researching]
 	local line = "researching: " .. (def and def.name or me.researching)
 	local cost = techModule.researchCost({ players = { [view.you] = me } }, view.you, rs)
-	local shim = { players = view.players, cities = view.cities,
-		cityOrder = view.cityOrder, map = view.map }
+	local shim = EmpireView.shim(view) -- own cities only: rival shells break playerIncome
 	local ok, income = pcall(techModule.playerIncome, shim, view.you, rs)
 	if ok and income ~= nil and (income.bulbs or 0) > 0 then
 		line ..= (" - %d turns"):format(math.ceil(math.max(0, cost - (me.bulbs or 0)) / income.bulbs))

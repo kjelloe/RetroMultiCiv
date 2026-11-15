@@ -126,6 +126,16 @@ list section. Panel 360x540. Not seen in Studio.
 Tour: staged population-5 city; stops for each.
 
 ### Step 2: knowing your empire (S10; the user's statistics request)
+BUILT 2026-11-16 (gate 60, `EmpireView.luau`): 2.1 Economy tab in the
+Cities panel (income per city, building costs, corruption note, net equal to
+`playerIncome` for every civ of a real 120-turn game, unit and settler
+upkeep below the net); 2.2 one chart with Score / Population / Cities /
+Techs chips (server sample extended); 2.3 yields, gold, science and upkeep
+on every Cities row, capital mark. Tour stop `economy` (20 stops). Found
+while building: `playerIncome` on the raw view fails once a rival city
+with unexplored surroundings is known (gold chip hover, research turns
+estimate went blank from mid-game); the three readers now use
+`EmpireView.shim` (own cities only). Not seen in Studio.
 2.1 Economy overview: income per city, building costs, net per turn equal
     to the gold chip (pinned headless against `playerIncome`).
 2.2 Statistics: Population, Cities and Techs charts beside Score (the

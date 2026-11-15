@@ -5,7 +5,13 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local EmpireView = require(script.Parent:WaitForChild("EmpireView")) -- plan step 2: city figures, economy statement
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local DEPS = { tech = require(Shared:WaitForChild("tech")), cities = require(Shared:WaitForChild("cities")),
+	government = require(Shared:WaitForChild("government")) }
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityList"
@@ -51,12 +57,34 @@ end
 local title = text(panel, 14, 8, W - 70, 28, 22, UiTheme.FONT, Color3.fromRGB(240, 242, 248))
 title.Name = "Heading"
 title.Text = "Cities"
-local hint = text(panel, 14, 36, W - 28, 18, 14, nil, Color3.fromRGB(143, 155, 179))
+-- plan step 2: two views of the same empire in one panel
+local tab = "cities"
+local tabButtons = {}
+local refresh
+for i, def in ipairs({ { id = "cities", label = "Cities" }, { id = "economy", label = "Economy" } }) do
+	local b = Instance.new("TextButton")
+	b.Name = "Tab_" .. def.id
+	b.Position = UDim2.new(0, 14 + (i - 1) * 108, 0, 40)
+	b.Size = UDim2.new(0, 102, 0, 26)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 15
+	b.Text = def.label
+	b.BorderSizePixel = 0
+	b.AutoButtonColor = true
+	b.Parent = panel
+	round(b, 13)
+	tabButtons[def.id] = b
+	b.Activated:Connect(function()
+		tab = def.id
+		refresh()
+	end)
+end
+local hint = text(panel, 14, 70, W - 28, 18, 14, nil, Color3.fromRGB(143, 155, 179))
 hint.Text = "Click a city to go there and open it."
 
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -16, 1, -68)
-list.Position = UDim2.new(0, 8, 0, 60)
+list.Size = UDim2.new(1, -16, 1, -100)
+list.Position = UDim2.new(0, 8, 0, 92)
 list.BackgroundTransparency = 1
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 8
@@ -66,7 +94,8 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 6)
 layout.Parent = list
 
-local ROW_H = 54
+local ROW_H = 76
+local ECO_H = 28
 local KIND_COLOR = { unit = Color3.fromRGB(255, 160, 110), building = Color3.fromRGB(120, 190, 255),
 	wonder = Color3.fromRGB(255, 225, 130) }
 local function popColor(pop)
@@ -84,17 +113,63 @@ local function chip(parent, x, label, color)
 	return c
 end
 
-local function refresh()
+local ECO_COLOR = { income = Color3.fromRGB(150, 220, 140), cost = Color3.fromRGB(240, 130, 116),
+	note = Color3.fromRGB(143, 155, 179), upkeep = Color3.fromRGB(255, 160, 110) }
+
+-- the Economy statement: where the gold per turn comes from and goes
+local function drawEconomy(view, rs)
+	local ok, eco = pcall(EmpireView.economy, EmpireView.shim(view), view.you, rs, DEPS)
+	if not ok or eco == nil then
+		title.Text = "Economy"
+		hint.Text = "The figures are not available right now."
+		list.CanvasSize = UDim2.new(0, 0, 0, 0)
+		return
+	end
+	title.Text = ("Economy  -  %s%d gold a turn"):format(eco.net >= 0 and "+" or "", eco.net)
+	hint.Text = eco.empty or ("Treasury %d gold.  Taxes %d%%, science %d%%."):format(eco.treasury, eco.tax or 0, eco.sci or 0)
+	for i, r in ipairs(eco.rows) do
+		local row = Instance.new("Frame")
+		row.Name = "Eco"
+		row.Size = UDim2.new(1, -10, 0, ECO_H)
+		row.LayoutOrder = i
+		row.BorderSizePixel = 0
+		row.BackgroundColor3 = r.kind == "total" and Color3.fromRGB(58, 70, 98) or Color3.fromRGB(40, 48, 66)
+		row.BackgroundTransparency = r.kind == "note" and 1 or 0
+		row.Parent = list
+		round(row, 6)
+		local bold = r.kind == "total" and Enum.Font.GothamBold or nil
+		local label = text(row, 10, 4, W - 150, 20, 15, bold, r.kind == "note" and ECO_COLOR.note or nil)
+		label.Text = r.label
+		local amount = text(row, 0, 4, 100, 20, 15, Enum.Font.GothamBold,
+			r.kind == "total" and (r.amount < 0 and ECO_COLOR.cost or ECO_COLOR.income) or ECO_COLOR[r.kind])
+		amount.Position = UDim2.new(1, -110, 0, 4)
+		amount.TextXAlignment = Enum.TextXAlignment.Right
+		amount.Text = EmpireView.amountText(r)
+	end
+	list.CanvasSize = UDim2.new(0, 0, 0, #eco.rows * (ECO_H + 6))
+end
+
+refresh = function()
 	local view = ClientState.view
 	if view == nil then
 		return
 	end
 	local rs = ClientState.rulesets()
 	for _, child in ipairs(list:GetChildren()) do
-		if child:IsA("TextButton") then
+		if child:IsA("GuiObject") then
 			child:Destroy()
 		end
 	end
+	for id, b in pairs(tabButtons) do
+		b.BackgroundColor3 = id == tab and Color3.fromRGB(96, 150, 230) or Color3.fromRGB(46, 54, 74)
+		b.TextColor3 = id == tab and Color3.fromRGB(16, 20, 28) or Color3.fromRGB(200, 208, 224)
+	end
+	if tab == "economy" then
+		drawEconomy(view, rs)
+		return
+	end
+	local shim = EmpireView.shim(view)
+	local okWorked, worked = pcall(DEPS.cities.resolveAllWorked, shim, rs)
 	local order = 0
 	for _, cid in ipairs(view.cityOrder or {}) do
 		local c = view.cities[cid]
@@ -156,10 +231,23 @@ local function refresh()
 			local num = text(row, 0, 27, 60, 22, 14, Enum.Font.GothamBold, Color3.fromRGB(226, 231, 242))
 			num.Position = UDim2.new(1, -66, 0, 27)
 			num.Text = ("%d/%d"):format(done, cost)
-			local size = text(row, 0, 6, 110, 18, 14, nil, Color3.fromRGB(143, 155, 179))
-			size.Position = UDim2.new(1, -116, 0, 6)
+			local size = text(row, 0, 6, 170, 18, 14, nil, Color3.fromRGB(143, 155, 179))
+			size.Position = UDim2.new(1, -176, 0, 6)
 			size.TextXAlignment = Enum.TextXAlignment.Right
-			size.Text = "population " .. tostring(c.pop)
+			-- yields, what the city pays in, what it costs each turn
+			local okRow, fig = false, nil
+			if okWorked then
+				okRow, fig = pcall(EmpireView.cityRow, shim, c, rs, DEPS, worked)
+			end
+			size.Text = (okRow and fig.capital and "capital  -  " or "") .. "population " .. tostring(c.pop)
+			if okRow then
+				local figures = text(row, 58, 52, W - 90, 18, 14, nil, Color3.fromRGB(170, 180, 200))
+				figures.Name = "Figures"
+				figures.RichText = true
+				figures.Text = ('<font color="#96dc8c">%d food</font>  <font color="#ffa06e">%d shields</font>  <font color="#8cc4ff">%d trade</font>'
+					.. '   <font color="#ffe182">+%d gold</font>  <font color="#b4a0ff">+%d science</font>   upkeep %s'):format(
+					fig.food, fig.shields, fig.trade, fig.gold, fig.bulbs, fig.upkeepText)
+			end
 			row.Activated:Connect(function()
 				print(("[CityList] jump to %s (%d,%d)"):format(c.name, c.x, c.y))
 				ClientState.focusCamera(c.x, c.y)
@@ -205,8 +293,16 @@ end)
 
 -- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
 ClientState.registerPanel("cities", panel, function()
+	tab = "cities"
 	setOpen(true)
 end, function()
+	setOpen(false)
+end)
+ClientState.registerPanel("economy", panel, function()
+	tab = "economy"
+	setOpen(true)
+end, function()
+	tab = "cities"
 	setOpen(false)
 end)
 

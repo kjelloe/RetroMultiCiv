@@ -78,6 +78,7 @@ local INNER = W - 16 - 12
 local lastSeries = {}
 local lastBattles = {}
 local lastWonders = {}
+local chartMetric = "score" -- which figure the chart draws (StatsView.METRICS)
 
 local function section(y, label, color)
 	local h = text(body, 6, y + 4, INNER, 20, 15, Enum.Font.GothamBold, color)
@@ -161,19 +162,41 @@ local function refresh()
 		end
 	end
 	if plan.chartY ~= nil then
-		section(plan.chartY, "Score over time", Color3.fromRGB(140, 196, 255))
+		section(plan.chartY, StatsView.chartCaption(lastSeries, chartMetric), Color3.fromRGB(140, 196, 255))
+		-- plan step 2.2: one chart, a chip per figure the server samples
+		local chipsY = plan.chartY + StatsView.SECTION_H
+		for i, m in ipairs(StatsView.metricsIn(lastSeries)) do
+			local on = m.id == StatsView.metric(chartMetric).id
+			local b = Instance.new("TextButton")
+			b.Name = "Metric_" .. m.id
+			b.Position = UDim2.new(0, (i - 1) * (StatsView.CHIP_W + 6), 0, chipsY)
+			b.Size = UDim2.new(0, StatsView.CHIP_W, 0, StatsView.CHIP_H)
+			b.Font = Enum.Font.GothamBold
+			b.TextSize = 14
+			b.Text = m.label
+			b.BorderSizePixel = 0
+			b.BackgroundColor3 = on and Color3.fromRGB(96, 150, 230) or Color3.fromRGB(46, 54, 74)
+			b.TextColor3 = on and Color3.fromRGB(16, 20, 28) or Color3.fromRGB(200, 208, 224)
+			b.Parent = body
+			round(b, 13)
+			b.Activated:Connect(function()
+				chartMetric = m.id
+				refresh()
+			end)
+		end
 		local chart = Instance.new("Frame")
 		chart.Name = "Chart"
-		chart.Position = UDim2.new(0, 0, 0, plan.chartY + StatsView.SECTION_H)
+		chart.Position = UDim2.new(0, 0, 0, chipsY + StatsView.CHIP_H + 6)
 		chart.Size = UDim2.new(0, INNER, 0, StatsView.CHART_H)
 		chart.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
 		chart.BorderSizePixel = 0
 		chart.Parent = body
 		round(chart, 6)
-		local maxScore = StatsView.maxScore(lastSeries)
+		local key = StatsView.metric(chartMetric).key
+		local maxValue = StatsView.maxValue(lastSeries, key)
 		for _, card in ipairs(cards) do
 			local color = civColor(card.color)
-			for _, d in ipairs(StatsView.chartDots(lastSeries, card.pid, INNER - 4, maxScore)) do
+			for _, d in ipairs(StatsView.chartDots(lastSeries, card.pid, INNER - 4, maxValue, key)) do
 				local dot = Instance.new("Frame")
 				dot.Size = UDim2.new(0, 4, 0, 3)
 				dot.Position = UDim2.new(0, d.x, 0, d.y)

@@ -16,6 +16,7 @@ M.STOPS = {
 	{ id = "research", panel = "research", gui = "RMCResearch", title = "Research", minTexts = 4 },
 	{ id = "techtree", panel = "techtree", gui = "RMCTechTree", title = "Technology tree", minTexts = 20 },
 	{ id = "cities", panel = "cities", gui = "RMCCityList", title = "Cities", minTexts = 2 },
+	{ id = "economy", panel = "economy", gui = "RMCCityList", title = "Economy", minTexts = 4, needsCity = true },
 	{ id = "city", panel = "city", gui = "RMCCityPanel", title = "City", minTexts = 8, needsCity = true },
 	{ id = "city-hover", panel = "city", gui = "RMCTooltip", title = "City list hover card", minTexts = 8, needsCity = true, hover = true },
 	{ id = "discovery", panel = "discovery", gui = "RMCDiscoveryCard", title = "Discovery splash", minTexts = 5 },

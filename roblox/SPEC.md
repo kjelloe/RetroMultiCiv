@@ -1131,6 +1131,15 @@ seat/reset flow; JS engine untouched). Delivered:
   treat anything without it as legacy (contentCitizens rules override,
   engine level prince). HASH NOTE: a new game's initial hash now depends
   on the level (start gold, `state.difficulty`).
+  EMPIRE OVERVIEW (plan step 2, gate 60): `EmpireView.luau` holds the
+  rules (`shim`, `upkeep`, `cityRow`, `economy`); `CityList.client.luau`
+  draws two tabs (Cities, Economy) from it with the engine helpers passed
+  in as deps. `EmpireView.shim(view)` keeps own cities only and is the
+  shim for every `tech.playerIncome` read on the client (Hud, ActionBar,
+  ResearchPicker): `resolveAllWorked` walks every city in the state and a
+  rival shell among unexplored tiles errors. Statistics: the server sample
+  carries `scores`, `cities`, `pop`, `techs`; `StatsView.METRICS` drives
+  the chart chips.
   CITY SCREEN (plan step 1, gate 59): `CityView.luau` holds the rules;
   `CityPanel` (360x540) gains a food line (`CityView.food`: made - pop*2
   - settler upkeep, box / `growthThreshold`, grows-in / STARVING / no

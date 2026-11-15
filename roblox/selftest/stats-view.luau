@@ -1,6 +1,7 @@
 -- check.sh gate 48: statistics content rules (StatsView): the fog rule on
 -- rival cards, the own card's fields, wonders window, chart dots in the box,
 -- block layout without overlap.
+local fs = require("@lune/fs")
 local V = require("../src/client/StatsView")
 
 local fails = 0
@@ -89,10 +90,34 @@ check("layout: cards only", l.wondersY == nil and l.chartY == nil and l.content 
 l = V.layout(3, 2, true)
 check("layout: blocks in order", l.cardsY == 0 and l.wondersY == 3 * (V.CARD_H + V.CARD_GAP)
 	and l.chartY == l.wondersY + V.SECTION_H + 2 * V.WONDER_H + V.CARD_GAP)
-check("layout: content holds the chart", l.content == l.chartY + V.SECTION_H + V.CHART_H + V.CARD_GAP)
+check("layout: content holds the switch chips and the chart", l.content == l.chartY + V.SECTION_H + V.CHIP_H + 6 + V.CHART_H + V.CARD_GAP)
 check("layout: panel = head + body", l.panelH == V.HEAD_H + l.body + 8 and l.body == l.content)
 l = V.layout(14, 8, true)
 check("layout: 14 civs scroll", l.body == V.BODY_MAX and l.content > V.BODY_MAX and l.panelH <= 560, l.panelH)
+
+-- plan step 2.2: population / cities / techs beside the score
+local multi = {}
+for t = 1, 30 do
+	multi[t] = { turn = t, scores = { p1 = t }, pop = { p1 = 30 - t + 1, p2 = 3 }, cities = { p1 = 2 }, techs = { p1 = t * 2 } }
+end
+check("metrics: all four when the server samples them", #V.metricsIn(multi) == 4 and V.metricsIn(multi)[2].id == "pop")
+check("metrics: an old sample draws the score only", #V.metricsIn(series) == 1 and V.metricsIn(series)[1].id == "score")
+check("metrics: nothing without samples", #V.metricsIn({}) == 0)
+check("metric: unknown id falls back to the score", V.metric("nope").id == "score" and V.metric("techs").key == "techs")
+check("max value per figure", V.maxValue(multi, "pop") == 30 and V.maxValue(multi, "techs") == 60 and V.maxValue(multi, "cities") == 2)
+local popDots = V.chartDots(multi, "p1", 480, V.maxValue(multi, "pop"), "pop")
+check("pop: a falling figure descends", #popDots == 30 and popDots[#popDots].y > popDots[1].y)
+check("pop: second civ drawn on the same scale", #V.chartDots(multi, "p2", 480, 30, "pop") == 30)
+check("a figure the sample lacks draws nothing", #V.chartDots(series, "p1", 480, 1, "pop") == 0)
+check("default key is the score", #V.chartDots(multi, "p1", 480, 30) == 30)
+check("caption", V.chartCaption(multi, "techs") == "Techs over time  -  top of scale 60, turns 1 to 30", V.chartCaption(multi, "techs"))
+check("caption: too short a series", V.chartCaption({}, "pop") == "Population over time")
+local server = fs.readFile("roblox/src/server/GameServer.server.luau")
+for _, m in ipairs(V.METRICS) do
+	check("server samples " .. m.key, server:find(("sample.%s[pid] ="):format(m.key), 1, true) ~= nil
+		or server:find(("sample.%s[c.owner] +="):format(m.key), 1, true) ~= nil)
+end
+check("chips fit the body", #V.METRICS * (V.CHIP_W + 6) <= V.W - 28)
 
 if fails > 0 then
 	error(fails .. " stats view pin(s) failed")

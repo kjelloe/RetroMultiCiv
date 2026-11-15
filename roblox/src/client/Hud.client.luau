@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
@@ -53,8 +54,7 @@ Tooltip.attach(status, function()
 		return ""
 	end
 	local rs = ClientState.rulesets()
-	local shim = { players = view.players, cities = view.cities,
-		cityOrder = view.cityOrder, map = view.map }
+	local shim = EmpireView.shim(view) -- own cities only: rival shells break playerIncome
 	local ok, inc = pcall(techModule.playerIncome, shim, view.you, rs)
 	if not ok or inc == nil then
 		return "income breakdown unavailable"

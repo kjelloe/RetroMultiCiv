@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: era badge
 
@@ -141,8 +142,7 @@ function refresh()
 	-- WHOLE and their radius is always explored, which is everything the
 	-- income walk reads. pcall: presentational only, never blocks the picker.
 	local bulbs = 0
-	local incomeShim = { players = view.players, cities = view.cities,
-		cityOrder = view.cityOrder, map = view.map }
+	local incomeShim = EmpireView.shim(view) -- own cities only: rival shells break playerIncome
 	local okIncome, income = pcall(techModule.playerIncome, incomeShim, view.you, rs)
 	if okIncome and income ~= nil then
 		bulbs = income.bulbs or 0

@@ -86,11 +86,11 @@ res-08 | partial | client/TechTree.client.luau | Beeline | the goal clears when 
 res-09 | yes | client/DiscoveryCard.client.luau | ADVANCE DISCOVERED |
 res-10 | yes | client/TechGlyphs.luau | return M |
 res-11 | yes | client/DiscoveryCard.client.luau | techBlurbs |
-ov-01 | partial | client/CityList.client.luau | Click a city to go there and open it. | population, build and progress per city; no yields, upkeep or specialists columns
+ov-01 | partial | client/EmpireView.luau | function M.cityRow | population, build, progress, yields, gold and science, upkeep per city; no specialists column
 ov-02 | yes | client/MilitaryView.luau | military-overview.js twin |
-ov-03 | no | | | no economy overview (the income hover card on the gold chip gives the totals only)
+ov-03 | yes | client/EmpireView.luau | function M.economy | Economy tab of the Cities panel; sums pinned to playerIncome (gate 60)
 ov-04 | n/a | | | browser component; Roblox panels share PanelDress + UiTheme instead
-ov-05 | no | | | no per-city upkeep figures in the client
+ov-05 | yes | client/EmpireView.luau | function M.upkeep |
 ov-06 | yes | client/ClientState.luau | panelOpened |
 dip-01 | yes | client/Diplomacy.client.luau | Diplomacy (Y) |
 dip-02 | yes | client/DiplomacyView.luau | return M |
@@ -145,7 +145,7 @@ gf-18 | no | | | no end-game moment before the scoreboard
 gf-19 | yes | client/EndScreen.client.luau | pop %d + happy %d + techs %d |
 gf-20 | yes | client/EndScreen.client.luau | ClientState.toggleStats(true) |
 gf-21 | yes | client/ClientState.luau | onReshowEndScreen |
-gf-22 | partial | client/StatsView.luau | function M.chartDots | score chart, battles and wonders, available during play too; no Population / Cities / Techs charts
+gf-22 | yes | client/StatsView.luau | M.METRICS | one chart with Score / Population / Cities / Techs chips, battles and wonders, available during play too
 gf-23 | yes | server/GameServer.server.luau | statsBattles |
 gf-24 | partial | client/ReplayTheater.client.luau | perspective | jump bar and view-as; no play / pause or speed control
 gf-25 | no | | | no replay event feed
