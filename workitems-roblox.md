@@ -240,6 +240,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19za. Discovery splash [done: 2026-11-15 — user: a discovery needs a bigger splash with the encyclopedia information. `DiscoveryView.luau` (content: unlock chips, now-open vs later, research prompt, regent-only timeout; gate 57) + `DiscoveryCard.client.luau` redrawn as a centred card on a dimmed backdrop; tour stop `discovery`. gamesim-golden-neutral]
 
+## 19zb. Difficulty levels [done: 2026-11-15 — plan step 1.0: host setup offers the engine's seven levels and passes the id to createGame (before: nothing passed, every game ran as prince); `[R4INIT] levels=7`, save `levels = 7`, legacy logs / saves handled the old way; gate 58. Wants one Studio game on a non-default level. gamesim-golden-neutral (Roblox setup only; no engine change)]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

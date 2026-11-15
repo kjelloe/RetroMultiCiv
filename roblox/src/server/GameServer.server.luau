@@ -232,14 +232,23 @@ local hostUserId = nil
 -- SAME ruleset overrides the browser lobby applies (server/lobby.js is the
 -- authority): difficulty -> rules.contentCitizens, bestof3 -> combatRounds=3.
 -- Browser defaults: medium + best-of-three.
-local DIFFICULTY_LEVELS = { "trainer", "easy", "medium", "hard", "godemperor" }
-local DIFFICULTY_CONTENT = { trainer = 6, easy = 5, medium = 4, hard = 3, godemperor = 2 }
+-- plan step 1.0 (2026-11-15): the engine's own seven levels (rules.json
+-- `difficulties`: content citizens, AI cost and research, barbarians, start
+-- gold), passed to createGame as options.difficulty. Until now the host chose
+-- among five ids of which three matched no engine row, nothing was passed,
+-- and every game ran as prince.
+local DIFFICULTY_LEVELS = { "trainer", "chieftain", "warlord", "prince", "king", "emperor", "godemperor" }
+-- LEGACY (saves and logs made before step 1.0): those games carried a
+-- contentCitizens rules override; it changed nothing in play (state.difficulty
+-- was prince and wins) but it is part of their rules, so a resumed legacy
+-- save gets it back
+local LEGACY_DIFFICULTY_CONTENT = { trainer = 6, easy = 5, medium = 4, hard = 3, godemperor = 2 }
 local baseRules = ruleset.rules -- pristine; per-game overrides swap a merged copy in
 
 local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
 	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
-	difficulty = "medium", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
+	difficulty = "prince", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
 	spectators = true, marathon = false, midgameJoin = true, -- CP16/MP8 + #2543 mid-game join (default ON)
 	debugGame = false, -- run-R ruling 1: owner-only switch, a debug-enabled (hash-tainted on use) game
 	diag = false } -- run-R ruling 4: client diagnostics for every player (the owner always has them)
@@ -958,10 +967,10 @@ end
 -- swapping a MERGED rules copy in and rebuilding the engine (baseRules stays
 -- pristine for the next game). Saves record the two knobs so resume rebuilds
 -- the same rules (marker-0045 rulesetHash pins would split otherwise).
-local function applyRuleOverrides(difficulty, combat, marathon)
+local function applyRuleOverrides(difficulty, combat, marathon, legacyDifficulty)
 	local o = {}
-	if difficulty ~= nil and DIFFICULTY_CONTENT[difficulty] ~= nil and difficulty ~= "medium" then
-		o.contentCitizens = DIFFICULTY_CONTENT[difficulty]
+	if legacyDifficulty and difficulty ~= nil and LEGACY_DIFFICULTY_CONTENT[difficulty] ~= nil and difficulty ~= "medium" then
+		o.contentCitizens = LEGACY_DIFFICULTY_CONTENT[difficulty]
 	end
 	if combat == "bestof3" then
 		o.combatRounds = 3
@@ -988,7 +997,11 @@ local function startGame()
 	awaySeats = {} -- R22: fresh game, every seat starts human-driven
 	lastAutosaveTurn = -1 -- R23
 	endscreenSent = false -- SO7
-	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon) -- R24b/MP11
+	if table.find(DIFFICULTY_LEVELS, setup.difficulty) == nil then
+		setup.difficulty = "prince" -- a legacy id left over from a resumed save
+	end
+	setup.legacyDifficulty = false
+	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon, false) -- R24b/MP11
 	local size = MAP_SIZES[setup.sizeIndex]
 	-- R24b: the host's explicit seed wins; else the server picks. PRINTED
 	-- for replay; never engine RNG (the game does not exist yet)
@@ -1034,7 +1047,8 @@ local function startGame()
 	local created = engine.createGame({
 		seed = seed,
 		options = { width = size.w, height = size.h, players = playerDefs,
-			mapType = setup.mapType }, -- A82a preset (validated by mapgen)
+			mapType = setup.mapType, -- A82a preset (validated by mapgen)
+			difficulty = setup.difficulty }, -- step 1.0: the engine level (mapgen: unknown id = prince)
 		-- R17 (marker-0057): STUDIO games are debug-enabled; the engine
 		-- taints permanently on first use (debugUsed rides every push).
 		-- run A 2026-11-15: this sat INSIDE `options`, where mapgen never
@@ -1144,7 +1158,7 @@ local function startGame()
 
 	theater.initialState = engineModule.deepClone(state) -- R18
 	theater.entries = {}
-	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s age=%s difficulty=%s combat=%s marathon=%s initialHash=%s")
+	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s age=%s difficulty=%s combat=%s marathon=%s levels=7 initialHash=%s")
 		:format(seed, size.w, size.h, table.concat(civIds, ","), setup.humans,
 			setup.mapType, setup.age, setup.difficulty, setup.combat,
 			tostring(setup.marathon == true), statehash.hashState(state)))
@@ -1187,6 +1201,7 @@ local function saveGame(why)
 		-- R24b/MP11: resume must rebuild the same rules overrides
 		difficulty = setup.difficulty, combat = setup.combat,
 		marathon = setup.marathon == true,
+		levels = (not setup.legacyDifficulty) and 7 or nil, -- step 1.0: 7 = engine difficulty ids, no rules override
 	})
 	if SaveStore.save(code, envelope) then
 		print(("[GameServer] R10 save (%s): %s at turn %d"):format(why, code, state.turn))
@@ -1311,9 +1326,10 @@ local function resumeGame(player, rawCode)
 	-- to bestof3 here would change their rules mid-game and split the
 	-- marker-0045 rulesetHash pin.
 	setup.difficulty = envelope.difficulty or "medium"
+	setup.legacyDifficulty = envelope.levels ~= 7 -- a save from before step 1.0 keeps its rules override
 	setup.combat = envelope.combat or "authentic"
 	setup.marathon = envelope.marathon == true -- MP11
-	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon)
+	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon, setup.legacyDifficulty)
 	endscreenSent = false -- SO7: a resumed game can end again
 	statsSeries = setmetatable({}, statehash.ARRAY_MT) -- SO8: fresh series
 	statsBattles = {} -- SO8: fresh battles/wonders tallies
@@ -1386,7 +1402,7 @@ local function padStart(player)
 	hostUserId = player.UserId
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 		maxIdleMin = 1, age = "ancient",
-		difficulty = "medium", combat = "bestof3", seedOverride = 0,
+		difficulty = "prince", combat = "bestof3", seedOverride = 0,
 		spectators = true, marathon = false, midgameJoin = true,
 		debugGame = false, diag = false }
 	seatUserIds = { player.UserId }
@@ -1696,7 +1712,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.maxIdleMin = math.clamp(setup.maxIdleMin + dir, 1, 15)
 		elseif msg.key == "difficulty" then
 			-- R24b: cycle the browser's five levels
-			local i = table.find(DIFFICULTY_LEVELS, setup.difficulty) or 3
+			local i = table.find(DIFFICULTY_LEVELS, setup.difficulty) or 4
 			setup.difficulty = DIFFICULTY_LEVELS[(i - 1 + dir) % #DIFFICULTY_LEVELS + 1]
 		elseif msg.key == "combat" then
 			-- R24b: two-state toggle (browser default best-of-three)

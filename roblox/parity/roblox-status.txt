@@ -159,7 +159,7 @@ gf-32 | yes | client/Lobby.client.luau | "Civilizations", civVals |
 gf-33 | n/a | | | hotseat does not apply; "Human seats" sets how many players join
 gf-34 | partial | client/Lobby.client.luau | SETUP_SIZES | xsmall / small / medium only (large and huge are not offered)
 gf-35 | yes | client/Lobby.client.luau | SETUP_MAPTYPES |
-gf-36 | partial | client/Lobby.client.luau | SETUP_DIFFICULTY | five ids, only the content-citizen count is applied; the engine's seven levels (AI cost, research, barbarians, start gold) are not reached
+gf-36 | yes | client/Lobby.client.luau | SETUP_DIFFICULTY |
 gf-37 | yes | client/Lobby.client.luau | SETUP_COMBAT |
 gf-38 | no | | | no nuclear weapons switch in the host setup
 gf-39 | partial | client/Lobby.client.luau | marathon | Marathon (play to victory) only; no victory-condition presets

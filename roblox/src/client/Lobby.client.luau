@@ -244,7 +244,10 @@ local SETUP_MAPTYPES = {
 	"islands", "oval", "pangaea", "ring",
 }
 local SETUP_AGES = { "ancient", "renaissance", "industrial", "modern", "space" }
-local SETUP_DIFFICULTY = { "trainer", "easy", "medium", "hard", "godemperor" }
+-- plan step 1.0: the engine's seven levels (rules.json `difficulties`), easiest first
+local SETUP_DIFFICULTY = { "trainer", "chieftain", "warlord", "prince", "king", "emperor", "godemperor" }
+local DIFFICULTY_NAME = { trainer = "Trainer", chieftain = "Chieftain", warlord = "Warlord", prince = "Prince",
+	king = "King", emperor = "Emperor", godemperor = "God-Emperor" }
 local SETUP_COMBAT = { "bestof3", "authentic" }
 local MAXCIV_BY_SIZE = { xsmall = 7, small = 12, medium = 14 }
 local UIACCENT = Color3.fromRGB(70, 120, 190)
@@ -355,7 +358,9 @@ local function rebuildBars(opts)
 	buildBar(5, "Idle limit (minutes)", idleVals, opts.maxIdleMin or 1, "maxidle")
 	buildBar(6, "Starting age", SETUP_AGES, opts.age or "ancient", "age",
 		function(v) return v ~= "ancient" and (titleCase(v) .. " (fast-forward)") or "Ancient" end)
-	buildBar(7, "Difficulty", SETUP_DIFFICULTY, opts.difficulty or "medium", "difficulty")
+	buildBar(7, "Difficulty", SETUP_DIFFICULTY, opts.difficulty or "prince", "difficulty", function(v)
+		return DIFFICULTY_NAME[v] or tostring(v)
+	end)
 	buildBar(8, "Combat", SETUP_COMBAT, opts.combat or "bestof3", "combat",
 		function(v) return v == "bestof3" and "Best of 3" or "Authentic (single roll)" end)
 end

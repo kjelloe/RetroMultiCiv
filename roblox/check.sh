@@ -818,5 +818,18 @@ else
   note SKIP "gate 57: lune absent"
 fi
 
+# gate 58 — difficulty levels (plan step 1.0): server and lobby offer exactly
+# rules.json's seven levels, createGame takes each, the server passes it, the
+# replay tool rebuilds from [R4INIT] levels=7; legacy ids fall back to prince
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/difficulty-levels.mjs >/dev/null 2>&1; then
+    note PASS "gate 58: the host's difficulty level reaches the engine (node, JS engine)"
+  else
+    note FAIL "gate 58: difficulty levels — run: node roblox/selftest/difficulty-levels.mjs"
+  fi
+else
+  note SKIP "gate 58: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

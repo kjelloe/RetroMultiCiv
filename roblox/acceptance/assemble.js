@@ -82,7 +82,11 @@ async function main() {
   }));
   // R24b/MP11: the lobby knobs are rules overrides (GameServer.applyRuleOverrides)
   const overrides = {};
-  if (init.difficulty && init.difficulty !== 'medium' && DIFFICULTY_CONTENT[init.difficulty] !== undefined) {
+  // levels=7 in [R4INIT] (2026-11-15 on): difficulty is the engine's own level,
+  // passed to createGame; older logs carried a contentCitizens override instead
+  // and ran as prince whatever the lobby said
+  const engineLevels = init.levels === '7';
+  if (!engineLevels && init.difficulty && init.difficulty !== 'medium' && DIFFICULTY_CONTENT[init.difficulty] !== undefined) {
     overrides.contentCitizens = DIFFICULTY_CONTENT[init.difficulty];
   }
   if (init.combat === 'bestof3') overrides.combatRounds = 3;
@@ -103,9 +107,9 @@ async function main() {
     // non-debug state, and the server had the same slip
     initialState = engine.createGame(Object.assign({
       seed: Number(init.seed),
-      options: { width: Number(init.width), height: Number(init.height), players,
+      options: Object.assign({ width: Number(init.width), height: Number(init.height), players,
         // A82a: maptype in [R4INIT] (absent = continents default, old runs fine)
-        mapType: init.maptype || undefined }
+        mapType: init.maptype || undefined }, engineLevels ? { difficulty: init.difficulty } : {})
     }, debug ? { debug: true } : {}));
     if (initialState.ok === false) {
       console.error('createGame failed: ' + initialState.reason);

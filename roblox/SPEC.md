@@ -1122,7 +1122,15 @@ seat/reset flow; JS engine untouched). Delivered:
   "later, with other advances", buttons Choose research / Encyclopedia /
   Continue. It stays until dismissed; only while the regent holds the
   seat does it time out (7 s, newest two of a queue). Tour stop
-  `discovery`; gate 57. `TechInfo.luau` = the one tech text builder (tree hover card
+  `discovery`; gate 57.
+  DIFFICULTY (plan step 1.0, gate 58): the host setup offers
+  rules.json's seven levels (Trainer .. God-Emperor, default Prince) and
+  the id is passed as `options.difficulty`; before this nothing was
+  passed and every game ran as prince. `[R4INIT] ... levels=7` and save
+  envelope `levels = 7` mark the new shape; `assemble.js` and resume
+  treat anything without it as legacy (contentCitizens rules override,
+  engine level prince). HASH NOTE: a new game's initial hash now depends
+  on the level (start gold, `state.difficulty`). `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

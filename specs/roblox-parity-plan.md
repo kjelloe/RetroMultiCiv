@@ -198,7 +198,18 @@ not depend on them.
 Test: run C with a short game awards the first-steps set in Studio
 (Studio reports awards without granting them).
 
-### Found while building step 8: difficulty levels
+### Step 1.0 BUILT 2026-11-15 (gate 58): difficulty levels
+Closer reading showed it was worse than first noted: nothing was passed
+to createGame, so EVERY Roblox game ran as prince; the content-citizen
+override changed the rules table but the engine reads the level's own row
+first. Now: the host setup offers the seven engine levels (default
+Prince) and the id goes to `options.difficulty`. `[R4INIT]` carries
+`levels=7`, saves carry `levels = 7`; logs and saves without it are
+replayed / resumed the old way (legacy override, prince). Wants one
+Studio game on a non-default level + `after-run.js` for the replay
+verdict.
+
+### Found while building step 8: difficulty levels (as first noted)
 The host setup offers five difficulty ids (trainer, easy, medium, hard,
 godemperor) and applies only the content-citizen count. `rules.json` has
 seven levels (trainer, chieftain, warlord, prince, king, emperor,
