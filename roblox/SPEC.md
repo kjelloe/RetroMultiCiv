@@ -1130,7 +1130,15 @@ seat/reset flow; JS engine untouched). Delivered:
   envelope `levels = 7` mark the new shape; `assemble.js` and resume
   treat anything without it as legacy (contentCitizens rules override,
   engine level prince). HASH NOTE: a new game's initial hash now depends
-  on the level (start gold, `state.difficulty`). `TechInfo.luau` = the one tech text builder (tree hover card
+  on the level (start gold, `state.difficulty`).
+  CITY SCREEN (plan step 1, gate 59): `CityView.luau` holds the rules;
+  `CityPanel` (360x540) gains a food line (`CityView.food`: made - pop*2
+  - settler upkeep, box / `growthThreshold`, grows-in / STARVING / no
+  growth), specialist buttons (`specialistCommand` = `setWorkers` with
+  the worked tiles unchanged and taxmen / scientists moved by one; size
+  5 and an entertainer needed), "<" ">" to the previous / next own city,
+  "capital" / civil disorder / celebration in the subtitle, trade routes
+  as a list section. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

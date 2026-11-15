@@ -24,6 +24,7 @@ local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 local CatalogInfo = require(script.Parent:WaitForChild("CatalogInfo")) -- which rows, and their hover card
 local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs"))
+local CityView = require(script.Parent:WaitForChild("CityView")) -- plan step 1: food, specialists, capital, routes, cycling
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -39,7 +40,7 @@ local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 -- stripe per kind.
 local W = 360
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, W, 0, 480)
+panel.Size = UDim2.new(0, W, 0, 540)
 panel.Position = UDim2.new(1, -(W + 8), 0, 48)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.05
@@ -79,7 +80,7 @@ local badge = text(panel, 10, 8, 40, 40, 19, Enum.Font.GothamBold, Color3.fromRG
 badge.BackgroundTransparency = 0
 badge.TextXAlignment = Enum.TextXAlignment.Center
 round(badge, 20)
-local title = text(panel, 58, 7, W - 100, 24, 20, Enum.Font.GothamBold)
+local title = text(panel, 58, 7, W - 164, 24, 20, Enum.Font.GothamBold)
 title.Name = "Title"
 local subtitle = text(panel, 58, 30, W - 70, 18, 14, nil, MUTED)
 local stats = text(panel, 12, 54, W - 24, 20, 15)
@@ -87,9 +88,51 @@ stats.Name = "Stats"
 stats.RichText = true
 stats.Active = true -- SO2: tooltip target (attached below openCityId's decl)
 -- mood row (browser panels.js city-mood-row twin)
-local moodLabel = text(panel, 12, 76, W - 24, 20, 15)
+-- plan step 1.3: what the city makes and eats, and when it grows or starves
+local foodLine = text(panel, 12, 76, W - 24, 20, 15)
+foodLine.Name = "Food"
+foodLine.RichText = true
+foodLine.Active = true
+local moodLabel = text(panel, 12, 98, W - 24, 20, 15)
 moodLabel.Name = "Mood"
 moodLabel.Active = true
+-- plan step 1.1: specialists - turn an entertainer into a tax collector or a
+-- scientist, or send them all back (the engine's setWorkers; size 5 and up)
+local specLabel = text(panel, 12, 122, 150, 20, 14, nil, MUTED)
+specLabel.Name = "Specialists"
+specLabel.Active = true
+local function specButton(x, w, label, color)
+	local b = Instance.new("TextButton")
+	b.Position = UDim2.new(0, x, 0, 120)
+	b.Size = UDim2.new(0, w, 0, 24)
+	b.BackgroundColor3 = color
+	b.TextColor3 = Color3.fromRGB(18, 20, 28)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.Text = label
+	b.Parent = panel
+	round(b, 8)
+	return b
+end
+local taxBtn = specButton(166, 64, "+ Tax", Color3.fromRGB(255, 225, 130))
+local sciBtn = specButton(234, 64, "+ Sci", Color3.fromRGB(140, 196, 255))
+local clearBtn = specButton(302, 50, "Reset", Color3.fromRGB(170, 178, 196))
+-- plan step 1.2: previous / next city, beside the close button
+local function navButton(x, label)
+	local b = Instance.new("TextButton")
+	b.Position = UDim2.new(1, x, 0, 6)
+	b.Size = UDim2.new(0, 28, 0, 26)
+	b.BackgroundColor3 = Color3.fromRGB(52, 64, 90)
+	b.TextColor3 = INK
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 16
+	b.Text = label
+	b.Parent = panel
+	round(b, 8)
+	return b
+end
+local prevBtn = navButton(-98, "<")
+local nextBtn = navButton(-66, ">")
 
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 26, 0, 26)
@@ -105,7 +148,7 @@ UiTheme.apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 -- the production card: what the city builds, how far along, and Buy
 local prodCard = Instance.new("Frame")
 prodCard.Name = "Production"
-prodCard.Position = UDim2.new(0, 8, 0, 100)
+prodCard.Position = UDim2.new(0, 8, 0, 150)
 prodCard.Size = UDim2.new(1, -16, 0, 62)
 prodCard.BackgroundColor3 = Color3.fromRGB(40, 48, 66)
 prodCard.BorderSizePixel = 0
@@ -151,7 +194,7 @@ UiTheme.apply(buyBtn, { color = "go", radius = 8 }) -- U2 dress
 -- same numbers buyProduction will charge; the server still judges)
 local buyConfirm = Instance.new("Frame")
 buyConfirm.Size = UDim2.new(1, -16, 0, 62)
-buyConfirm.Position = UDim2.new(0, 8, 0, 166)
+buyConfirm.Position = UDim2.new(0, 8, 0, 216)
 buyConfirm.BackgroundColor3 = Color3.fromRGB(46, 38, 22)
 buyConfirm.BorderSizePixel = 0
 buyConfirm.Visible = false
@@ -235,8 +278,8 @@ queueStrip.Activated:Connect(function()
 end)
 
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -16, 1, -176)
-list.Position = UDim2.new(0, 8, 0, 168)
+list.Size = UDim2.new(1, -16, 1, -226)
+list.Position = UDim2.new(0, 8, 0, 218)
 list.BackgroundTransparency = 1
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 8
@@ -549,6 +592,8 @@ local function addBuildingRow(order, id, def, price, sold, cardText)
 	end
 end
 
+local lastFood, lastSpec = nil, nil -- what the hover cards and the specialist buttons read
+
 local function refresh()
 	buyConfirm.Visible = false -- any view push may change gold/shields: never
 	-- leave a stale price on screen
@@ -577,11 +622,37 @@ local function refresh()
 	badge.BackgroundColor3 = popColor(city.pop)
 	-- W4 WLTKD (1.0-close #2): the celebrate line (browser panels.js banner twin;
 	-- fog-honest — filterView strips `celebrating` from rival shells)
-	subtitle.Text = city.celebrating == true and "We Love the King Day - no corruption while it lasts"
-		or ("population %d"):format(city.pop)
-	subtitle.TextColor3 = city.celebrating == true and Color3.fromRGB(255, 225, 130) or MUTED
+	local subText, subTone = CityView.subtitle(city, rs) -- capital mark, disorder, celebration
+	subtitle.Text = subText
+	subtitle.TextColor3 = subTone == "bad" and Color3.fromRGB(240, 110, 96)
+		or subTone == "good" and Color3.fromRGB(255, 225, 130) or MUTED
 	local mood = moodOf(view, city)
 	moodLabel.Text = mood ~= nil and moodFaces(mood) or ""
+	-- food and growth (the figures processCities uses)
+	local yShim = { map = view.map, players = view.players, cities = view.cities, cityOrder = view.cityOrder,
+		units = view.units, wonders = view.wonders, playerOrder = view.playerOrder, difficulty = view.difficulty }
+	local okY, yields = pcall(citiesModule.cityYields, yShim, city, rs)
+	local okT, threshold = pcall(citiesModule.growthThreshold, yShim, city, rs)
+	if okY and yields ~= nil and okT then
+		local f = CityView.food(city, yields.food or 0, CityView.settlersHomed(view, openCityId), rs.rules, threshold)
+		lastFood = f
+		local color = f.state == "growing" and "#8fd17a" or f.state == "starving" and "#f0846c" or "#ffe182"
+		foodLine.Text = ('<font color="%s"><b>%+d</b> food a turn</font>   box <b>%d</b>/%d   <font color="%s">%s</font>'):format(
+			color, f.surplus, f.box, f.threshold, color, f.line)
+	else
+		lastFood = nil
+		foodLine.Text = ""
+	end
+	local spec = mood ~= nil and CityView.specialists(city, mood) or nil
+	lastSpec = spec
+	if spec ~= nil then
+		specLabel.Text = ("%d free   %d tax   %d sci"):format(spec.entertainers, spec.taxmen, spec.scientists)
+		taxBtn.BackgroundTransparency = spec.canAdd and 0 or 0.7
+		sciBtn.BackgroundTransparency = spec.canAdd and 0 or 0.7
+		clearBtn.BackgroundTransparency = spec.canClear and 0 or 0.7
+	end
+	prevBtn.Visible = CityView.neighbour(view, openCityId, -1) ~= nil
+	nextBtn.Visible = prevBtn.Visible
 	stats.Text = ('<font color="#8fd17a"><b>%d</b></font> food stored    <font color="#ffa06e"><b>%d</b></font> shields    <font color="#ffe182"><b>%d</b></font> gold')
 		:format(city.food or 0, city.shields or 0, me.gold or 0)
 	local prodDef = (rs[city.producing.kind .. "s"] or {})[city.producing.id]
@@ -644,6 +715,24 @@ local function refresh()
 	local function cardFor(kind, id, def, effects, lock)
 		local blurb = kind == "unit" and PediaBlurbs.UNIT_BLURBS[id] or kind == "building" and PediaBlurbs.BUILDING_BLURBS[id] or nil
 		return CatalogInfo.card(kind, id, def, { blurb = blurb, effects = effects, techName = techName, lock = lock })
+	end
+
+	-- plan step 1.4: trade routes as their own section
+	if city.tradeRoutes ~= nil and #city.tradeRoutes > 0 then
+		local okR, report = pcall(tradeModule.tradeRouteReport, shim, city, rs)
+		local routes = okR and CityView.routes(report, view) or {}
+		if #routes > 0 then
+			order += 1
+			canvasY += addSection(order, "Trade routes", Color3.fromRGB(255, 225, 130))
+			for _, r in ipairs(routes) do
+				order += 1
+				local line = text(list, 0, 0, 0, 22, 15, nil, r.counted and INK or MUTED)
+				line.Size = UDim2.new(1, -10, 0, 22)
+				line.LayoutOrder = order
+				line.Text = ("   %s   +%d trade%s"):format(r.name, r.arrows, r.counted and "" or "  (over the limit, not counted)")
+				canvasY += 26
+			end
+		end
 	end
 
 	-- R13: the built-buildings strip (sell affordance) sits above the catalog
@@ -711,6 +800,79 @@ ClientState.onPanelOpen(function(id)
 end)
 
 ClientState.onView(refresh)
+
+-- specialists: the worked tiles stay as they are, one entertainer changes job
+local function specialist(action)
+	local view = ClientState.view
+	local city = view ~= nil and openCityId ~= nil and view.cities[openCityId] or nil
+	local mood = city ~= nil and moodOf(view, city) or nil
+	if mood == nil then
+		return
+	end
+	local rs = ClientState.rulesets()
+	local shim = { map = view.map, players = view.players, cities = view.cities, cityOrder = view.cityOrder,
+		units = view.units, wonders = view.wonders, playerOrder = view.playerOrder, difficulty = view.difficulty }
+	local ok, worked = pcall(citiesModule.workedTiles, shim, city, rs)
+	if not ok then
+		return
+	end
+	local workers = {}
+	for _, w in ipairs(worked) do
+		if w.center ~= true then
+			table.insert(workers, w.y * view.map.width + w.x)
+		end
+	end
+	local cmd = CityView.specialistCommand(city, mood, workers, action)
+	if cmd ~= nil then
+		print(("[CityPanel] specialists %s in %s -> tax %d sci %d"):format(action, openCityId, cmd.taxmen, cmd.scientists))
+		ClientState.send(cmd)
+	end
+end
+taxBtn.Activated:Connect(function()
+	specialist("taxman")
+end)
+sciBtn.Activated:Connect(function()
+	specialist("scientist")
+end)
+clearBtn.Activated:Connect(function()
+	specialist("clear")
+end)
+Tooltip.attach(specLabel, function()
+	if lastSpec == nil then
+		return ""
+	end
+	return ("Citizens not working a tile.\n%d free (entertainers: luxuries)\n%d tax collectors (gold)\n%d scientists (research)\n%s")
+		:format(lastSpec.entertainers, lastSpec.taxmen, lastSpec.scientists,
+			lastSpec.why or "+ Tax / + Sci turn one free citizen into a specialist. Reset sends them all back."), "card"
+end)
+Tooltip.attach(foodLine, function()
+	local f = lastFood
+	if f == nil then
+		return ""
+	end
+	local lines = { ("The worked tiles make %d food."):format(f.made), ("%d citizens eat %d."):format(f.eaten / CityView.FOOD_PER_CITIZEN, f.eaten) }
+	if f.settlerFood > 0 then
+		table.insert(lines, ("%d Settlers supported here eat %d."):format(f.settlers, f.settlerFood))
+	end
+	table.insert(lines, ("Left over: %+d a turn. The city grows when the box reaches %d."):format(f.surplus, f.threshold))
+	if f.warn ~= nil then
+		table.insert(lines, f.warn)
+	end
+	return table.concat(lines, "\n"), "card"
+end)
+local function cycle(dir)
+	local view = ClientState.view
+	local to = view ~= nil and openCityId ~= nil and CityView.neighbour(view, openCityId, dir) or nil
+	if to ~= nil then
+		ClientState.openCity(to)
+	end
+end
+prevBtn.Activated:Connect(function()
+	cycle(-1)
+end)
+nextBtn.Activated:Connect(function()
+	cycle(1)
+end)
 
 function closePanel() -- assigns the forward declaration above addRow
 	gui.Enabled = false

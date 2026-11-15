@@ -48,7 +48,7 @@ for what the tour does not open (lobby, gallery, end screen, replay).
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 58 gates on tip
+- `roblox/check.sh` ALL GREEN — 59 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -148,6 +148,12 @@ for what the tour does not open (lobby, gallery, end screen, replay).
      a colour stripe by kind, the cost and a Q+ chip on the right, the
      item being built tinted green; worked tiles in the world
      (single-tap toggles a worked tile).
+     Under the yields: a food line ("+2 food a turn  box 14/30  grows
+     in 8 turns", red STARVING when short; hover = the arithmetic), the
+     mood faces, then "n free  n tax  n sci" with + Tax / + Sci / Reset
+     (greyed below size 5 or with nobody free; hover says why). "<" ">"
+     beside the X go to the previous / next city. The line under the name
+     says "capital" for the capital and turns red in civil disorder.
      Hovering any row (0.35 s; long-press on touch) shows a card: name,
      kind, the encyclopedia text, the effect, figures, what it requires.
      The Barbarian Leader is never listed; an obsolete unit leaves the

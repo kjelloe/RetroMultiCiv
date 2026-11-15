@@ -54,12 +54,12 @@ uo-32 | no | | | no diplomat missions
 uo-33 | yes | client/ActionBar.client.luau | card.LayoutOrder = i |
 uo-35 | yes | client/MoveHints.client.luau | move hints |
 city-01 | yes | client/Select.client.luau | open city |
-city-02 | partial | client/CityPanel.client.luau | popColor | name and population badge; no capital star
-city-03 | partial | client/CityPanel.client.luau | food stored | food stored is shown; no growth box or turns-to-grow
-city-04 | no | | | no starving warning in the city panel (the turn log reports famine)
+city-02 | yes | client/CityView.luau | -  capital |
+city-03 | yes | client/CityView.luau | grows in %d %s |
+city-04 | yes | client/CityView.luau | STARVING: %d food a turn short |
 city-05 | yes | client/CityPanel.client.luau | moodFaces |
-city-06 | no | | | specialists are shown on the worker board; no buttons to change them
-city-07 | no | | | no specialist reset
+city-06 | yes | client/CityPanel.client.luau | specialist("taxman") |
+city-07 | yes | client/CityPanel.client.luau | specialist("clear") |
 city-08 | yes | client/WorkedTiles.luau | type = "setWorkers" |
 city-09 | yes | client/WorkedTiles.luau | auto = true |
 city-10 | yes | client/CityPanel.client.luau | type = "sellBuilding" |
@@ -68,10 +68,10 @@ city-12 | yes | client/CityPanel.client.luau | CatalogInfo.availability |
 city-13 | yes | client/CatalogInfo.luau | function M.card |
 city-14 | partial | client/BuildQueue.luau | removeAt | add with Q+, remove the last; no reorder
 city-15 | yes | client/BuildQueue.luau | onChanged |
-city-16 | partial | client/WorkedTiles.luau | VIEW NEXT CITY | next only; no previous
-city-17 | partial | client/CityList.client.luau | DISORDER | chip in the Cities list and on the map label; no banner in the city panel
-city-18 | yes | client/CityPanel.client.luau | We Love the King Day |
-city-19 | partial | client/CityPanel.client.luau | tradeRouteReport | routes are in the yields hover card, not a list
+city-16 | yes | client/CityPanel.client.luau | cycle(-1) |
+city-17 | yes | client/CityView.luau | CIVIL DISORDER - no production or taxes |
+city-18 | yes | client/CityView.luau | We Love the King Day |
+city-19 | yes | client/CityPanel.client.luau | "Trade routes" |
 city-20 | no | | | no quick production keys
 city-21 | no | | | no build cycling key
 city-22 | yes | client/WorkedTiles.luau | CLOSE CITY VIEW |

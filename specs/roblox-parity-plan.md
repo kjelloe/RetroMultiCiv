@@ -112,6 +112,13 @@ unlocks; see roblox/SPEC.md. Tour stop `discovery`. Follow-up in step
 5.4: the same splash for a completed wonder.
 
 ### Step 1: the city screen (scenario S03; most time is spent here)
+BUILT 2026-11-15 (gate 59, `CityView.luau`): 1.1 "+ Tax" / "+ Sci" /
+"Reset" beside a "free / tax / sci" count, with a hover card saying why
+they are greyed; 1.2 "<" ">" in the panel header; 1.3 a food line (net
+per turn, box / threshold, "grows in N turns" / "STARVING ..." / "no
+growth") with a hover card of the arithmetic; 1.4 "capital" in the line
+under the name, civil disorder shown there in red, trade routes as a
+list section. Panel 360x540. Not seen in Studio.
 1.1 Specialist buttons (entertainer to taxman / scientist) and reset.
 1.2 Previous city next to "next city".
 1.3 Growth line: food box, surplus, turns to grow; starving warning.
