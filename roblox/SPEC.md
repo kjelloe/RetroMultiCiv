@@ -1099,7 +1099,13 @@ seat/reset flow; JS engine untouched). Delivered:
   tour, refused commands by reason / type, seconds per turn, replay
   verdict (gate 53). `TopRowPlan.luau` places the five-button top row
   per viewport width (gate 54). Gate 55: no top-level local read above
-  its declaration. `TechInfo.luau` = the one tech text builder (tree hover card
+  its declaration. Plan step 8.1: `server/BadgeRules.luau` = 50 badges
+  as data + `onEvents` / `newlyEarned` (session-local progress, never in
+  game state; debug games earn nothing; victory badges need the player
+  to have held the seat for half the turns), gate 56; nothing is awarded
+  until `BadgeAward` (8.3) and the badge ids exist. FOUND: the host setup's
+  five difficulty ids reach only `contentCitizens`; the engine's seven
+  `rules.difficulties` rows are not selected (plan step 1.0). `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

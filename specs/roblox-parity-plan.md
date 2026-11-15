@@ -135,7 +135,10 @@ Needs a staged diplomat beside a rival city in the tour.
 About 50 Roblox badges, from the first city to a win on the hardest
 difficulty with the most civs on the map. Runs beside steps 1-7; it does
 not depend on them.
-8.1 `BadgeRules.luau` (pure, server-side): the 50 badges as data (key,
+8.1 BUILT 2026-11-15 (gate 56): `roblox/src/server/BadgeRules.luau`, 50
+    badges (10 first steps, 9 growth and economy, 6 science, 3 wonders,
+    7 military, 3 space, 12 victories), nothing awarded yet.
+    Design as built: the 50 badges as data (key,
     name, description, tier, condition) and one function that turns a
     round's engine events plus the end-of-game state into the keys earned.
     Pinned headless: unique keys, every condition reachable from a real
@@ -167,6 +170,19 @@ not depend on them.
     (c) multiplayer: every human on the winning side, or only the winner.
 Test: run C with a short game awards the first-steps set in Studio
 (Studio reports awards without granting them).
+
+### Found while building step 8: difficulty levels
+The host setup offers five difficulty ids (trainer, easy, medium, hard,
+godemperor) and applies only the content-citizen count. `rules.json` has
+seven levels (trainer, chieftain, warlord, prince, king, emperor,
+godemperor), each with AI cost, research, barbarian and starting-gold
+figures the engine reads from `state.difficulty`. "easy / medium / hard"
+match no row, so on Roblox those three play with the engine defaults.
+Step 1.0 (before the city work): offer the seven engine levels and pass
+the id through to the game; `[R4INIT]` already prints it, and the
+acceptance replay must be re-checked on one game per level touched. The
+difficulty badges assume this is done. Parity row gf-36 is "partial"
+until then.
 
 ## 4. Omissions and how each is closed
 
