@@ -296,6 +296,26 @@ function M.toggleCityList()
 	end
 end
 
+-- 2026-11-15 (user: "I don't see a game or civ statistics"): the Statistics
+-- and Military panels each have a top-row button; these are their channels
+local statsToggleCallbacks, militaryToggleCallbacks = {}, {}
+function M.onStatsToggle(cb)
+	table.insert(statsToggleCallbacks, cb)
+end
+function M.toggleStats(open)
+	for _, cb in ipairs(statsToggleCallbacks) do
+		cb(open)
+	end
+end
+function M.onMilitaryToggle(cb)
+	table.insert(militaryToggleCallbacks, cb)
+end
+function M.toggleMilitary()
+	for _, cb in ipairs(militaryToggleCallbacks) do
+		cb()
+	end
+end
+
 -- run-F #1: the left-stack panels (Legend / Debug / Turn log) are mutually
 -- exclusive so an open one never covers another. A panel calls panelOpened(id)
 -- when it becomes visible; every OTHER panel's listener hides itself.

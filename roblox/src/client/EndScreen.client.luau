@@ -73,9 +73,16 @@ local function endButton(x, w, text, bg)
 	c.Parent = b
 	return b
 end
-local newGameBtn = endButton(-250, 156, "New game", Color3.fromRGB(58, 118, 74))
-local replayBtn = endButton(-86, 156, "Watch replay", Color3.fromRGB(58, 66, 110))
-local closeBtn = endButton(96, 156, "Back to the world", Color3.fromRGB(60, 66, 80))
+local newGameBtn = endButton(-338, 160, "New game", Color3.fromRGB(58, 118, 74))
+local replayBtn = endButton(-170, 160, "Watch replay", Color3.fromRGB(58, 66, 110))
+local statsBtn = endButton(-2, 160, "Statistics", Color3.fromRGB(46, 96, 150))
+local closeBtn = endButton(166, 172, "Back to the world", Color3.fromRGB(60, 66, 80))
+statsBtn.Activated:Connect(function()
+	-- 2026-11-15 (user): no statistics at the end. The panel opens over the
+	-- world: civ cards, wonders, score over time; Results brings this back.
+	frame.Visible = false
+	ClientState.toggleStats(true)
+end)
 newGameBtn.Activated:Connect(function()
 	-- runL item 6: PlaceId is 0 in Studio / an unpublished place — teleporting
 	-- there errors ("invalid place id 0"). Only teleport in a real (published)

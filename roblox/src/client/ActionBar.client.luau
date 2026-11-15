@@ -426,6 +426,36 @@ citiesBtn.Activated:Connect(function()
 	end
 end)
 
+-- 2026-11-15 (user): Statistics had no button (J only) and there was no
+-- military overview. Both sit right of Government.
+local function clusterButton(order, w, label, icon, onClick)
+	local b = Instance.new("TextButton")
+	b.LayoutOrder = order
+	b.Size = UDim2.new(0, w, 0, 38)
+	b.BackgroundColor3 = DISABLED
+	b.TextColor3 = Color3.fromRGB(235, 235, 235)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 18
+	b.Text = label
+	b.Parent = cluster
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = b
+	UiTheme.apply(b, { icon = icon })
+	b.Activated:Connect(function()
+		if ClientState.view ~= nil then
+			onClick()
+		end
+	end)
+	return b
+end
+local militaryBtn = clusterButton(2, 136, "Military", "military", function()
+	ClientState.toggleMilitary()
+end)
+local statsBtn = clusterButton(3, 170, "Statistics (J)", "stats", function()
+	ClientState.toggleStats(nil)
+end)
+
 -- R12 (2): government button — panel hosts the rate steppers (and later
 -- the government switch). Run-4 live request: sits LEFT of Research.
 local governmentBtn = Instance.new("TextButton")
@@ -709,6 +739,8 @@ RunService.Heartbeat:Connect(function()
 	end
 	governmentBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	citiesBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
+	militaryBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
+	statsBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	foundBtn.BackgroundColor3 = can("found") and ENABLED or DISABLED
 	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
 	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED

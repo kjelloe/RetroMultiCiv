@@ -38,7 +38,7 @@ local EXPECTED_GUIS = {
 	"RMCDiscoveryCard", "RMCEndScreen", "RMCFastForward", "RMCGovernment",
 	"RMCCivGallery", "RMCHistorian", "RMCHud", "RMCLegend", "RMCLobby", "RMCMinimap", "RMCOptions",
 	"RMCOverlays", "RMCPedia", "RMCRegentDialog", "RMCTheater", "RMCResearch",
-	"RMCRidePad", "RMCTileCard", "RMCShip", "RMCStats", "RMCStrategic",
+	"RMCRidePad", "RMCTileCard", "RMCShip", "RMCStats", "RMCMilitary", "RMCStrategic",
 	"RMCTechTree", "RMCTooltip", "RMCTurnLog", "RMCWaitStatus", "RMCResume",
 }
 -- built on first use or Studio-only: listed when present, never reported missing

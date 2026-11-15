@@ -30,6 +30,10 @@ M.ICONS = {
 		{ p = "poly", fill = true, close = true,
 			pts = { { 42, 18 }, { 58, 18 }, { 58, 42 }, { 80, 82 }, { 20, 82 }, { 42, 42 } } },
 	},
+	stats = { -- rising columns on a base line
+		bar(24, 70, 16, 24), bar(50, 58, 16, 48), bar(76, 44, 16, 76), bar(50, 90, 84, 7, 3) },
+	military = { -- crossed blades
+		bar(50, 50, 10, 84, 3, 45), bar(50, 50, 10, 84, 3, -45), bar(28, 72, 26, 8, 3, -45), bar(72, 72, 26, 8, 3, 45) },
 	cities = { bar(26, 64, 18, 38), bar(50, 52, 20, 62), bar(74, 68, 18, 30), bar(50, 88, 82, 7, 3) },
 	government = { -- temple front
 		tri({ 50, 12 }, { 90, 36 }, { 10, 36 }),

@@ -201,6 +201,25 @@ ClientState.onView(function()
 	end
 end)
 
+-- open = true forces it open (the end screen's button); nil toggles
+local function setOpen(open)
+	if open == nil then
+		open = not gui.Enabled
+	end
+	gui.Enabled = open
+	if open then
+		ClientState.panelOpened("stats") -- runI item 18: closes the city view
+		refresh()
+		ClientState.requestStats() -- SO8: pull the series on expand
+	end
+end
+ClientState.onStatsToggle(setOpen) -- the top-row Statistics button, the end screen
+ClientState.onPanelOpen(function(id)
+	if id ~= "stats" then
+		gui.Enabled = false
+	end
+end)
+
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
 		return
@@ -209,12 +228,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		return
 	end
 	if input.KeyCode == Enum.KeyCode.J then
-		gui.Enabled = not gui.Enabled
-		if gui.Enabled then
-			ClientState.panelOpened("stats") -- runI item 18: closes the city view
-			refresh()
-			ClientState.requestStats() -- SO8: pull the series on expand
-		end
+		setOpen(nil)
 	end
 end)
 
