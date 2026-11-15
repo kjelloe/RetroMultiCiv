@@ -1105,7 +1105,15 @@ seat/reset flow; JS engine untouched). Delivered:
   to have held the seat for half the turns), gate 56; nothing is awarded
   until `BadgeAward` (8.3) and the badge ids exist. FOUND: the host setup's
   five difficulty ids reach only `contentCitizens`; the engine's seven
-  `rules.difficulties` rows are not selected (plan step 1.0). `TechInfo.luau` = the one tech text builder (tree hover card
+  `rules.difficulties` rows are not selected (plan step 1.0).
+  RUN A (18:34Z): tour 18 of 18 after a city exists, 0 DIAG FAIL. BUG
+  FIXED: `createGame` got `debug` inside `options`; mapgen reads
+  `setup.debug` (top level), so debug commands were refused
+  `debugDisabled` in every Studio game since R17 (runF's log shows the
+  same refusal). Now passed at the top level; `assemble.js` tries
+  debug true / false the same way. Studio games are debug-ENABLED from
+  here on: the initial hash differs from a published game with the same
+  seed, and the DEBUG mark appears only after a debug command is used. `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis

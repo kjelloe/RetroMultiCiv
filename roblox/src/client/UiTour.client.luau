@@ -90,7 +90,12 @@ local function ownCity(view)
 	return nil
 end
 
--- staging: debug commands, each a normal logged command
+-- staging: debug commands, each a normal logged command. Refusals during
+-- staging are counted, so a game that is not a debug game says so.
+local stageRefused = {}
+ClientState.onRejected(function(code)
+	table.insert(stageRefused, tostring(code))
+end)
 local function stage()
 	local view = ClientState.view
 	if view == nil then
@@ -101,6 +106,7 @@ local function stage()
 		return
 	end
 	local at = ownCity(view)
+	stageRefused = {}
 	for _, st in ipairs(TourPlan.STAGE) do
 		if st.cmd ~= nil then
 			ClientState.send(st.cmd)
@@ -119,6 +125,11 @@ local function stage()
 		end
 		print(("[RMC-TOUR] stage: %s"):format(st.id))
 		task.wait(0.25)
+	end
+	task.wait(0.5)
+	if #stageRefused > 0 then
+		print(("[RMC-TOUR] stage: REFUSED %d command(s): %s (the tour goes on with the game as it is)")
+			:format(#stageRefused, stageRefused[1]))
 	end
 end
 

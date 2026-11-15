@@ -1034,10 +1034,13 @@ local function startGame()
 	local created = engine.createGame({
 		seed = seed,
 		options = { width = size.w, height = size.h, players = playerDefs,
-			mapType = setup.mapType, -- A82a preset (validated by mapgen)
-			-- R17 (marker-0057): STUDIO games are debug-enabled; the engine
-			-- taints permanently on first use (debugUsed rides every push)
-			debug = RunService:IsStudio() or setup.debugGame == true }, -- run-R ruling 1
+			mapType = setup.mapType }, -- A82a preset (validated by mapgen)
+		-- R17 (marker-0057): STUDIO games are debug-enabled; the engine
+		-- taints permanently on first use (debugUsed rides every push).
+		-- run A 2026-11-15: this sat INSIDE `options`, where mapgen never
+		-- reads it (`setup.debug`), so every debug command was refused
+		-- debugDisabled, in Studio and in an owner's debug game alike.
+		debug = RunService:IsStudio() or setup.debugGame == true, -- run-R ruling 1
 	})
 	if created.ok == false then
 		print("[GameServer] createGame failed: " .. tostring(created.reason))

@@ -748,8 +748,11 @@ fi
 # gate 53 — the after-run report (roblox/tools/after-run.js): tour lines,
 # refusals by reason and type, seconds per turn, diagnostics read correctly
 if command -v node >/dev/null 2>&1; then
-  if node roblox/selftest/after-run.mjs >/dev/null 2>&1; then
-    note PASS "gate 53: after-run report reads a session (node)"
+  if node roblox/selftest/after-run.mjs >/dev/null 2>&1 \
+     && grep -q '^		debug = RunService:IsStudio() or setup.debugGame == true,' roblox/src/server/GameServer.server.luau \
+     && grep -q "debug ? { debug: true } : {}));" roblox/acceptance/assemble.js \
+     && grep -q 'setup.debug == true' luau/mapgen.luau; then
+    note PASS "gate 53: after-run report reads a session (node); debug flag passed where the engine reads it"
   else
     note FAIL "gate 53: after-run — run: node roblox/selftest/after-run.mjs"
   fi

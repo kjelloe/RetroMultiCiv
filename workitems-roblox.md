@@ -236,6 +236,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19y. Badge rules [done: 2026-11-15 — plan step 8.1: `BadgeRules.luau`, 50 badges + earning rules, gate 56; awarding (8.3) waits on three rulings and the badge ids. Found: host setup difficulty reaches only the content-citizen count (plan step 1.0). gamesim-golden-neutral]
 
+## 19z. Run A findings [done: 2026-11-15 — tour 18/18, 0 DIAG FAIL; fixed: `debug` passed inside `options` at game creation (engine reads the top level), so Studio games were never debug-enabled and all debug commands were refused; same fix in `roblox/acceptance/assemble.js`; tour reports refused staging. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

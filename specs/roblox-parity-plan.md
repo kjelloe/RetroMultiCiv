@@ -79,8 +79,15 @@ surface adds its tour stop and its parity row in the same commit.
 0.3 BUILT for the top row (gate 54): `TopRowPlan.luau`, swept 320-2600 px;
     the row goes icon-only, moves left, or drops a row instead of
     overlapping. Panel fit was already pinned (gate 42).
-0.4 OPEN: run A + C once. Fix what they show. This clears the unseen
-    backlog.
+0.4 RUN A done 2026-11-15 18:34Z: 18 stops, 16 pass on the first pass,
+    18 of 18 after founding a city; 0 diagnostics failures; slope corner
+    apex measured at local (1, -1). Found: every staging command was
+    refused `debugDisabled` - the server passed `debug` inside `options`,
+    where mapgen never reads it, so no Studio game (or owner debug game)
+    was ever debug-enabled; `assemble.js` had the same slip. Both fixed
+    (gate 53 pins); the tour now prints `stage: REFUSED n` when staging
+    is refused. Run A needs one repeat to see the staged units. The looks
+    themselves still want the user's eye. RUN C in progress.
 Also built: gate 55, no top-level local read above its declaration (the
 bug class behind the city panel's missing queue strip).
 

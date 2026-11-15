@@ -98,12 +98,15 @@ async function main() {
   let initialState = null;
   let h0 = null;
   for (const debug of [true, false]) {
-    initialState = engine.createGame({
+    // 2026-11-15: `debug` is read at the TOP level of the setup (mapgen
+    // `setup.debug`), not inside options - both tries used to build the same
+    // non-debug state, and the server had the same slip
+    initialState = engine.createGame(Object.assign({
       seed: Number(init.seed),
-      options: Object.assign({ width: Number(init.width), height: Number(init.height), players,
+      options: { width: Number(init.width), height: Number(init.height), players,
         // A82a: maptype in [R4INIT] (absent = continents default, old runs fine)
-        mapType: init.maptype || undefined }, debug ? { debug: true } : {})
-    });
+        mapType: init.maptype || undefined }
+    }, debug ? { debug: true } : {}));
     if (initialState.ok === false) {
       console.error('createGame failed: ' + initialState.reason);
       process.exit(1);
