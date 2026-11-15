@@ -103,24 +103,8 @@ for seed = 1, 400 do
 		end
 	end
 
-	local hills = M.hills(randFor(seed))
-	check("hills deterministic " .. seed, sameList(hills, M.hills(randFor(seed))))
-	check("two rolling hills " .. seed, #hills == 2, #hills)
-	local sides = 0
-	for _, it in ipairs(hills) do
-		check("ridge shape exists", shapeExists(it.k) and it.ell == true)
-		check("ridge stands on the block", it.dy == 0)
-		check("ridge not rotated", it.rotY == nil)
-		local rx, rz = 0.11 * it.sx, 0.11 * it.sz
-		check("ridge inside the tile " .. seed, math.abs(it.dx) + rx <= 0.52 and math.abs(it.dz) + rz <= 0.52,
-			math.max(math.abs(it.dx) + rx, math.abs(it.dz) + rz))
-		-- the tile centre (a unit, a city) is in the valley, outside both ridges
-		check("centre in the valley " .. seed, (it.dx / rx) ^ 2 + (it.dz / rz) ^ 2 > 1, (it.dx / rx) ^ 2 + (it.dz / rz) ^ 2)
-		check("ridge is long and low", math.max(rx, rz) >= 1.7 * math.min(rx, rz) and M.apexOf(it) <= M.HILL_MAX_H + 1e-9
-			and M.apexOf(it) >= 0.24, M.apexOf(it))
-		sides += (it.dx + it.dz) > 0 and 1 or -1
-	end
-	check("one ridge each side " .. seed, sides == 0)
+	-- run-S shot17 (user): the hill tile carries no sculpt of its own
+	check("hills carry no ridge " .. seed, #M.hills(randFor(seed)) == 0)
 end
 -- T4 woods
 for seed = 1, 400 do

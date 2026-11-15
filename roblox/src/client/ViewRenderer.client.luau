@@ -82,7 +82,7 @@ local function tileTop(id)
 	if id == "hills" then
 		local m = specFor("mountains")
 		-- run-S shot16 (user): the hill block at 50 % of that again; the two
-		-- rolling ridges on top (TerrainSculpt.hills) carry the rest
+		-- (run-S shot17: no ridges on top; the half block alone is the hill)
 		return (m.base + m.peak * 0.5) * HEIGHT * 0.25
 	end
 	-- T1: the height is carried by a sculpted massif, so the block under it

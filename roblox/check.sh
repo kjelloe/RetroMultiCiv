@@ -567,6 +567,9 @@ if command -v lune >/dev/null 2>&1; then
      && grep -q '\.row(row' roblox/src/client/CityList.client.luau \
      && grep -q '\.row(row' roblox/src/client/ResearchPicker.client.luau \
      && grep -q '\.row(row' roblox/src/client/CityPanel.client.luau \
+     && grep -q 'local function addSection' roblox/src/client/CityPanel.client.luau \
+     && grep -q 'prodCard.Name = "Production"' roblox/src/client/CityPanel.client.luau \
+     && ! grep -qE 'Enum.Font.(Code|SourceSans)' roblox/src/client/CityPanel.client.luau \
      && ! grep -qE 'TextSize = (9|1[0-3])$' roblox/src/client/CityPanel.client.luau roblox/src/client/CityList.client.luau roblox/src/client/TurnLog.client.luau roblox/src/client/Options.client.luau; then
     note PASS "gate 42: panel fit pins (lune) + PanelDress wiring"
   else

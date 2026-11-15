@@ -37,6 +37,8 @@ toastPanel.AutoButtonColor = false
 toastPanel.Text = ""
 toastPanel.Visible = false
 toastPanel.ZIndex = 20
+toastPanel.Name = "Toast"
+toastPanel:SetAttribute("Transient", true) -- DiagAudit: a passing toast is not a layout overlap
 toastPanel.Parent = gui
 do
 	local c = Instance.new("UICorner")
@@ -146,7 +148,7 @@ local function label(parent, y, size, text)
 	l.Position = UDim2.new(0, 6, 0, y)
 	l.BackgroundTransparency = 1
 	l.TextColor3 = Color3.fromRGB(235, 235, 235)
-	l.Font = Enum.Font.Code
+	l.Font = UiTheme.BODY_FONT
 	l.TextSize = size - 2
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.Text = text
@@ -199,7 +201,14 @@ setupPanel.BorderSizePixel = 0
 setupPanel.Visible = false
 setupPanel.Parent = gui
 
-label(setupPanel, 6, 33, "New game").Size = UDim2.new(0, 200, 0, 33) -- runI item 5: +50% title
+do
+	local h = label(setupPanel, 8, 30, "New game")
+	h.Name = "Heading"
+	h.Size = UDim2.new(0, 200, 0, 30)
+	h.Position = UDim2.new(0, 12, 0, 8)
+	h.Font = UiTheme.FONT
+	h.TextSize = 24
+end
 
 local function openCivGallery()
 	CivGallery.open(function(civId)
@@ -245,45 +254,76 @@ barsHost.Size = UDim2.new(1, -16, 0, 286)
 barsHost.Position = UDim2.new(0, 8, 0, 48)
 barsHost.BackgroundTransparency = 1
 barsHost.BorderSizePixel = 0
-barsHost.ScrollBarThickness = 6
+barsHost.ScrollBarThickness = 8
 barsHost.AutomaticCanvasSize = Enum.AutomaticSize.Y
 barsHost.CanvasSize = UDim2.new(0, 0, 0, 0)
 barsHost.Parent = setupPanel
 do
 	local l = Instance.new("UIListLayout")
 	l.SortOrder = Enum.SortOrder.LayoutOrder
-	l.Padding = UDim.new(0, 8)
+	l.Padding = UDim.new(0, 6)
 	l.Parent = barsHost
 end
 
 -- one segmented-bar row: a +50%-font header "name: value" + a strip of segments
 -- filled to the current index. display maps a value to its shown label.
+local function titleCase(v)
+	local t = tostring(v)
+	return t:sub(1, 1):upper() .. t:sub(2)
+end
+-- run-S item 20: each option is a card - the name on the left, the current
+-- value in the accent colour on the right, the segment strip underneath.
 local function buildBar(order, name, values, current, key, display)
 	local curIdx = table.find(values, current) or 1
 	local row = Instance.new("Frame")
-	row.Size = UDim2.new(1, -4, 0, 48)
-	row.BackgroundTransparency = 1
+	row.Size = UDim2.new(1, -12, 0, 54)
+	row.BackgroundColor3 = Color3.fromRGB(40, 48, 66)
+	row.BorderSizePixel = 0
 	row.LayoutOrder = order
 	row.Parent = barsHost
+	do
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 8)
+		c.Parent = row
+	end
 	local head = Instance.new("TextLabel")
-	head.Size = UDim2.new(1, 0, 0, 24)
+	head.Size = UDim2.new(0.5, -12, 0, 24)
+	head.Position = UDim2.new(0, 12, 0, 4)
 	head.BackgroundTransparency = 1
-	head.TextColor3 = Color3.fromRGB(235, 235, 235)
-	head.Font = Enum.Font.Code
-	head.TextSize = 20 -- runI item 5: +50% setup text (was 16)
+	head.TextColor3 = Color3.fromRGB(200, 208, 224)
+	head.Font = UiTheme.BODY_FONT
+	head.TextSize = 17
 	head.TextXAlignment = Enum.TextXAlignment.Left
-	head.Text = ("%s: %s"):format(name, display and display(current) or tostring(current))
+	head.Text = name
 	head.Parent = row
+	local value = Instance.new("TextLabel")
+	value.Size = UDim2.new(0.5, -12, 0, 24)
+	value.Position = UDim2.new(0.5, 0, 0, 4)
+	value.BackgroundTransparency = 1
+	value.TextColor3 = Color3.fromRGB(140, 196, 255)
+	value.Font = Enum.Font.GothamBold
+	value.TextSize = 18
+	value.TextXAlignment = Enum.TextXAlignment.Right
+	value.Text = display and display(current) or titleCase(current)
+	value.Parent = row
 	local w = 1 / #values
+	local strip = Instance.new("Frame")
+	strip.Size = UDim2.new(1, -24, 0, 16)
+	strip.Position = UDim2.new(0, 12, 0, 32)
+	strip.BackgroundTransparency = 1
+	strip.Parent = row
 	for i, v in ipairs(values) do
 		local seg = Instance.new("TextButton")
-		seg.Size = UDim2.new(w, -2, 0, 18)
-		seg.Position = UDim2.new(w * (i - 1), 1, 0, 26)
-		seg.BackgroundColor3 = i <= curIdx and UIACCENT or Color3.fromRGB(44, 50, 64)
+		seg.Size = UDim2.new(w, -3, 1, 0)
+		seg.Position = UDim2.new(w * (i - 1), 1, 0, 0)
+		seg.BackgroundColor3 = i <= curIdx and UIACCENT or Color3.fromRGB(26, 31, 42)
 		seg.BorderSizePixel = 0
 		seg.AutoButtonColor = true
 		seg.Text = ""
-		seg.Parent = row
+		seg.Parent = strip
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 4)
+		c.Parent = seg
 		local target = i
 		seg.Activated:Connect(function()
 			local steps = target - curIdx
@@ -308,16 +348,16 @@ local function rebuildBars(opts)
 	for n = 2, cap do table.insert(civVals, n) end
 	for n = 1, opts.civs or 2 do table.insert(humanVals, n) end
 	for n = 1, 15 do table.insert(idleVals, n) end
-	buildBar(1, "map size", SETUP_SIZES, opts.size, "size")
-	buildBar(2, "civilizations", civVals, opts.civs, "civs")
-	buildBar(3, "human seats", humanVals, opts.humans, "humans")
-	buildBar(4, "map type", SETUP_MAPTYPES, opts.mapType or "continents", "maptype")
-	buildBar(5, "max idle (min)", idleVals, opts.maxIdleMin or 1, "maxidle")
-	buildBar(6, "starting age", SETUP_AGES, opts.age or "ancient", "age",
-		function(v) return v ~= "ancient" and (v .. " (fast-forward)") or v end)
-	buildBar(7, "difficulty", SETUP_DIFFICULTY, opts.difficulty or "medium", "difficulty")
-	buildBar(8, "combat", SETUP_COMBAT, opts.combat or "bestof3", "combat",
-		function(v) return v == "bestof3" and "best of 3" or "authentic (single)" end)
+	buildBar(1, "Map size", SETUP_SIZES, opts.size, "size")
+	buildBar(2, "Civilizations", civVals, opts.civs, "civs")
+	buildBar(3, "Human seats", humanVals, opts.humans, "humans")
+	buildBar(4, "Map type", SETUP_MAPTYPES, opts.mapType or "continents", "maptype")
+	buildBar(5, "Idle limit (minutes)", idleVals, opts.maxIdleMin or 1, "maxidle")
+	buildBar(6, "Starting age", SETUP_AGES, opts.age or "ancient", "age",
+		function(v) return v ~= "ancient" and (titleCase(v) .. " (fast-forward)") or "Ancient" end)
+	buildBar(7, "Difficulty", SETUP_DIFFICULTY, opts.difficulty or "medium", "difficulty")
+	buildBar(8, "Combat", SETUP_COMBAT, opts.combat or "bestof3", "combat",
+		function(v) return v == "bestof3" and "Best of 3" or "Authentic (single roll)" end)
 end
 
 local function stepButton(x, y, text, onClick)
@@ -326,16 +366,19 @@ local function stepButton(x, y, text, onClick)
 	b.Position = UDim2.new(0, x, 0, y)
 	b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
-	b.Font = Enum.Font.SourceSansBold
-	b.TextSize = 16
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 15
 	b.Text = text
 	b.Parent = setupPanel
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = b
 	b.Activated:Connect(onClick)
 	return b
 end
 
 -- R24b: explicit world seed (browser parity); empty or 0 = random
-local seedLbl = label(setupPanel, 344, 20, "world seed (empty = random):") -- item 5 font
+local seedLbl = label(setupPanel, 344, 20, "World seed (empty = random)") -- item 5 font
 local seedBox = Instance.new("TextBox")
 seedBox.Size = UDim2.new(0, 150, 0, 26)
 seedBox.Position = UDim2.new(0, 8, 0, 370)
@@ -359,17 +402,17 @@ local midgameJoinToggle = stepButton(8, 474, "", function() sendSetup("midgamejo
 spectatorsToggle.Size = UDim2.new(0, 58, 0, 26)
 marathonToggle.Size = UDim2.new(0, 58, 0, 26)
 midgameJoinToggle.Size = UDim2.new(0, 58, 0, 26)
-label(setupPanel, 406, 20, "        spectators").Position = UDim2.new(0, 74, 0, 406)
-label(setupPanel, 440, 20, "        marathon (play to victory)").Position = UDim2.new(0, 74, 0, 440)
-label(setupPanel, 474, 20, "        mid-game join (AI-civ takeover)").Position = UDim2.new(0, 74, 0, 474)
+label(setupPanel, 406, 20, "Spectators").Position = UDim2.new(0, 78, 0, 406)
+label(setupPanel, 440, 20, "Marathon (play to victory)").Position = UDim2.new(0, 78, 0, 440)
+label(setupPanel, 474, 20, "Mid-game join (take over an AI civilization)").Position = UDim2.new(0, 78, 0, 474)
 -- run-R rulings 1 + 4: diagnostics for players (host), debug game (owner only)
 local diagToggle = stepButton(8, 508, "", function() sendSetup("diag", 1) end)
 local debugGameToggle = stepButton(8, 542, "", function() sendSetup("debuggame", 1) end)
 diagToggle.Size = UDim2.new(0, 58, 0, 26)
 debugGameToggle.Size = UDim2.new(0, 58, 0, 26)
-label(setupPanel, 508, 20, "        diagnostics log for players").Position = UDim2.new(0, 74, 0, 508)
-local debugGameLabel = label(setupPanel, 542, 20, "        debug game (owner; marks the game debug-used)")
-debugGameLabel.Position = UDim2.new(0, 74, 0, 542)
+label(setupPanel, 508, 20, "Diagnostics log for players").Position = UDim2.new(0, 78, 0, 508)
+local debugGameLabel = label(setupPanel, 542, 20, "Debug game (owner; marks the game debug-used)")
+debugGameLabel.Position = UDim2.new(0, 78, 0, 542)
 
 local startBtn = Instance.new("TextButton")
 -- runI item 5: +50% Start button, anchored bottom-center, full width minus margins

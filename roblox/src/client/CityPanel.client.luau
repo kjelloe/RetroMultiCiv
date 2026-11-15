@@ -29,67 +29,127 @@ gui.ResetOnSpawn = false
 gui.Enabled = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
+
+-- run-S item 20: the city panel in the card style (Cities list pattern) — a
+-- population badge and name, coloured yield figures, a production card with a
+-- progress bar and the Buy button, then the catalog in sections with a colour
+-- stripe per kind.
+local W = 360
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 320, 0, 420)
-panel.Position = UDim2.new(1, -328, 0, 48)
+panel.Size = UDim2.new(0, W, 0, 480)
+panel.Position = UDim2.new(1, -(W + 8), 0, 48)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-panel.BackgroundTransparency = 0.08
+panel.BackgroundTransparency = 0.05
 panel.BorderSizePixel = 0
 panel.Parent = gui
 
-local function label(name, y, size, text)
+local INK = Color3.fromRGB(226, 231, 242)
+local MUTED = Color3.fromRGB(143, 155, 179)
+local KIND_COLOR = { unit = Color3.fromRGB(255, 160, 110), building = Color3.fromRGB(120, 190, 255),
+	wonder = Color3.fromRGB(255, 225, 130) }
+
+local function text(parent, x, y, w, h, size, font, color)
 	local l = Instance.new("TextLabel")
-	l.Name = name
-	l.Size = UDim2.new(1, -16, 0, size)
-	l.Position = UDim2.new(0, 8, 0, y)
+	l.Position = UDim2.new(0, x, 0, y)
+	l.Size = UDim2.new(0, w, 0, h)
 	l.BackgroundTransparency = 1
-	l.TextColor3 = Color3.fromRGB(235, 235, 235)
-	l.Font = Enum.Font.Code
-	l.TextSize = size - 2
+	l.Font = font or UiTheme.BODY_FONT
+	l.TextSize = size
+	l.TextColor3 = color or INK
 	l.TextXAlignment = Enum.TextXAlignment.Left
-	l.Text = text
-	l.Parent = panel
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.Text = ""
+	l.Parent = parent
 	return l
 end
+local function round(inst, r)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r)
+	c.Parent = inst
+end
+local function popColor(pop)
+	return pop >= 13 and Color3.fromRGB(232, 190, 70) or pop >= 8 and Color3.fromRGB(60, 170, 190)
+		or pop >= 4 and Color3.fromRGB(70, 170, 100) or Color3.fromRGB(110, 140, 110)
+end
 
-local title = label("Title", 6, 22, "")
-local stats = label("Stats", 30, 16, "")
-local producing = label("Producing", 50, 16, "")
+local badge = text(panel, 10, 8, 40, 40, 19, Enum.Font.GothamBold, Color3.fromRGB(16, 20, 26))
+badge.BackgroundTransparency = 0
+badge.TextXAlignment = Enum.TextXAlignment.Center
+round(badge, 20)
+local title = text(panel, 58, 7, W - 100, 24, 20, Enum.Font.GothamBold)
+title.Name = "Title"
+local subtitle = text(panel, 58, 30, W - 70, 18, 14, nil, MUTED)
+local stats = text(panel, 12, 54, W - 24, 20, 15)
+stats.Name = "Stats"
+stats.RichText = true
 stats.Active = true -- SO2: tooltip target (attached below openCityId's decl)
--- mood row (browser panels.js city-mood-row twin): faces beside the Buy button
-local moodLabel = label("Mood", 72, 16, "")
-moodLabel.Position = UDim2.new(0, 134, 0, 72)
-moodLabel.Size = UDim2.new(0, 178, 0, 16)
+-- mood row (browser panels.js city-mood-row twin)
+local moodLabel = text(panel, 12, 76, W - 24, 20, 15)
+moodLabel.Name = "Mood"
 moodLabel.Active = true
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 24, 0, 24)
-closeBtn.Position = UDim2.new(1, -28, 0, 4)
+closeBtn.Size = UDim2.new(0, 26, 0, 26)
+closeBtn.Position = UDim2.new(1, -32, 0, 6)
 closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 66)
 closeBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
-closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 16
 closeBtn.Text = "X"
 closeBtn.Parent = panel
-require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
+UiTheme.apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
+
+-- the production card: what the city builds, how far along, and Buy
+local prodCard = Instance.new("Frame")
+prodCard.Name = "Production"
+prodCard.Position = UDim2.new(0, 8, 0, 100)
+prodCard.Size = UDim2.new(1, -16, 0, 62)
+prodCard.BackgroundColor3 = Color3.fromRGB(40, 48, 66)
+prodCard.BorderSizePixel = 0
+prodCard.Parent = panel
+round(prodCard, 8)
+local prodDot = Instance.new("Frame")
+prodDot.Position = UDim2.new(0, 10, 0, 12)
+prodDot.Size = UDim2.new(0, 10, 0, 10)
+prodDot.BorderSizePixel = 0
+prodDot.Parent = prodCard
+round(prodDot, 5)
+local producing = text(prodCard, 26, 6, W - 16 - 26 - 108, 22, 16, Enum.Font.GothamBold)
+producing.Name = "Producing"
+local prodTrack = Instance.new("Frame")
+prodTrack.Position = UDim2.new(0, 10, 0, 38)
+prodTrack.Size = UDim2.new(1, -100, 0, 12)
+prodTrack.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
+prodTrack.BorderSizePixel = 0
+prodTrack.Parent = prodCard
+round(prodTrack, 6)
+local prodFill = Instance.new("Frame")
+prodFill.Size = UDim2.new(0, 0, 1, 0)
+prodFill.BorderSizePixel = 0
+prodFill.Parent = prodTrack
+round(prodFill, 6)
+local prodNum = text(prodCard, 0, 33, 76, 22, 14, Enum.Font.GothamBold)
+prodNum.Position = UDim2.new(1, -84, 0, 33)
+prodNum.TextXAlignment = Enum.TextXAlignment.Right
 
 local buyBtn = Instance.new("TextButton")
-buyBtn.Size = UDim2.new(0, 120, 0, 26)
-buyBtn.Position = UDim2.new(0, 8, 0, 70)
+buyBtn.Size = UDim2.new(0, 92, 0, 26)
+buyBtn.Position = UDim2.new(1, -100, 0, 5)
 buyBtn.BackgroundColor3 = Color3.fromRGB(148, 108, 46)
 buyBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
-buyBtn.Font = Enum.Font.SourceSansBold
+buyBtn.Font = Enum.Font.GothamBold
 buyBtn.TextSize = 16
 buyBtn.Text = "Buy"
-buyBtn.Parent = panel
-require(script.Parent:WaitForChild("UiTheme")).apply(buyBtn, { color = "go", radius = 8 }) -- U2 dress
+buyBtn.Parent = prodCard
+UiTheme.apply(buyBtn, { color = "go", radius = 8 }) -- U2 dress
 
 -- session-E round 13 (user): rush-buy asks first — an inline confirmation
 -- stating the exact engine price (itemCost + buyGoldPerShield math, the
 -- same numbers buyProduction will charge; the server still judges)
 local buyConfirm = Instance.new("Frame")
-buyConfirm.Size = UDim2.new(0, 296, 0, 58)
-buyConfirm.Position = UDim2.new(0, 8, 0, 98)
+buyConfirm.Size = UDim2.new(1, -16, 0, 62)
+buyConfirm.Position = UDim2.new(0, 8, 0, 166)
 buyConfirm.BackgroundColor3 = Color3.fromRGB(46, 38, 22)
 buyConfirm.BorderSizePixel = 0
 buyConfirm.Visible = false
@@ -105,18 +165,19 @@ buyLabel.Size = UDim2.new(1, -12, 0, 24)
 buyLabel.Position = UDim2.new(0, 6, 0, 4)
 buyLabel.BackgroundTransparency = 1
 buyLabel.TextColor3 = Color3.fromRGB(245, 225, 180)
-buyLabel.Font = Enum.Font.SourceSansBold
-buyLabel.TextSize = 16
+buyLabel.Font = Enum.Font.GothamBold
+buyLabel.TextSize = 15
+buyLabel.TextTruncate = Enum.TextTruncate.AtEnd
 buyLabel.TextXAlignment = Enum.TextXAlignment.Left
 buyLabel.ZIndex = 5
 buyLabel.Parent = buyConfirm
 local function confirmBtn(x, text, color)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, 64, 0, 24)
-	b.Position = UDim2.new(0, x, 0, 30)
+	b.Size = UDim2.new(0, 72, 0, 26)
+	b.Position = UDim2.new(0, x, 0, 31)
 	b.BackgroundColor3 = color
 	b.TextColor3 = Color3.fromRGB(240, 240, 240)
-	b.Font = Enum.Font.SourceSansBold
+	b.Font = Enum.Font.GothamBold
 	b.TextSize = 15
 	b.Text = text
 	b.ZIndex = 5
@@ -127,17 +188,19 @@ local function confirmBtn(x, text, color)
 	return b
 end
 local buyYes = confirmBtn(6, "Yes", Color3.fromRGB(148, 108, 46))
-local buyNo = confirmBtn(78, "No", Color3.fromRGB(60, 60, 66))
+local buyNo = confirmBtn(86, "No", Color3.fromRGB(60, 60, 66))
+
+local openCityId = nil -- declared before paintQueue: it was read as a global there (always nil)
 
 -- CP8: the queue strip along the panel bottom — click trims the LAST item
 -- (v1 divergence from the browser: no per-item remove/reorder yet)
 local queueStrip = Instance.new("TextButton")
-queueStrip.Size = UDim2.new(1, -16, 0, 22)
-queueStrip.Position = UDim2.new(0, 8, 1, -26)
+queueStrip.Size = UDim2.new(1, -16, 0, 24)
+queueStrip.Position = UDim2.new(0, 8, 1, -30)
 queueStrip.BackgroundColor3 = Color3.fromRGB(30, 40, 32)
-queueStrip.BackgroundTransparency = 0.3
+queueStrip.BackgroundTransparency = 0.05
 queueStrip.TextColor3 = Color3.fromRGB(190, 225, 190)
-queueStrip.Font = Enum.Font.Code
+queueStrip.Font = Enum.Font.GothamMedium
 queueStrip.TextSize = 14
 queueStrip.TextXAlignment = Enum.TextXAlignment.Left
 queueStrip.TextTruncate = Enum.TextTruncate.AtEnd
@@ -158,7 +221,7 @@ local function paintQueue()
 			or it.kind == "wonder" and rs.wonders or rs.buildings
 		table.insert(names, (table_[it.id] and table_[it.id].name) or it.id)
 	end
-	queueStrip.Text = ("  queue: %s  (tap trims last)"):format(table.concat(names, " > "))
+	queueStrip.Text = ("  Queue: %s  (click removes the last)"):format(table.concat(names, " > "))
 	queueStrip.Visible = true
 end
 BuildQueue.onChanged(paintQueue)
@@ -170,18 +233,17 @@ queueStrip.Activated:Connect(function()
 end)
 
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -16, 1, -110)
-list.Position = UDim2.new(0, 8, 0, 102)
+list.Size = UDim2.new(1, -16, 1, -176)
+list.Position = UDim2.new(0, 8, 0, 168)
 list.BackgroundTransparency = 1
 list.BorderSizePixel = 0
-list.ScrollBarThickness = 6
+list.ScrollBarThickness = 8
 list.Parent = panel
 local layout = Instance.new("UIListLayout")
 layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 2)
+layout.Padding = UDim.new(0, 4)
 layout.Parent = list
 
-local openCityId = nil
 local closePanel -- forward-declared: addRow's double-click close needs it
 local lastProdClick = nil -- session-E round 12: double-click select-and-close
 
@@ -331,23 +393,51 @@ end
 -- locked = greyed label carrying the lock reason (browser catalog rule).
 -- R15: buildings/wonders grow a plain-language effects subline (CatalogText,
 -- the catalog-text.js twin); wonders without effects show the prestige line.
-local function addRow(order, kind, id, def, lockReason, effects)
+local function addSection(order, label, color)
+	local h = text(list, 0, 0, 0, 22, 14, Enum.Font.GothamBold, color)
+	h.Size = UDim2.new(1, -10, 0, 22)
+	h.LayoutOrder = order
+	h.Text = " " .. label
+	return 26
+end
+
+local function addRow(order, kind, id, def, lockReason, effects, current)
 	local twoLine = effects ~= nil and effects ~= ""
+	local h = twoLine and 46 or 28
 	local row = Instance.new("TextButton")
-	row.Size = UDim2.new(1, -8, 0, twoLine and 36 or 22)
+	row.Size = UDim2.new(1, -10, 0, h)
 	row.LayoutOrder = order
-	row.BackgroundColor3 = lockReason and Color3.fromRGB(38, 40, 48) or Color3.fromRGB(50, 66, 92)
-	row.TextColor3 = lockReason and Color3.fromRGB(130, 130, 136) or Color3.fromRGB(235, 235, 235)
-	row.Font = Enum.Font.Code
-	row.TextSize = 14
-	row.TextXAlignment = Enum.TextXAlignment.Left
-	row.TextYAlignment = Enum.TextYAlignment.Top
-	row.RichText = true
-	row.Text = ("  %s %s (%d)%s%s"):format(kind, def.name or id, def.cost or 0,
-		lockReason and ("  — " .. lockReason) or "",
-		twoLine and ('\n  <font size="14" color="#9db2c8">' .. effects .. "</font>") or "")
+	row.BackgroundColor3 = lockReason and Color3.fromRGB(34, 37, 46)
+		or current and Color3.fromRGB(44, 78, 62) or Color3.fromRGB(46, 58, 82)
+	row.Text = ""
+	row.ClipsDescendants = true
 	row.Parent = list
-	require(script.Parent:WaitForChild("UiTheme")).row(row, { locked = lockReason ~= nil }) -- U5
+	UiTheme.row(row, { locked = lockReason ~= nil }) -- U5
+	local stripe = Instance.new("Frame")
+	stripe.Size = UDim2.new(0, 4, 1, 0)
+	stripe.BackgroundColor3 = KIND_COLOR[kind]
+	stripe.BackgroundTransparency = lockReason and 0.6 or 0
+	stripe.BorderSizePixel = 0
+	stripe.Parent = row
+	-- right side: the lock reason, or the cost and the Q+ chip
+	local rightW = lockReason and 150 or 86
+	local name = text(row, 12, 4, W - 26 - 12 - rightW - 6, 20, 15, Enum.Font.GothamBold,
+		lockReason and Color3.fromRGB(130, 134, 146) or INK)
+	name.Text = def.name or id
+	local right = text(row, 0, 4, rightW, 20, 14, lockReason and UiTheme.BODY_FONT or Enum.Font.GothamBold,
+		lockReason and Color3.fromRGB(150, 140, 120) or Color3.fromRGB(255, 190, 140))
+	right.TextXAlignment = Enum.TextXAlignment.Right
+	if lockReason then
+		right.Position = UDim2.new(1, -(rightW + 8), 0, 4)
+		right.Text = lockReason
+	else
+		right.Position = UDim2.new(1, -(rightW + 42), 0, 4)
+		right.Text = current and ("building  %d"):format(def.cost or 0) or tostring(def.cost or 0)
+	end
+	if twoLine then
+		local sub = text(row, 12, 24, W - 26 - 24, 18, 14, nil, Color3.fromRGB(157, 178, 200))
+		sub.Text = effects
+	end
 	if not lockReason then
 		local function pick()
 			print(("[CityPanel] setProduction %s -> %s %s"):format(openCityId, kind, id))
@@ -384,14 +474,15 @@ local function addRow(order, kind, id, def, lockReason, effects)
 		-- CP8: the Q+ chip enqueues instead of setting (child button sinks
 		-- the click, so the row's set-production never double-fires)
 		local qBtn = Instance.new("TextButton")
-		qBtn.Size = UDim2.new(0, 30, 0, 18)
-		qBtn.Position = UDim2.new(1, -34, 0, 2)
+		qBtn.Size = UDim2.new(0, 34, 0, 20)
+		qBtn.Position = UDim2.new(1, -40, 0, 4)
 		qBtn.BackgroundColor3 = Color3.fromRGB(60, 84, 60)
 		qBtn.TextColor3 = Color3.fromRGB(210, 240, 210)
-		qBtn.Font = Enum.Font.SourceSansBold
+		qBtn.Font = Enum.Font.GothamBold
 		qBtn.TextSize = 14
 		qBtn.Text = "Q+"
 		qBtn.Parent = row
+		round(qBtn, 6)
 		qBtn.Activated:Connect(function()
 			if openCityId ~= nil then
 				BuildQueue.add(openCityId, kind, id)
@@ -399,7 +490,7 @@ local function addRow(order, kind, id, def, lockReason, effects)
 			end
 		end)
 	end
-	return twoLine and 38 or 24
+	return h + 4
 end
 
 -- R13 (A97/A86 twin): the built-buildings strip with per-row SELL — price =
@@ -409,33 +500,28 @@ local sellConfirm = { key = nil, until_ = 0 }
 
 local function addBuildingRow(order, id, def, price, sold)
 	local row = Instance.new("Frame")
-	row.Size = UDim2.new(1, -8, 0, 22)
+	row.Size = UDim2.new(1, -10, 0, 28)
 	row.LayoutOrder = order
 	row.BackgroundColor3 = Color3.fromRGB(32, 38, 50)
 	row.BorderSizePixel = 0
 	row.Parent = list
-	local name = Instance.new("TextLabel")
-	name.Size = UDim2.new(1, -78, 1, 0)
-	name.BackgroundTransparency = 1
-	name.TextColor3 = Color3.fromRGB(210, 218, 230)
-	name.Font = Enum.Font.Code
-	name.TextSize = 14
-	name.TextXAlignment = Enum.TextXAlignment.Left
-	name.Text = "  " .. (def.name or id)
-	name.Parent = row
+	round(row, 6)
+	local name = text(row, 12, 4, W - 26 - 12 - 100, 20, 15, nil, Color3.fromRGB(210, 218, 230))
+	name.Text = def.name or id
 	if def.effect ~= nil and def.effect.isPalace == true then
 		return -- the Palace is not sellable (engine rule)
 	end
 	local sell = Instance.new("TextButton")
-	sell.Size = UDim2.new(0, 72, 0, 18)
-	sell.Position = UDim2.new(1, -74, 0, 2)
-	sell.Font = Enum.Font.SourceSansBold
+	sell.Size = UDim2.new(0, 88, 0, 20)
+	sell.Position = UDim2.new(1, -94, 0, 4)
+	sell.Font = Enum.Font.GothamBold
+	round(sell, 6)
 	sell.TextSize = 14
 	local armed = sellConfirm.key == openCityId .. ":" .. id and os.clock() <= sellConfirm.until_
 	sell.BackgroundColor3 = sold and Color3.fromRGB(38, 40, 48)
 		or (armed and Color3.fromRGB(150, 60, 50) or Color3.fromRGB(90, 62, 42))
 	sell.TextColor3 = sold and Color3.fromRGB(120, 120, 126) or Color3.fromRGB(240, 225, 210)
-	sell.Text = sold and "sold" or (armed and "SURE?" or ("sell +%dg"):format(price))
+	sell.Text = sold and "sold" or (armed and "SURE?" or ("Sell +%d"):format(price))
 	sell.Parent = row
 	if not sold then
 		sell.Activated:Connect(function()
@@ -477,21 +563,30 @@ local function refresh()
 		myTechs[t] = true
 	end
 
-	title.Text = ("%s  (pop %d)"):format(city.name, city.pop)
+	title.Text = city.name
+	badge.Text = tostring(city.pop)
+	badge.BackgroundColor3 = popColor(city.pop)
 	-- W4 WLTKD (1.0-close #2): the celebrate line (browser panels.js banner twin;
 	-- fog-honest — filterView strips `celebrating` from rival shells)
-	local celebrate = city.celebrating == true
-		and "\nWE LOVE THE KING DAY - no corruption while it lasts" or ""
+	subtitle.Text = city.celebrating == true and "We Love the King Day - no corruption while it lasts"
+		or ("population %d"):format(city.pop)
+	subtitle.TextColor3 = city.celebrating == true and Color3.fromRGB(255, 225, 130) or MUTED
 	local mood = moodOf(view, city)
 	moodLabel.Text = mood ~= nil and moodFaces(mood) or ""
-	stats.Text = ("food %d · shields %d · gold %d%s"):format(city.food or 0, city.shields or 0, me.gold or 0, celebrate)
+	stats.Text = ('<font color="#8fd17a"><b>%d</b></font> food stored    <font color="#ffa06e"><b>%d</b></font> shields    <font color="#ffe182"><b>%d</b></font> gold')
+		:format(city.food or 0, city.shields or 0, me.gold or 0)
 	local prodDef = (rs[city.producing.kind .. "s"] or {})[city.producing.id]
-	producing.Text = ("producing: %s %s (%d/%d)"):format(city.producing.kind,
-		prodDef and prodDef.name or city.producing.id, city.shields or 0,
-		prodDef and prodDef.cost or 0)
+	local prodCost = prodDef and prodDef.cost or 0
+	local share = prodCost > 0 and math.clamp((city.shields or 0) / prodCost, 0, 1) or 0
+	local kindColor = KIND_COLOR[city.producing.kind] or MUTED
+	producing.Text = prodDef and prodDef.name or city.producing.id
+	prodDot.BackgroundColor3 = kindColor
+	prodFill.Size = UDim2.new(share, 0, 1, 0)
+	prodFill.BackgroundColor3 = share >= 1 and Color3.fromRGB(110, 210, 120) or kindColor
+	prodNum.Text = ("%d/%d"):format(city.shields or 0, prodCost)
 
 	for _, child in ipairs(list:GetChildren()) do
-		if child:IsA("TextButton") or child:IsA("Frame") then
+		if not child:IsA("UIListLayout") then
 			child:Destroy()
 		end
 	end
@@ -543,21 +638,30 @@ local function refresh()
 	-- R13: the built-buildings strip (sell affordance) sits above the catalog
 	if #(city.buildings or {}) > 0 then
 		local ratio = rs.rules.sellPriceRatio or 1
+		order += 1
+		canvasY += addSection(order, "Built here", Color3.fromRGB(170, 180, 200))
 		for _, id in ipairs(city.buildings) do
 			local def = rs.buildings[id]
 			if def ~= nil then
 				order += 1
 				addBuildingRow(order, id, def, (def.cost or 0) * ratio, city.soldThisTurn == true)
-				canvasY += 24
+				canvasY += 32
 			end
 		end
 	end
 
-	for _, group in ipairs({ { "unit", rs.units }, { "building", rs.buildings }, { "wonder", rs.wonders } }) do
+	for _, group in ipairs({ { "unit", rs.units, "Units" }, { "building", rs.buildings, "Buildings" },
+		{ "wonder", rs.wonders, "Wonders" } }) do
+		local headed = false
 		for _, id in ipairs(sortedIds(group[2])) do
 			local def = group[2][id]
 			local lock = lockFor(group[1], id, def)
 			if lock ~= HIDE then
+				if not headed then
+					headed = true
+					order += 1
+					canvasY += addSection(order, group[3], KIND_COLOR[group[1]])
+				end
 				order += 1
 				-- R15: plain-language effects (buildings/wonders; wonders
 				-- without effects show the browser's prestige line)
@@ -568,7 +672,8 @@ local function refresh()
 						effects = ("prestige - score +%d"):format(rs.rules.scorePerWonder or 0)
 					end
 				end
-				canvasY += addRow(order, group[1], id, def, lock, effects)
+				canvasY += addRow(order, group[1], id, def, lock, effects,
+					city.producing.kind == group[1] and city.producing.id == id)
 			end
 		end
 	end

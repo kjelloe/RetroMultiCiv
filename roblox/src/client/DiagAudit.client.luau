@@ -159,7 +159,9 @@ local function auditButtons(viewport)
 			local ap, as, bp, bs = a.AbsolutePosition, a.AbsoluteSize, b.AbsolutePosition, b.AbsoluteSize
 			local ox = math.min(ap.X + as.X, bp.X + bs.X) - math.max(ap.X, bp.X)
 			local oy = math.min(ap.Y + as.Y, bp.Y + bs.Y) - math.max(ap.Y, bp.Y)
-			if ox > 2 and oy > 2 and not a:IsDescendantOf(b) and not b:IsDescendantOf(a) then
+			-- a toast (attribute Transient) passes over whatever is open and leaves
+			local transient = a:GetAttribute("Transient") == true or b:GetAttribute("Transient") == true
+			if ox > 2 and oy > 2 and not transient and not a:IsDescendantOf(b) and not b:IsDescendantOf(a) then
 				Diag.fail("btn", ("overlap %s '%s' x %s '%s'"):format(guiOf(a), a.Text, guiOf(b), b.Text),
 					("%dx%d px shared (%s / %s)"):format(r(ox), r(oy), rectText(a), rectText(b)))
 			end

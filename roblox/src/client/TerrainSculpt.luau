@@ -7,7 +7,7 @@
 -- A mountain is a three-summit massif (one tall summit + two shoulders on a
 -- ring that leaves the tile centre clear, snow caps fitted to each cone, foot
 -- boulders) instead of one small cone on a block;
--- hills are two rolling ridges on a half-height block. Deterministic: `rand(salt)` is the caller's
+-- hills are the bare half-height block. Deterministic: `rand(salt)` is the caller's
 -- position hash (TileProps.visualRand), never engine RNG.
 -- Lune-pinned by roblox/selftest/terrain-sculpt.luau (check.sh gate 36).
 
@@ -76,30 +76,11 @@ function M.flank(rand)
 	return math.cos(a) * M.FLANK_R, math.sin(a) * M.FLANK_R
 end
 
--- Hills (user, run-S shot16): the hill BLOCK stands at half its old height
--- (ViewRenderer.tileTop) and the tile itself is two rolling hills - two long
--- low ELLIPSOID ridges (`ell = true`: AssetFactory builds a true ellipsoid),
--- side by side across the tile with a valley through the centre, where a
--- unit or city stands. No rotation: the ridges run along X or along Z.
-local BALL_R = 0.11 -- TileProps.PROP_SHAPES treeCanopy radius
-M.HILL = { "#857a4a", "#8c8150", "#7e7446" }
-M.HILL_MAX_H = 0.4 -- tile units; with the half block this restores the old hill top
-M.HILL_GAP = 0.25 -- ridge axis distance from the tile centre
-function M.hills(rand)
-	local out = {}
-	local alongX = rand(21) > 0.5 -- the two ridges sit left/right (true) or front/back
-	for i = 0, 1 do
-		local side = i == 0 and -1 or 1
-		local across = 0.2 + rand(22 + i) * 0.035 -- half-width toward the centre: < HILL_GAP
-		local along = 0.4 + rand(24 + i) * 0.07 -- half-length along the ridge
-		local h = (i == 0 and 0.32 or 0.24) + rand(26 + i) * 0.08
-		local slide = (rand(28 + i) - 0.5) * 0.08 -- the ridges are not perfectly opposite
-		local color = M.HILL[1 + math.floor(rand(31 + i) * #M.HILL)]
-		out[#out + 1] = { k = "treeCanopy", ell = true, role = "ridge", color = color, dy = 0,
-			dx = alongX and side * M.HILL_GAP or slide, dz = alongX and slide or side * M.HILL_GAP,
-			sx = (alongX and across or along) / BALL_R, sy = h / BALL_R, sz = (alongX and along or across) / BALL_R }
-	end
-	return out
+-- Hills (user, run-S shot17): the two ellipsoid ridges read as eggs and are
+-- gone. A hill is the half-height block alone (ViewRenderer.tileTop); the
+-- tile's resource marker and mine stand on it unobstructed.
+function M.hills(_rand)
+	return {}
 end
 
 -- T4: a mixed wood — 2-3 spruces (a trunk under the existing cone) and two
@@ -143,9 +124,6 @@ end
 
 -- geometry facts the selftest pins (tile units)
 function M.apexOf(item)
-	if item.ell then
-		return item.dy + BALL_R * item.sy
-	end
 	if item.k == "peak" then
 		return item.dy + PEAK_H * item.sy / 2
 	end

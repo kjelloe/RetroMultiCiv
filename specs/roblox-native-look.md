@@ -173,10 +173,10 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 - **T1** (built, EVERY look since the second ruling): `TerrainSculpt.luau`
   — mountain = three summits on a ring around the tile centre (the centre
   stays clear for a unit or city), fitted snow caps, two foot boulders; the
-  block drops to 0.6 height. Hills (run-S shot16 ruling): the block at 50 % of
-  its old height, and on it two long rolling ridges (true ellipsoids) side by
-  side with a valley through the tile centre. An all-ellipsoid mountain was
-  tried and withdrawn (read as blobs). Mountain resources stand in the free
+  block drops to 0.6 height. Hills (run-S shot16 + shot17 rulings): the block at 50 % of
+  its old height and nothing sculpted on it; the resource marker and the mine
+  are what stand on a hill. Two ellipsoid ridges were tried and withdrawn
+  (read as eggs), as was an all-ellipsoid mountain (read as blobs). Mountain resources stand in the free
   gap of the summit ring (`TerrainSculpt.flank`). More than 150 mountain tiles in view → lite massif.
 - **T2** (built, ENHANCED look only — slopes were not part of the ruling
   and retro is deliberately blocky): `TerrainSkirts.luau` wedges against
@@ -217,7 +217,8 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 17 | phone: bottom-left icon row (`LeftStack`), unit cards follow the bar fit | built | one phone-emulator run |
 | 19 | tech tree graph, income card (ellipsoid summits withdrawn after shot16, see 21) | built (gate 44) | a look at each |
 | 20 | civilization gallery (pick before start, default random), close X on every click-opened panel, tech hover card | built (gate 45) | a look; two players picking the same civ |
-| 21 | hills as two ridges on a half block, mountains = cone massif; Cities / Government / Research panels; reading face in the remaining panels | built (gate 36) | a look at each; text clipping in the refaced panels |
+| 21 | hills = bare half block (ridges withdrawn, shot17), mountains = cone massif; Cities / Government / Research panels; reading face in the remaining panels | built (gate 36) | a look at each; text clipping in the refaced panels |
+| 22 | city panel and host setup panel in the card style | built (session 2026-11-15) | a look at each; catalog row widths, option card scroll |
 | 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
 Items 9–11 are held on purpose: T2b stacks a second wedge type on an

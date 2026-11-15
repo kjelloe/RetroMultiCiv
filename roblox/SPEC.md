@@ -1029,8 +1029,19 @@ seat/reset flow; JS engine untouched). Delivered:
   `Tooltip` card (`ClientState.techBlurbs` / `techUnlocks`, published by
   DiscoveryCard). Gate 45. shot16: ellipsoid SUMMITS withdrawn (read
   as blobs) - mountains are the cone massif again; hills = half-height
-  block + two ellipsoid ridges (valley through the centre keeps a unit
-  visible). `TechInfo.luau` = the one tech text builder (tree hover card
+  block + two ellipsoid ridges, WITHDRAWN at shot17 (read as eggs): a
+  hill is the bare half-height block and `TerrainSculpt.hills` returns
+  no items, so the resource marker and mine stand unobstructed. Session
+  2026-11-15 00:00Z: the city panel (`CityPanel`, 360x480: population
+  badge, coloured yield line, production card with bar and Buy, catalog
+  in Built here / Units / Buildings / Wonders sections with a kind
+  stripe, the current item tinted green) and the host setup panel
+  (option cards: name, value in the accent colour, segment strip) are in
+  the card style. `openCityId` in CityPanel was declared after
+  `paintQueue` and read there as a nil global - the queue strip never
+  showed; declared first now. A toast carries attribute `Transient` and
+  is skipped by the DiagAudit overlap check (it was the one DIAG FAIL
+  of that session). `TechInfo.luau` = the one tech text builder (tree hover card
   + research picker's expanding row). Cities / Government / Research
   panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
   swaps Code / SourceSans for the reading face in the listed guis
