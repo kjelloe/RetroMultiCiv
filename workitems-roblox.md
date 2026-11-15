@@ -246,6 +246,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19zd. Empire overview [done: 2026-11-16 — plan step 2: Economy tab in the Cities panel (net pinned to playerIncome over a real game), yields / gold / science / upkeep per Cities row, Population / Cities / Techs charts beside Score; `EmpireView.luau`, gate 60; tour stop `economy` (20 stops); income readers moved to the own-cities shim (the raw view broke playerIncome once rival cities were known); capital mark follows capitalOf. Session 2026-11-15 23:xxZ (godemperor, levels=7): replay hash-exact, tour 19/19. Not seen in Studio. gamesim-golden-neutral]
 
+## 19ze. Bottom bar vs corner toggles [done: 2026-11-16 — session 2026-11-15 ended turn 546 (score victory p3, godemperor, replay hash-exact, final 0x770d2b89); audit raised 2 FAIL at a 1222 px viewport: the action bar at its 0.5 floor still ran into Turn log and AI. `BarFit.luau` (gate 61): shrink between the corners down to 0.7, below that the bar takes its own strip above them at full width. Not seen in Studio. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

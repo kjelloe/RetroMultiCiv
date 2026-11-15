@@ -13,6 +13,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local BarFit = require(script.Parent:WaitForChild("BarFit")) -- where the bottom bar stands per viewport width
 local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
@@ -47,8 +48,6 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.VerticalAlignment = Enum.VerticalAlignment.Center
 layout.Parent = bar
 do
-	local SIDE = 206 -- the wider of the two bottom corners (190 px toggles + margins)
-	local MIN_SCALE = 0.5
 	local function fit()
 		local cam = workspace.CurrentCamera
 		if cam == nil then
@@ -67,8 +66,9 @@ do
 			return
 		end
 		natural += (n - 1) * layout.Padding.Offset
-		local room = cam.ViewportSize.X - SIDE * 2
-		barScale.Scale = math.clamp(room / natural, MIN_SCALE, 1)
+		local plan = BarFit.plan(cam.ViewportSize.X, natural)
+		barScale.Scale = plan.scale
+		bar.Position = UDim2.new(0.5, 0, 1, -BarFit.BOTTOM - plan.lift)
 	end
 	bar.ChildAdded:Connect(function()
 		task.defer(fit)
