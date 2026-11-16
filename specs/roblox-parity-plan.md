@@ -7,10 +7,10 @@ engine port already accepts.
 
 ## 1. State
 
-- 205 browser features: 134 available, 25 partial, 32 missing, 14 n/a
+- 205 browser features: 141 available, 24 partial, 25 missing, 15 n/a
   (revision 1 started at 115 / 37 / 39).
-- 18 scenarios: 8 playable, 4 degraded, 6 blocked (started at 6 / 2 / 10).
-- 62 gates. Four regent games replayed hash-exact. The latest, session
+- 18 scenarios: 11 playable, 3 degraded, 4 blocked (started at 6 / 2 / 10).
+- 63 gates. Four regent games replayed hash-exact. The latest, session
   2026-11-16 14:51Z: 546 turns, 0 errors, 0 diagnostics failures, tour 20
   of 20.
 - Built under revision 1: step 0 (tour, `after-run.js`, top-row pins),
@@ -110,20 +110,21 @@ after one tour run.
 2.2 Encyclopedia search (info-04, S12).
 2.3 Options: sound effects switch and volume (opt-11, opt-12, S18);
     minimap switch (opt-16) rides along.
-Result: 6 blocked becomes 3.
+Result: 4 blocked becomes 1 (S07).
 
 ### R3: diplomats (S07)
 3.1 Six missions with a target pick; the gold cost shown before
     confirming. Rule module checked against `luau/diplomat-missions`.
     Action stops with the staged Diplomat.
-Result: 3 blocked becomes 2 (S11 and S17, both waiting on rulings).
+Result: 4 blocked becomes 0 after R2 and R3 (S11 and S17 closed by the
+rulings of 2026-11-16).
 
 ### R4: degraded scenarios
 4.1 Cities row: specialists (ov-01, S10).
 4.2 Build queue reorder (city-14, S03).
 4.3 Replay theater: play / pause and speed (gf-24, S15).
-4.4 Large and huge maps (gf-34, S01) - after ruling 5.
-Result: 4 degraded becomes 0 or 1.
+4.4 DONE 2026-11-16: large / xlarge / huge maps offered (ruling 5).
+Result: 3 degraded becomes 0.
 
 ### R5: phone
 5.1 The width check of design D.
@@ -168,21 +169,17 @@ Waits on ruling 3. Independent of R1-R7.
 
 After any run: `node roblox/tools/after-run.js`.
 
-## 6. Rulings wanted
+## 6. Rulings (user, 2026-11-16)
 
-Each blocks only its own item.
-1. Diplomacy actions (dip-03..08, S11): docs/13 puts them after 1.0.
-   Build now, or leave.
-2. Skip vote (mp-15, S17): the idle limit hands an absent seat to the
-   regent. Mark the row n/a, or build a vote.
-3. Badges: do turns played by the regent count (proposal: victory badges
-   need the player in the seat for at least half the turns); debug games
-   award nothing (proposal: yes); multiplayer: every human on the winning
-   side, or only the winner.
-4. Statistics charts show every civ's population, cities and techs during
-   play, as the browser does. Keep, or hide rivals until the game ends.
-5. Large and huge maps: the 60x38 / 6-civ game ran 3.5 s per turn late.
-   Offer them with a warning, or keep three sizes.
+1. Diplomacy actions: build if the browser client has them. It has; BUILT
+   the same day (gate 63, `DiplomacyView` + `Diplomacy.client`): accept /
+   reject, offer peace, declare war, Propose (peace / tribute / tech swap),
+   envoy card. S11 playable.
+2. Skip vote: not applicable (mp-15 n/a). S17 playable.
+3. Badges: open - talked through with the user, see R8.
+4. Statistics charts: same as the browser (rivals shown during play).
+5. Large / xlarge / huge maps: offered with a latency label. BUILT (gf-34
+   yes, S01 playable). No game on them has been run.
 
 ## 7. Built under revision 1
 
@@ -212,6 +209,7 @@ Each blocks only its own item.
   corner buttons when it can not fit between them.
 - **Discovery splash** (gate 57). **Badge rules** (gate 56): 50 badges as
   data plus the earning function; nothing awarded yet.
+- **Treaty actions** (gate 63) and the three big map sizes: section 6.
 - **Camera**: F (follow-avatar) ignored while a walk key is held (gate 46
   pin).
 

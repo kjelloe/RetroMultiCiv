@@ -50,7 +50,8 @@ needIn(dv, 'DiplomacyView.luau', 'expiresTurn', 'expired-peace reverts to war');
 
 // the panel wires the logic module + reads the twin-exposed relations map
 needIn(panel, 'Diplomacy.client.luau', 'DiplomacyView', 'panel uses the ported logic');
-needIn(panel, 'Diplomacy.client.luau', 'relationLabel', 'panel shows the status line');
+needIn(panel, 'Diplomacy.client.luau', 'DiplomacyView.rows(view, view.you', 'panel rows come from the rule module');
+needIn(dv, 'DiplomacyView.luau', 'label = M.relationLabel(view, you, pid)', 'rows carry the status line');
 needIn(panel, 'Diplomacy.client.luau', 'view.you', 'panel reads the viewer');
 
 if (errs.length > 0) {

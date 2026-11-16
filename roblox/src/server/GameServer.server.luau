@@ -176,6 +176,10 @@ local MAP_SIZES = { -- client/main.js MAP_SIZES parity
 	{ name = "xsmall", w = 40, h = 25 },
 	{ name = "small", w = 60, h = 38 },
 	{ name = "medium", w = 80, h = 50 },
+	-- user ruling 2026-11-16: offered with a latency warning in the host setup
+	{ name = "large", w = 104, h = 65 },
+	{ name = "xlarge", w = 128, h = 80 },
+	{ name = "huge", w = 160, h = 100 },
 }
 
 -- admins-only kick (user ruling: no host-kick, no vote-kick). The Studio /

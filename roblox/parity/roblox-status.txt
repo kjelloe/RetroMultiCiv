@@ -94,12 +94,12 @@ ov-05 | yes | client/EmpireView.luau | function M.upkeep |
 ov-06 | yes | client/ClientState.luau | panelOpened |
 dip-01 | yes | client/Diplomacy.client.luau | Diplomacy (Y) |
 dip-02 | yes | client/DiplomacyView.luau | return M |
-dip-03 | no | | | the panel is read-only: no offer peace
-dip-04 | no | | | the panel is read-only: no accept peace
-dip-05 | no | | | the panel is read-only: no declare war
-dip-06 | no | | | no deal proposals
-dip-07 | no | | | no deal proposals
-dip-08 | no | | | no envoy popup (the regent answers AI proposals while it holds the seat)
+dip-03 | yes | client/Diplomacy.client.luau | "Offer peace" |
+dip-04 | yes | client/Diplomacy.client.luau | "Accept" |
+dip-05 | yes | client/Diplomacy.client.luau | "Declare war" |
+dip-06 | yes | client/DiplomacyView.luau | function M.parleyCommand |
+dip-07 | yes | client/DiplomacyView.luau | function M.tributeStep |
+dip-08 | yes | client/Diplomacy.client.luau | "Consider later" |
 map-01 | yes | client/Camera.client.luau | wheel zoom |
 map-02 | yes | client/Minimap.client.luau | Minimap |
 map-03 | yes | client/Overlays.client.luau | map-overlays panel |
@@ -157,7 +157,7 @@ gf-30 | n/a | | | the server sends the end screen from full state
 gf-31 | yes | client/CivGallery.luau | "random" |
 gf-32 | yes | client/Lobby.client.luau | "Civilizations", civVals |
 gf-33 | n/a | | | hotseat does not apply; "Human seats" sets how many players join
-gf-34 | partial | client/Lobby.client.luau | SETUP_SIZES | xsmall / small / medium only (large and huge are not offered)
+gf-34 | yes | client/Lobby.client.luau | "large", "xlarge", "huge" |
 gf-35 | yes | client/Lobby.client.luau | SETUP_MAPTYPES |
 gf-36 | yes | client/Lobby.client.luau | SETUP_DIFFICULTY |
 gf-37 | yes | client/Lobby.client.luau | SETUP_COMBAT |
@@ -176,7 +176,7 @@ mp-06 | yes | client/Lobby.client.luau | Idle limit (minutes) |
 mp-07 | yes | client/Lobby.client.luau | t = "resume" |
 mp-08 | n/a | | | players join through the platform; no join codes
 mp-13 | yes | server/Deck.luau | DeckPlan.status |
-mp-15 | no | | | no skip vote (the idle limit hands an absent seat to the regent)
+mp-15 | n/a | | | user ruling 2026-11-16: the idle limit hands an absent seat to the regent; no vote
 mp-17 | partial | client/WaitStatus.luau | return M | the wait line names who is moving; no disconnected mark
 mp-18 | yes | server/GameServer.server.luau | spectators[player.UserId] |
 mp-19 | yes | client/WaitStatusHud.client.luau | WaitStatus |

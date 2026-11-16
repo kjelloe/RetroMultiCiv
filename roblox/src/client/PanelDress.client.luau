@@ -40,7 +40,7 @@ local NO_CLOSE = {
 -- (statistics, AI strategy, debug) keep monospace; the turn log and the
 -- legend set the reading face themselves.
 local REFONT = {
-	RMCOptions = true, RMCOverlays = true, RMCLobby = true, RMCDiplomacy = true, RMCRegentDialog = true,
+	RMCOptions = true, RMCOverlays = true, RMCLobby = true, RMCDiplomacy = true, RMCEnvoy = true, RMCRegentDialog = true,
 	RMCFoundCity = true, RMCEndScreen = true, RMCFastForward = true, RMCCityPanel = true, RMCPedia = true,
 	RMCShip = true,
 }

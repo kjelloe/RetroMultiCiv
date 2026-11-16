@@ -236,7 +236,11 @@ end
 -- (no server change). The legal-value lists MIRROR the server (GameServer
 -- MAP_SIZES / DIFFICULTY_LEVELS / rules.mapTypes / rules.ages / maxCivsBySize) —
 -- browser-parity, no contract touch.
-local SETUP_SIZES = { "xsmall", "small", "medium" }
+local SETUP_SIZES = { "xsmall", "small", "medium", "large", "xlarge", "huge" }
+-- user ruling 2026-11-16: the three big sizes are offered with a latency
+-- warning (a 60x38 / 6-civ game already ran 3.5 s per turn late)
+local SIZE_NAME = { xsmall = "XSmall 40x25", small = "Small 60x38", medium = "Medium 80x50",
+	large = "Large 104x65 (slow turns)", xlarge = "XLarge 128x80 (slow turns)", huge = "Huge 160x100 (very slow)" }
 -- W7: full rules.mapTypes roster, SORTED — the server steps sorted keys, so
 -- this list must stay alphabetical or segment taps land on the wrong preset
 local SETUP_MAPTYPES = {
@@ -351,7 +355,9 @@ local function rebuildBars(opts)
 	for n = 2, cap do table.insert(civVals, n) end
 	for n = 1, opts.civs or 2 do table.insert(humanVals, n) end
 	for n = 1, 15 do table.insert(idleVals, n) end
-	buildBar(1, "Map size", SETUP_SIZES, opts.size, "size")
+	buildBar(1, "Map size", SETUP_SIZES, opts.size, "size", function(v)
+		return SIZE_NAME[v] or tostring(v)
+	end)
 	buildBar(2, "Civilizations", civVals, opts.civs, "civs")
 	buildBar(3, "Human seats", humanVals, opts.humans, "humans")
 	buildBar(4, "Map type", SETUP_MAPTYPES, opts.mapType or "continents", "maptype")

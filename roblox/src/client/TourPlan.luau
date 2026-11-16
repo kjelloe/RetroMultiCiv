@@ -57,6 +57,7 @@ M.EXEMPT = {
 	RMCIntro = "shown once at boot, before any game",
 	RMCTooltip = "measured by the hover stops",
 	RMCTour = "the tour's own caption strip",
+	RMCEnvoy = "envoy and Propose cards need a met rival: run C by hand, then plan step R1",
 }
 
 -- staging (debug commands; ordinary logged commands, so the run replays).

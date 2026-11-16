@@ -903,5 +903,28 @@ else
   note SKIP "gate 62: lune absent"
 fi
 
+# gate 63 — treaty actions (DiplomacyView, user ruling 2026-11-16): every
+# command the panel builds is accepted / refused by the engine as its button
+# state says, read from the filtered view; offer wording; a line for every
+# engine refusal; panel + envoy + Propose wiring; the three big map sizes are
+# offered on both sides with the latency wording
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/diplomacy-actions.luau >/dev/null 2>&1 \
+     && grep -q 'DiplomacyView.rows(view, view.you, ClientState.rulesets())' roblox/src/client/Diplomacy.client.luau \
+     && grep -q 'DiplomacyView.incomingOffers(view, view.you, ClientState.rulesets())' roblox/src/client/Diplomacy.client.luau \
+     && grep -q 'DiplomacyView.parleyCommand(c.pid, c.term' roblox/src/client/Diplomacy.client.luau \
+     && grep -q 'DiplomacyView.confirmPress(' roblox/src/client/Diplomacy.client.luau \
+     && grep -q '"RMCEnvoy"' roblox/src/client/DiagAudit.client.luau \
+     && grep -q '"diplomacy"' roblox/src/server/GameServer.server.luau \
+     && grep -q '{ name = "huge", w = 160, h = 100 }' roblox/src/server/GameServer.server.luau \
+     && grep -q 'huge = "Huge 160x100 (very slow)"' roblox/src/client/Lobby.client.luau; then
+    note PASS "gate 63: treaty actions vs the engine (lune) + panel / envoy wiring + big map sizes"
+  else
+    note FAIL "gate 63: diplomacy actions — run: lune run roblox/selftest/diplomacy-actions.luau"
+  fi
+else
+  note SKIP "gate 63: lune absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

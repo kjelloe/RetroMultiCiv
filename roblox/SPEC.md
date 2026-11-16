@@ -1132,6 +1132,25 @@ seat/reset flow; JS engine untouched). Delivered:
   treat anything without it as legacy (contentCitizens rules override,
   engine level prince). HASH NOTE: a new game's initial hash now depends
   on the level (start gold, `state.difficulty`).
+  TREATY ACTIONS (user ruling 2026-11-16, gate 63): the Foreign-relations
+  panel acts. `DiplomacyView.rows(view, you, rs)` gives one row per living
+  rival (an unmet one has no name and no buttons); a met row carries
+  Accept / Reject for an offer they made, else Offer peace (or "offer
+  sent"), Declare war under a peace treaty (two presses inside 3 s), and
+  Propose... - a card with Peace / Demand tribute (gold in steps of 10) /
+  Tech swap (two lists; no asked-for advance = a gift). An offer they made
+  is presented once on the player's turn by the envoy card (`RMCEnvoy`:
+  Accept / Reject / Consider later; never while the regent holds the seat
+  or the tour runs); "later" leaves it in the panel. Everything is the one
+  engine command `diplomacy` (`DiplomacyView.parleyCommand`); a refusal
+  shows its reason under the list. The selftest drives the real engine:
+  unmet, war, offer, accept, declare, tribute, swap, gift, reject, each
+  read back through `visibility.filterView`, and every refusal reason of
+  `luau/diplomacy.luau` has a line. Not shown: a rival's reputation band -
+  `filterView` does not carry `players[].reputation` (luau/ lane).
+  MAP SIZES (same ruling): the host setup offers large 104x65, xlarge
+  128x80 and huge 160x100 beside the three small sizes, labelled "(slow
+  turns)" / "(very slow)". No game on them has been run in Studio.
   UNIT ORDERS (plan step 3, gate 62): `UnitOrders.order(action, view,
   unit, rs, ctx, deps)` returns { enabled, reason, label, work, shown } and
   is the one source for `ActionBar`'s `can()`, button labels, hover cards

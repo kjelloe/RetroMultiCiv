@@ -49,7 +49,9 @@ twice (unit gone); G then a far tile (dots stay, button reads "Cancel
 route"); Caravan in a city building a wonder (Help Wonder, H); city panel
 + Tax / + Sci / Reset; Cities > Economy net equals the gold chip; narrow
 the Studio window under about 1,300 px (bottom bar moves above the corner
-buttons).
+buttons). Diplomacy (Y) once a rival is met: Offer peace reads "offer sent"
+afterwards; Propose... > Demand tribute / Tech swap; an AI offer raises the
+envoy card on your turn; Declare war under a treaty asks twice.
 
 The tour grants gold and advances and adds three units (a debug game: the
 DEBUG mark stays on). The numbered steps below remain the full hand script
@@ -59,7 +61,7 @@ for what the tour does not open (lobby, gallery, end screen, replay).
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 62 gates on tip
+- `roblox/check.sh` ALL GREEN — 63 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),

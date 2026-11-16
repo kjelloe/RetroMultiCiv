@@ -34,7 +34,7 @@ end)
 -- check.sh gate 38 holds this list to the ScreenGui names the client scripts
 -- create (a new panel adds its name here)
 local EXPECTED_GUIS = {
-	"RMCActionBar", "RMCAdvice", "RMCCityList", "RMCCityPanel", "RMCDiplomacy",
+	"RMCActionBar", "RMCAdvice", "RMCCityList", "RMCCityPanel", "RMCDiplomacy", "RMCEnvoy",
 	"RMCDiscoveryCard", "RMCEndScreen", "RMCFastForward", "RMCGovernment",
 	"RMCCivGallery", "RMCHistorian", "RMCHud", "RMCLegend", "RMCLobby", "RMCMinimap", "RMCOptions",
 	"RMCOverlays", "RMCPedia", "RMCRegentDialog", "RMCTheater", "RMCResearch",
