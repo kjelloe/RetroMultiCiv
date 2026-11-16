@@ -84,6 +84,13 @@ end)
 UserInputService.InputBegan:Connect(function(input, processed)
 	-- while possessed, F belongs to Possess (dismount); it manages follow itself
 	if not processed and input.KeyCode == Enum.KeyCode.F and ClientState.possessedUnitId == nil then
+		-- session 2026-11-16: F sits beside D; three toggles in 1.5 s while
+		-- walking left the camera standing still. Ignored while a walk key is held.
+		for _, k in ipairs({ Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D }) do
+			if UserInputService:IsKeyDown(k) then
+				return
+			end
+		end
 		ClientState.followAvatar = not ClientState.followAvatar
 		print("[Camera] follow-avatar " .. (ClientState.followAvatar and "ON" or "OFF"))
 	end
