@@ -137,7 +137,8 @@ an orbit drag. R3's fog gap is CLOSED by R4: everything Select prints
 or acts on comes from the filtered view (§3e).
 
 R4 additions: `F` toggles follow-avatar (the banked user request —
-focus rides the character; free cam stays primary); the camera
+focus rides the character; free cam stays primary; ignored while W, A,
+S or D is held, since F sits beside D - gate 46 pin); the camera
 auto-centers on the seat's first unit at the first view push.
 
 ## 3d. GameServer (`src/server/GameServer.server.luau`, R4)

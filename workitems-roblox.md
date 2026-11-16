@@ -250,36 +250,30 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19zf. Unit orders [done: 2026-11-16 — plan step 3: Help Wonder (button + H), route dots while selected + Cancel route, tile-following labels (Drain / Clear / Plant / Rail), hover card with the reason on every order button, Disband confirm; `UnitOrders.luau`, gate 62 (1,408 settlers-job cases vs `improvements.startWork`, Help Wonder vs `cities.helpWonder`). The Road button now sends `railroad` on a roaded tile (it always sent `road`). 8 parity rows to yes. Not seen in Studio. gamesim-golden-neutral]
 
-## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
+## 19zg. Session 2026-11-16 14:51Z + camera F guard [done: 2026-11-16 — 40x25 continents, 3 civs, prince, levels=7, seed 840743, regent on: 546 turns, score victory p1, final 0x9a25f498, replay hash-exact; 0 DIAG FAIL, 0 warnings, 0 errors; tour 20 of 20 (first run with the Economy stop); 893 of 27,966 commands refused (3.2 %: impassable 796, zoc 49, techRequired 48); 0.55-0.76 s per turn. Session 08:11Z: F (follow-avatar) toggled three times in 1.5 s while walking; F is now ignored while W / A / S / D is held (gate 46 pin). The user confirmed the walk is right again. Plan revised: `specs/roblox-parity-plan.md` revision 2. gamesim-golden-neutral]
 
-Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.
+## 20. Next [open] (2026-11-16, after session 14:51Z)
 
-Waiting on a Studio look (built, not yet seen): slope corner fills + the `corner wedge apex measured` log line; city catalog hover cards and the absent Barbarian Leader; Statistics cards; Legend ("Controls"); Turn log chips and kind words; Diplomacy / Map overlays beside the button column; city panel and host setup cards; bare hills; civilization gallery; Cities / Government / Research panels; tech tree graph + hover card.
+**Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-**Plan of record: `specs/roblox-parity-plan.md` (2026-11-15) - step 0 (UI tour + after-run report + viewport pins) comes before any feature. The lettered list below is the earlier order, kept for reference.**
+State: 205 browser features = 134 available, 25 partial, 32 missing, 14 n/a; 18 scenarios = 8 playable, 4 degraded, 6 blocked. 62 gates. Four regent games replayed hash-exact.
 
-Open work from `roblox/PARITY.md` (the missing list there is the source; regenerate after each item), proposed order by how many scenarios it unblocks:
-a. City: specialist buttons + reset (city-06, city-07), previous city (city-16), growth box / turns to grow and a starving warning (city-03, city-04) - unblocks S03.
-b. Economy overview (ov-03, ov-05; needs the `playerIncome` / `cityEconOutput` read helpers from `luau/tech`) and Population / Cities / Techs charts (gf-22) - unblocks S10.
-c. Help Wonder button (uo-24; the server already accepts `helpWonder`) - unblocks S06.
-d. GoTo route line on the map (uo-20) - unblocks S05.
-e. Encyclopedia search (info-04) - unblocks S12.
-f. Sound volume / effects switch in Options (opt-11, opt-12) - unblocks S18.
-g. Settler automation priority (uo-15) - unblocks S04.
-h. Diplomat missions (uo-27..32) - S07; needs a check that `luau/` carries the six commands.
-i. Diplomacy actions (dip-03..08) - S11; docs/13 rules D4-D6 client surfaces post-1.0, so this waits for a ruling.
-j. Skip vote (mp-15) - S17; the idle limit + regent covers the case today.
+Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 
-Earlier open items:
-1. Phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen) - wants one run in Studio's phone emulator for the `cut to` list.
-2. (done 19w) Statistics button.
-3. Touch: a long-press on a city catalog row both shows the hover card (0.5 s) and picks-and-closes (0.5 s). One of the two has to move (proposal: long-press = card, tap = pick, the green "building" row + X closes).
-4. Diplomacy and Options panels in the card style (last two on the old row layout).
-5. Two-player civilization pick contention; owner paths on a published server (need a second account / a published place).
+Rulings wanted (each blocks only its own item):
+1. Diplomacy actions (dip-03..08, S11): docs/13 puts them after 1.0. Build now or leave.
+2. Skip vote (mp-15, S17): the idle limit hands an absent seat to the regent. Mark the row n/a, or build a vote.
+3. Badges (R8): do regent turns count; do debug games award; who gets a multiplayer victory badge. Plus the badge ids from the Creator Hub.
+4. Statistics charts show every civ's population, cities and techs during play (the browser shows them too). Keep, or hide rivals until the game ends.
+5. Large and huge maps (gf-34): the 60x38 / 6-civ game ran 3.5 s per turn late. Offer them with a warning, or keep the three sizes.
+
+Earlier open items still standing:
+- Two-player civilization pick contention; owner paths on a published server (need a second account / a published place). Run D.
+- Touch: a long-press on a city catalog row both shows the card and picks. Folded into R5.
 
 Noticed, other lanes (report only, `luau/` is read-only here):
-- Regent seat: 3,184 of 27,254 logged p1 commands were refused by the engine (moveUnit: zoc 2,116, impassable 834, atPeace 222; startWork techRequired 12). `aiModule.pickCommand` proposes them, `playRegentSeat` logs them as ordinary entries (the browser shape). The 00:00Z game had 1,010 of 2,282. Not a replay problem (they replay as refusals); it is AI work spent on moves that cannot happen.
-- Turn time under the regent grew through the game on the 60x38 / 6-civ map: 1.9 s/turn (turns 130-200), 3.0 (300-500), 3.5 (500-546). The 40x25 / 3-civ game ran at about 0.54 s/turn.
+- Regent seat refusals by game: 3,184 of 27,254 (60x38, 6 civs); 1,793 of 21,805; 41.8 % on godemperor (session 2026-11-15 23:xxZ); 893 of 27,966 on prince (14:51Z). `aiModule.pickCommand` proposes moves the engine refuses; they replay as refusals.
+- Turn time under the regent: 3.5 s per turn late on 60x38 / 6 civs; 4.1 s for turns 410-546 of the godemperor 40x25 game; 0.55-0.76 s on prince 40x25. The godemperor figure is not explained.
 
 ## 21. Soundtrack on Roblox [architect, queued 2026-11-16] [closed: 2026-11-17 — user ruling "roblox keeps old tunes": no Roblox work; the uploaded `tune-creation` / `tune-splash` assets stay. Reopen only by ruling.]
 

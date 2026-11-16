@@ -634,11 +634,13 @@ fi
 
 # gate 46 — controls legend (LegendData): every key the client binds is in a
 # legend row or EXEMPT with a reason, no row names an unbound key, caps and
-# text fit their columns; Legend.client draws from it
+# text fit their columns; Legend.client draws from it; F (follow-avatar) is
+# ignored while a walk key is held (session 2026-11-16 08:11Z)
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/legend.luau >/dev/null 2>&1 \
      && grep -q 'LegendData.capLayout(row)' roblox/src/client/Legend.client.luau \
      && grep -q 'heading.Name = "Heading"' roblox/src/client/Legend.client.luau \
+     && grep -q 'if UserInputService:IsKeyDown(k) then' roblox/src/client/Camera.client.luau \
      && ! grep -q 'Enum.Font.Code' roblox/src/client/Legend.client.luau; then
     note PASS "gate 46: legend covers every bound key, caps fit (lune) + Legend wiring"
   else
