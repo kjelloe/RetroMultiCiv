@@ -25,7 +25,7 @@
 </head>
 <body>
   <h1>🔊 RetroMultiCiv Soundboard</h1>
-  <p class="sub">A77 sound design v1 — every event cue and both tunes, played through the real WebAudio synth (client/ui/sound.js). Click through, jot notes, and hand the downloaded JSON back for the tuning round.</p>
+  <p class="sub">A77 sound design v1 — every event cue and every music piece (client/music/pieces, cross-faded by the real player), played through the real WebAudio synths (client/ui/sound.js). Click through, jot notes, and hand the downloaded JSON back for the tuning round.</p>
   <div class="hint">Browsers block audio until you interact with the page — click any ▶ once to start. Served under <code>--debug</code> (A61 whitelist), or via a static server from the repo root.</div>
 
   <div class="toolbar">
@@ -44,6 +44,7 @@
   <script type="module">
     import { initSound } from '/client/ui/sound.js';
     import { SOUND_IDS } from '/client/ui/sound-map.js';
+    import { PIECES } from '/shared/music-theme.js';
 
     let master = '80';
     const ctx = {
@@ -69,8 +70,7 @@
     cues.addEventListener('input', e => { if (e.target.classList.contains('note')) notes[e.target.dataset.id] = e.target.value; });
 
     const tunes = document.getElementById('tunes');
-    tunes.innerHTML = `<div class="row"><span class="num">♪</span><button class="play" data-tune="creation">▶</button><span class="id">creation / fast-forward</span><input class="note" data-id="tune:creation" placeholder="notes…"></div>`
-      + `<div class="row"><span class="num">♪</span><button class="play" data-tune="splash">▶</button><span class="id">splash / title theme</span><input class="note" data-id="tune:splash" placeholder="notes…"></div>`
+    tunes.innerHTML = PIECES.map(id => `<div class="row"><span class="num">♪</span><button class="play" data-tune="${id}">▶</button><span class="id">${id}</span><input class="note" data-id="music:${id}" placeholder="notes…"></div>`).join('')
       + `<div class="row"><span class="num"></span><button class="stop" id="stoptune">⏹ Stop music</button></div>`;
     tunes.addEventListener('click', e => {
       if (e.target.dataset.tune) sound.playTune(e.target.dataset.tune);

@@ -1,0 +1,4 @@
+score.js, synth.js, music.js and README.md are copied from overworld
+(~/GIT/overworld/debug/share/music, MIT, see LICENSE-overworld). Local changes
+are listed at the top of each file. The pieces in pieces/ are RetroMultiCiv's
+own, written with tools/compose-music.js.

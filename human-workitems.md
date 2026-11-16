@@ -85,3 +85,8 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **D2. Should the AI build the Manhattan Project on purpose?** Today
   only the econ fallback can pick it; the golden soak and natural runs
   never do, so AI nukes in practice need a human to open them.
+- [ ] **D3. Listen to the soundtrack** (A119, 2026-11-16): ten synth pieces
+  written to the soundtrack brief. `node server/index.js --debug`, then
+  `/debugging/soundboard.html` plays each one with a notes box; in a game the
+  map piece follows your era, `map-war` plays during fights. Your ears are the
+  bar (brief §8: the three-hour, phone, cue and seam tests).

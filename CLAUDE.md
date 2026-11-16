@@ -89,7 +89,8 @@ operator).
   client:
   `engine/{cities,combat,tech,trade,government,difficulty,diplomacy,happiness,improvements,score,upgrade,visibility,spaceship,leaders}.js`
   (diplomacy: its read side), `shared/{pathfind,statehash,gamecode,beeline,city-era,diplomacy-view,victory-presets}.js`,
-  `shared/state-string.js` (foldToAscii, isStateString, onlyStateValues),
+  `shared/state-string.js` (foldToAscii, isStateString, onlyStateValues), `shared/music-theme.js` and
+  `client/music/pieces/*.json` (its native player reads the folder),
   `client/ui/hud.js` cityNotes and refresh (what it hands the renderer: filterView, annotateCityEra, capitalOf),
   `client/session-remote.js` augment, its command path (one waiter, the ack's events on the next view) and
   OFFTURN_WHITELIST, `client/ui/move-hints.js`, `client/ui/input.js`'s tables (MOVE_KEYS, PRODUCTION_KEYS, the work
@@ -139,7 +140,10 @@ stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
 build-queue,automate,debug-panel,strategic-overlay,diplomacy,rejoin,
 tech-tree,tech-glyphs,bug-report,city-overview,econ-overview,
 hover-card,military-overview,onboarding,overview-panel,score-view,
-top-panels,unit-building-blurbs,upkeep,native-links}. tech-tree = the 🌳 graphical tech-tree overlay +
+top-panels,unit-building-blurbs,upkeep,native-links}; the music is
+client/music/{score,synth,music}.js (overworld's FM score player, MIT, copied —
+NOTICE) + pieces/*.json written by tools/compose-music.js, with the pure theme
+rule in shared/music-theme.js; ui/sound.js drives it. tech-tree = the 🌳 graphical tech-tree overlay +
 client-side beeline (research goal in client state, issues normal
 setResearch — golden-neutral; the DAG-walk is pure in shared/beeline.js);
 tech-glyphs = procedural per-tech icons (era frame + motif, factions.js

@@ -1,4 +1,4 @@
-// Render every synth cue (client/ui/sound.js RECIPES + TUNES) to 16-bit mono
+// Render every synth cue (client/ui/sound.js RECIPES) to 16-bit mono
 // WAV files for manual upload as Roblox audio assets. The recipe table is
 // imported from the REAL sound module, so the rendered files are the approved
 // browser cues by construction (same oscillators, gains, envelopes) — zero
@@ -51,12 +51,6 @@ function renderRecipe(recipe) {
   return buf;
 }
 
-function tuneToRecipe(tune) {
-  // one full loop: each note at i*tempo for tempo*0.9, like playTune's tick
-  return { wave: tune.wave, gain: tune.gain,
-    notes: tune.notes.map((f, i) => [f, i * tune.tempo, tune.tempo * 0.9]) };
-}
-
 // Loudness floor (user feedback 2026-07-26: triangle/sine cues inaudible as
 // standalone files — those waves carry far less RMS than square/saw at equal
 // gain; the in-game mix masked it). Boost any file whose RMS over its
@@ -98,7 +92,7 @@ function writeWav(file, samples) {
 }
 
 (async () => {
-  const { RECIPES, TUNES } = await import('../client/ui/sound.js');
+  const { RECIPES } = await import('../client/ui/sound.js');
   const outDir = process.argv[2] || path.join(__dirname, '..', 'debugging', 'sounds-export');
   fs.mkdirSync(outDir, { recursive: true });
   const rows = [];
@@ -107,12 +101,6 @@ function writeWav(file, samples) {
     const file = path.join(outDir, `${id}.wav`);
     writeWav(file, samples);
     rows.push({ id, seconds: +(samples.length / RATE).toFixed(2), file: `${id}.wav`, boost });
-  }
-  for (const [name, tune] of Object.entries(TUNES)) {
-    const { samples, boost } = loudnessFloor(renderRecipe(tuneToRecipe(tune)));
-    const file = path.join(outDir, `tune-${name}.wav`);
-    writeWav(file, samples);
-    rows.push({ id: `tune-${name}`, seconds: +(samples.length / RATE).toFixed(2), file: `tune-${name}.wav`, boost });
   }
   for (const r of rows) console.log(`${r.file}  ${r.seconds}s${r.boost > 1 ? `  (boosted ${r.boost.toFixed(1)}x)` : ''}`);
   // The mix worksheet: assets are equal-loudness; the ORIGINAL browser mix is

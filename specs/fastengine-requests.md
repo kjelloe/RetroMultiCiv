@@ -265,3 +265,19 @@ Self-executed by the architect in plan order; all golden-neutral (the only engin
 | 4 | mirror list | CLAUDE.md lists `shared/state-string.js`. |
 | 5 | debug-panel fractional gold | fixed: truncated to an integer. |
 
+### Music (fastengine proposal 2026-11-16, A119)
+
+Taken with one difference in the track list: the ids follow this repo's
+soundtrack brief (user ruling), not the suggested title/creation/era/war/
+golden/victory/defeat set. Pieces: `client/music/pieces/<id>.json` (format
+unchanged; ten pieces, 16-24 bars, all loop, gains in (0, 1], five patches).
+Theme rule: `shared/music-theme.js` (`PIECES`, `musicMoment`, `themeFor`; pure).
+Order: title/loading screen, then a finished game (`end-victory` /
+`end-defeat`), then `map-war` (a combat involving the viewer this turn or the
+previous one), then `map-space` (viewer knows `space-flight`), then
+`map-<era>` from the viewer's highest tech era. War does not beat a finished
+game. The player copy differs from overworld's in three ways: gain 0 is refused,
+scores and the output node are arguments, the cross-fade is 4 s. No golden /
+we-love-the-king piece (the brief has it as a short sting, which the format
+does not carry).
+

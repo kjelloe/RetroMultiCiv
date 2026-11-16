@@ -4,13 +4,22 @@
 // square/triangle timbres are period-correct for a 1991 homage). It subscribes
 // to session.onChange, maps each fog-filtered event to a cue via sound-map.js,
 // and plays it through a master→effects gain honoring the ⚙ split (master +
-// effects + music, SEPARATE from reduceAnimation, which never mutes). Two short
-// procedural TUNES (creation + splash) loop on the same synth; the full
-// soundtrack is later by design. QUALITY is a human listening pass (the user's
-// ears) — this file's bar is: builds without throwing, cues fire on the right
-// events, sensible defaults.
+// effects + music, SEPARATE from reduceAnimation, which never mutes). The music
+// is client/music/ (an FM score player; pieces/*.json, one per theme) and
+// shared/music-theme.js picks the piece from the view. QUALITY is a human
+// listening pass (the user's ears) — this file's bar is: builds without
+// throwing, cues fire on the right events, sensible defaults.
 import { soundForEvent } from './sound-map.js';
 import { filterEvents } from '../../engine/visibility.js';
+import { createSynth } from '../music/synth.js';
+import { createMusic } from '../music/music.js';
+import { musicMoment, themeFor } from '../../shared/music-theme.js';
+
+// the music sits under the effect cues and under a person thinking
+// (specs/game-soundtrack-design.md §4); pieces mix their own track gains
+const MUSIC_LEVEL = 0.3;
+const MUSIC_TICK_MS = 100;
+const scores = {}; // piece id -> parsed JSON, shared by every sound instance on the page
 
 // equal-tempered note frequencies (Hz), A4=440
 const NOTE = {
@@ -70,26 +79,20 @@ const RECIPES = {
   'ship-down': seq('sawtooth', 0.17, [[NOTE.E4, 0, 0.16], [NOTE.C4, 0.14, 0.18], [NOTE.G3 * 0.94, 0.3, 0.4]])       // a breaking fall ending detuned — something came apart
 };
 
-// The two TUNES: short looping note lists [freq, dur] on a mellow triangle.
-const TUNES = {
-  creation: { wave: 'triangle', gain: 0.09, tempo: 0.34, notes: [
-    NOTE.C4, NOTE.E4, NOTE.G4, NOTE.E4, NOTE.A4, NOTE.G4, NOTE.E4, NOTE.C4,
-    NOTE.D4, NOTE.F4, NOTE.A4, NOTE.F4, NOTE.G4, NOTE.E4, NOTE.D4, NOTE.C4] },
-  splash: { wave: 'triangle', gain: 0.08, tempo: 0.42, notes: [
-    NOTE.C4, NOTE.G4, NOTE.E4, NOTE.G4, NOTE.F4, NOTE.A4, NOTE.G4, NOTE.E4,
-    NOTE.D4, NOTE.G4, NOTE.C5, NOTE.G4, NOTE.E4, NOTE.G4, NOTE.C4, NOTE.C4] }
-};
-
 // Exported for tools/render-sounds.js (the Roblox asset renderer): the recipe
 // table IS the sound design — rendering imports it so files can never drift
 // from the browser cues. No behavior change.
-export { RECIPES, TUNES };
+export { RECIPES };
 
 export function initSound(ctx) {
   const opt = ctx.options;
   let actx = null;      // created lazily (autoplay policy: needs a user gesture)
   let masterGain = null;
-  let tuneTimer = null;
+  let music = null;     // the score player, created with the context
+  let musicTimer = null;
+  let wanted = null;    // the theme asked for; plays once its piece has loaded
+  let lastCombatTurn = -1;
+  let winnerId;
   let played = 0;       // cue counter (test hook)
 
   function ensureContext() {
@@ -115,10 +118,10 @@ export function initSound(ctx) {
   function num(v, d) { const n = parseInt(v, 10); return Number.isFinite(n) ? n : d; }
 
   // schedule one recipe's notes as enveloped oscillators
-  function render(recipe, kind, tuneGain) {
+  function render(recipe, kind) {
     const c = ensureContext();
     if (!c || masterGain === null) return;
-    const g = vol(kind) * (tuneGain !== undefined ? 1 : 1);
+    const g = vol(kind);
     if (g <= 0) return;
     const now = c.currentTime;
     for (const [freq, delay, dur] of recipe.notes) {
@@ -127,7 +130,7 @@ export function initSound(ctx) {
       osc.type = recipe.wave;
       osc.frequency.value = freq;
       const t0 = now + delay;
-      const peak = recipe.gain * g * (tuneGain === undefined ? 1 : tuneGain);
+      const peak = recipe.gain * g;
       env.gain.setValueAtTime(0.0001, t0);
       env.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t0 + 0.008); // fast attack
       env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);                    // decay
@@ -143,21 +146,43 @@ export function initSound(ctx) {
     played += 1;
   }
 
-  // --- music: loop a tune until stopped -------------------------------------
-  function playTune(name) {
-    const tune = TUNES[name];
-    if (!tune) return;
-    stopTune();
-    let i = 0;
-    const stepMs = tune.tempo * 1000;
-    const tick = () => {
-      if (vol('music') > 0) render({ wave: tune.wave, gain: tune.gain, notes: [[tune.notes[i], 0, tune.tempo * 0.9]] }, 'music', 1);
-      i = (i + 1) % tune.notes.length;
-    };
-    tick();
-    tuneTimer = setInterval(tick, stepMs);
+  // --- music: one theme at a time, cross-faded --------------------------------
+  function loadPiece(id) {
+    if (scores[id] !== undefined) return;
+    scores[id] = null; // in flight
+    fetch(new URL(`../music/pieces/${id}.json`, import.meta.url))
+      .then(r => r.json())
+      .then(json => { scores[id] = json; })
+      .catch(() => { delete scores[id]; });
   }
-  function stopTune() { if (tuneTimer) { clearInterval(tuneTimer); tuneTimer = null; } }
+  function musicTick() {
+    const c = actx;
+    if (!c || !music) return;
+    music.volume = vol('music') * MUSIC_LEVEL;
+    if (vol('music') <= 0 && music.theme !== null) music.stop();
+    else if (wanted !== null && music.theme !== wanted && scores[wanted]) music.play(wanted);
+    music.update(c.currentTime, document.hidden === true);
+  }
+  function setTheme(id) {
+    if (id === wanted) return;
+    wanted = id;
+    if (id === null) { if (music) music.stop(); return; }
+    loadPiece(id);
+    const c = ensureContext();
+    if (!c || masterGain === null) return;
+    if (!music) music = createMusic(createSynth(c, masterGain), c, scores, masterGain);
+    if (!musicTimer) musicTimer = setInterval(musicTick, MUSIC_TICK_MS);
+  }
+  // the title and world-creation screens name their theme
+  function playTune(name) { setTheme(name === 'splash' ? 'intro-title' : name === 'creation' ? 'loading-age' : name); }
+  function stopTune() { setTheme(null); }
+  // in a game: the theme rule over the viewer's view
+  function refreshTheme() {
+    const s = ctx.session && ctx.session.state;
+    if (!s) return;
+    const techs = ctx.session.ruleset ? ctx.session.ruleset.techs : null;
+    setTheme(themeFor(musicMoment(s, ctx.HUMAN, techs, lastCombatTurn, winnerId)));
+  }
 
   // XIV §26: tech era → discovery fanfare id (4 characters; unknown era falls
   // back to the generic 'tech' sparkle). tech eras are ancient/renaissance/
@@ -177,7 +202,7 @@ export function initSound(ctx) {
   const cityOwner = (state) => (cid) => (state.cities[cid] ? state.cities[cid].owner : null);
   if (ctx.session && ctx.session.onChange) {
     ctx.session.onChange((state, events) => {
-      if (!events || events.length === 0) return;
+      if (!events || events.length === 0) { refreshTheme(); return; }
       // fog gate: only sound what the viewer could actually witness (same as
       // the turn log) — session round events are omniscient
       const seen = filterEvents(state, events, ctx.HUMAN, ctx.session.ruleset);
@@ -192,9 +217,12 @@ export function initSound(ctx) {
         // completion splash); rivals keep the modest 'wonder' fanfare.
         if (id === 'wonder' && e.type === 'wonderBuilt' && owner(e.cityId) === ctx.HUMAN) id = 'wonder-triumph';
         if (id) play(id);
+        if (e.type === 'combatResolved' && (e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN)) lastCombatTurn = state.turn;
+        if (e.type === 'gameOver' && e.winner !== undefined) winnerId = e.winner;
       }
+      refreshTheme();
     });
   }
 
-  return { play, playTune, stopTune, get cuesPlayed() { return played; } };
+  return { play, playTune, stopTune, refreshTheme, get theme() { return wanted; }, get cuesPlayed() { return played; } };
 }

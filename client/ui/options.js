@@ -16,7 +16,7 @@ const DEFAULTS = {
   reduceAnimation: false, // A28: no sway/smoke/flashes, instant movement
   soundMaster: '70',      // A77: master volume 0-100 (string: it's a range input)
   soundEffects: true,     // A77: event sound effects (separate from reduceAnimation)
-  soundMusic: true,       // A77: the creation + splash tunes
+  soundMusic: true,       // A77: the soundtrack (client/music, shared/music-theme.js)
   firstTimeTips: true,    // A78: contextual first-timer advice (re-enable resets)
   civPalette: 'default',  // palette pass: display-time civ-color remap (ui/palette.js)
   discoveryCards: true,   // the tech-discovery card (ui/discovery-card.js)
@@ -90,7 +90,7 @@ export function initOptions(ctx) {
       <input type="range" data-opt="soundMaster" min="0" max="100" step="10" style="width:120px">
     </label>
     <label><input type="checkbox" data-opt="soundEffects"> Sound effects (combat, cities, discoveries, era changes)</label>
-    <label><input type="checkbox" data-opt="soundMusic"> Music (world-creation and title themes)</label>
+    <label><input type="checkbox" data-opt="soundMusic"> Music</label>
     <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>
     <label><input type="checkbox" data-opt="discoveryCards"> Show discovery cards when an advance completes</label>
     <label><input type="checkbox" data-opt="showMinimap"> Show minimap</label>

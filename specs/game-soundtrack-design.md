@@ -5,6 +5,20 @@ Covers **loading/intro music and in-game map music**. The existing effect cues
 (combat, build, discovery, disorder…) are a separate, already-shipped synth
 layer and are NOT part of this commission — see §7 for how the two coexist.
 
+**Shipped in the meantime (user ruling 2026-11-16, "build it now, follow the
+brief"):** an in-house synth score, written to this brief, plays in the
+browser. Ten looping pieces under these ids: `intro-title`, `loading-age`,
+`map-ancient` … `map-space`, plus `map-war` (a viewer-involved combat this turn
+or last; restrained: no snare blasts, never loud), `end-victory` and
+`end-defeat`. Player: `client/music/` (overworld's FM score player, MIT, copied;
+4 s cross-fade). Theme rule: `shared/music-theme.js`. Notes:
+`tools/compose-music.js` (each era opens on the same 1-2-5-4 motif). Not covered
+yet: the stings (§2 D), separate conquest/score/space endings (one
+`end-victory` serves all three), `intro-first-launch`, `map-ancient-water`, the
+rest between loops (§6), and the brief's lengths (the score format caps a piece
+at 32 bars, so loops run 30–70 s). A commissioned track can replace any piece
+by id.
+
 **The game:** *A World Begun* (project name RetroMultiCiv) — a turn-based 4X in
 the tradition of the 1991 original. A session runs **1–6 hours**, mostly on one
 screen, with the player thinking. That single fact drives every decision below.

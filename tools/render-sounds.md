@@ -1,11 +1,11 @@
 # Roblox sound assets — regeneration + upload guide
 
-The 30 game cues + 2 tunes are SYNTHESIZED (no source audio files exist).
+The 30 game cues are SYNTHESIZED (no source audio files exist).
 Everything needed to regenerate them is in git; the WAVs are build artifacts.
 
 ## Files involved (all committed)
 
-- `client/ui/sound.js` — the SOURCE OF TRUTH: the `RECIPES` + `TUNES` tables
+- `client/ui/sound.js` — the SOURCE OF TRUTH: the `RECIPES` table
   (wave / gain / note sequences). Exported for the renderer, so rendered files
   can never drift from the browser cues.
 - `tools/render-sounds.js` — the offline renderer (pure Node, no deps).
@@ -36,7 +36,9 @@ Optional: `node tools/render-sounds.js /some/other/dir` renders elsewhere.
 3. Drop the completed table into `roblox/acceptance/` (the Studio-sitting
    SoundId curation step — checklist item 3 in human-workitems). The
    roblox-helper wires the ids + Volume values into the Sound instances.
-4. `tune-creation` / `tune-splash` cover the intro-cue row.
+4. The uploaded `tune-creation` / `tune-splash` assets (2026-07) stay in use on
+   Roblox. The browser replaced those two tunes with the score player in
+   `client/music/` (2026-11-16); the renderer no longer writes them.
 
 ## Changing a sound later
 
