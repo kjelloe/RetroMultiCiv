@@ -248,6 +248,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19ze. Bottom bar vs corner toggles [done: 2026-11-16 — session 2026-11-15 ended turn 546 (score victory p3, godemperor, replay hash-exact, final 0x770d2b89); audit raised 2 FAIL at a 1222 px viewport: the action bar at its 0.5 floor still ran into Turn log and AI. `BarFit.luau` (gate 61): shrink between the corners down to 0.7, below that the bar takes its own strip above them at full width. Not seen in Studio. gamesim-golden-neutral]
 
+## 19zf. Unit orders [done: 2026-11-16 — plan step 3: Help Wonder (button + H), route dots while selected + Cancel route, tile-following labels (Drain / Clear / Plant / Rail), hover card with the reason on every order button, Disband confirm; `UnitOrders.luau`, gate 62 (1,408 settlers-job cases vs `improvements.startWork`, Help Wonder vs `cities.helpWonder`). The Road button now sends `railroad` on a roaded tile (it always sent `road`). 8 parity rows to yes. Not seen in Studio. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
 
 Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.

@@ -1051,7 +1051,7 @@ seat/reset flow; JS engine untouched). Delivered:
   the browser parity gates 17 / 22 / 28 / 29 hold); gate 47. The four
   bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
   at x = 206, beside the 190 px button column, not over it.
-  Statistics (J): civ cards + wonders + score chart in one scrolling
+  Statistics (J): civ cards + wonders + chart (Score, Population, Cities, Techs chips) in one scrolling
   body; what a card may carry is decided in `StatsView.card` (the fog
   rule: a rival card = cities seen + units in sight, nothing else), gate
   48. Unit card Zz / Au chips and the combat odds label are 14 px.
@@ -1131,6 +1131,16 @@ seat/reset flow; JS engine untouched). Delivered:
   treat anything without it as legacy (contentCitizens rules override,
   engine level prince). HASH NOTE: a new game's initial hash now depends
   on the level (start gold, `state.difficulty`).
+  UNIT ORDERS (plan step 3, gate 62): `UnitOrders.order(action, view,
+  unit, rs, ctx, deps)` returns { enabled, reason, label, work, shown } and
+  is the one source for `ActionBar`'s `can()`, button labels, hover cards
+  and what `startWork` sends (`work` is `railroad` on a roaded tile with
+  the tech). Disband: `disbandPress` (arm, then send inside 3 s). Help
+  Wonder: `helpBtn` is parented to the bar only when `shown`. `GoToPlan`
+  keeps the selected unit's route drawn (`routeDots`, 32 crumbs) and
+  exposes `hasPlan`. `BarFit.plan(vw, natural)` (gate 61) places the
+  bottom bar: between the corner toggles down to 0.7 scale, else lifted
+  52 px at full width.
   EMPIRE OVERVIEW (plan step 2, gate 60): `EmpireView.luau` holds the
   rules (`shim`, `upkeep`, `cityRow`, `economy`); `CityList.client.luau`
   draws two tabs (Cities, Economy) from it with the engine helpers passed

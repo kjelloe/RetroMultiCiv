@@ -143,6 +143,17 @@ estimate went blank from mid-game); the three readers now use
 2.3 Cities list columns: yields and upkeep.
 
 ### Step 3: orders that are missing (S05, S06, S04)
+BUILT 2026-11-16 (gate 62, `UnitOrders.luau`): 3.1 Help Wonder button + H
+(in the bar only for a unit that can help); 3.2 route dots stay while the
+unit is selected, GoTo reads "Cancel route" meanwhile; 3.3 Drain / Clear /
+Plant / Rail labels, and every order button has a hover card with the
+reason when greyed; 3.4 Disband arms on the first press ("Sure? (X)", 3 s);
+3.5 the browser has no Rehome order: nothing to add. The settlers rules are
+checked against `improvements.startWork` over 1,408 terrain / flag / tech
+cases. Found while building: the Road button always sent `road`, so a
+railroad could only be built by automated settlers. Also `BarFit` (gate
+61): the bottom bar moves above the corner toggles when it can not fit
+between them. Not seen in Studio.
 3.1 Help Wonder for a caravan in a city building a wonder.
 3.2 GoTo route line on the map; Cancel route button.
 3.3 Order labels that follow the tile: Clear / Drain, Plant, Railroad;

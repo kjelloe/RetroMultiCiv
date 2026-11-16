@@ -24,11 +24,11 @@ uo-02 | partial | client/OddsPreview.client.luau | BillboardGui | odds are shown
 uo-03 | yes | client/OddsPreview.client.luau | BillboardGui |
 uo-04 | yes | client/FoundCity.luau | found city |
 uo-05 | yes | client/CityNames.luau | Colony |
-uo-06 | partial | client/ActionBar.client.luau | type = "startWork" | Irr button; the label does not change to Clear / Drain
-uo-07 | partial | client/ActionBar.client.luau | type = "startWork" | Mine button; the label does not change to Plant / Clear
-uo-08 | partial | client/ActionBar.client.luau | type = "startWork" | Road button; the label does not change to Railroad
+uo-06 | yes | client/UnitOrders.luau | Drain (I) | label follows the tile
+uo-07 | yes | client/UnitOrders.luau | Plant (M) | label follows the tile
+uo-08 | yes | client/UnitOrders.luau | Rail (R) | the road button sends railroad on a roaded tile once the tech is known
 uo-09 | yes | client/ActionBar.client.luau | "Fort" |
-uo-10 | partial | client/ActionBar.client.luau | DISABLED | unavailable orders are greyed; no reason on hover
+uo-10 | yes | client/UnitOrders.luau | function M.card | every order button has a hover card; greyed ones say why
 uo-11 | yes | client/ActionBar.client.luau | Fortify |
 uo-12 | yes | client/ActionBar.client.luau | ClientState.toggleSentry(id) |
 uo-13 | yes | client/ClientState.luau | onSentryWake |
@@ -37,12 +37,12 @@ uo-15 | no | | | no automation priority choice
 uo-16 | yes | client/ActionBar.client.luau | Wait |
 uo-17 | yes | client/ActionBar.client.luau | type = "pillage" |
 uo-18 | yes | client/GoToPlan.luau | arm |
-uo-19 | partial | client/SettlerAuto.client.luau | manual order cancels | a new order replaces the route; no Cancel route button
-uo-20 | no | | | no route line drawn on the map
+uo-19 | yes | client/UnitOrders.luau | Cancel route | the GoTo button cancels while the unit is on a route
+uo-20 | yes | client/GoToPlan.luau | UnitOrders.routeDots | dots along the route while the unit is selected, larger at the destination
 uo-21 | no | | | no long-press GoTo
 uo-22 | yes | client/Possess.client.luau | N next unit |
-uo-23 | partial | client/ActionBar.client.luau | Disband | one press; no second confirmation
-uo-24 | no | | | no Help Wonder order (the server accepts helpWonder; no button sends it)
+uo-23 | yes | client/UnitOrders.luau | function M.disbandPress | first press arms (Sure?), second within 3 s sends
+uo-24 | yes | client/UnitOrders.luau | function M.helpWonderCity | button and H key; shown for units that can help
 uo-25 | yes | client/ActionBar.client.luau | type = "upgradeUnit" |
 uo-26 | yes | client/ActionBar.client.luau | type = "establishTradeRoute" |
 uo-27 | no | | | no diplomat missions

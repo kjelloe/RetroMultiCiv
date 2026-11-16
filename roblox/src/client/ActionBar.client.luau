@@ -16,6 +16,9 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local BarFit = require(script.Parent:WaitForChild("BarFit")) -- where the bottom bar stands per viewport width
 local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
+local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- plan step 3: which orders, labels, reasons
+local Tooltip = require(script.Parent:WaitForChild("Tooltip"))
+local ORDER_DEPS = { improvements = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("improvements")) }
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 local upgradeModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("upgrade")) -- CP18
@@ -305,8 +308,11 @@ local pillageBtn = addButton(10, "Pillage", 76, "pillage")
 local tradeBtn = addButton(11, "Trade", 66, "trade")
 -- CP18 (marker-0055/browser 6f30a46): paid unit upgrade IN an own city;
 -- the button carries the live upgradeCost price
-local upgradeBtn = addButton(12, "Upgrade", 82, "upgrade")
-local possessBtn = addButton(13, "Ride (P)", 80, "ride")
+-- plan step 3.1: a caravan in a city building a wonder adds its shields (H);
+-- the button stands in the bar only for a unit that can help
+local helpBtn = addButton(12, "Help Wonder", 120, "trade")
+local upgradeBtn = addButton(13, "Upgrade", 82, "upgrade")
+local possessBtn = addButton(14, "Ride (P)", 80, "ride")
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -537,55 +543,21 @@ local function onLandTile(u)
 	return terr ~= nil and terr.domain == "land"
 end
 
+-- plan step 3: the rules live in UnitOrders (enabled, reason, label, work)
+local function orderOf(action)
+	local view = ClientState.view
+	local u = view ~= nil and selectedUnit() or nil
+	return UnitOrders.order(action, view, u, ClientState.rulesets(), {
+		myTurn = ClientState.myTurn(),
+		hasPlan = u ~= nil and GoToPlan.hasPlan(u.id),
+		armed = GoToPlan.armed,
+	}, ORDER_DEPS)
+end
 local function can(action)
-	if not ClientState.myTurn() then
-		return false
-	end
-	local u = selectedUnit()
 	if action == "research" then
-		return true
+		return ClientState.myTurn()
 	end
-	if u == nil then
-		return false
-	end
-	if action == "disband" then
-		return true
-	end
-	if action == "fortify" or action == "wait" then
-		return u.moves > 0 and u.fortified ~= true
-	end
-	if action == "pillage" then -- CP3: any unit with moves; server judges the tile
-		return u.moves > 0
-	end
-	if action == "trade" then -- CP17: caravan-flagged types only (rs overlay)
-		local def = ClientState.rulesets().units[u.type]
-		return def ~= nil and def.tradeRoutes == true
-	end
-	if action == "upgrade" then -- CP18: upgradesTo exists + standing in an own city
-		local rs = ClientState.rulesets()
-		local def = rs.units[u.type]
-		if def == nil or def.upgradesTo == nil then
-			return false
-		end
-		local view = ClientState.view
-		for _, c in pairs(view.cities) do
-			if c.owner == view.you and c.x == u.x and c.y == u.y then
-				return true
-			end
-		end
-		return false
-	end
-	-- settlers jobs: found / irrigate / mine / road / possess-shaped
-	if action == "possess" then
-		return true
-	end
-	if u.type ~= "settlers" or u.moves <= 0 then
-		return false
-	end
-	if action == "found" then
-		return true
-	end
-	return onLandTile(u) -- irrigate / mine / road
+	return orderOf(action).enabled
 end
 
 -- ---- actions (commands only; the precheck gates the SEND, the server
@@ -612,6 +584,7 @@ local function doWork(work)
 		return
 	end
 	local u = selectedUnit()
+	work = orderOf(work).work or work -- the road button builds rails on a roaded tile
 	print(("[ActionBar] startWork %s %s"):format(work, u.id))
 	ClientState.send({ type = "startWork", unitId = u.id, work = work })
 end
@@ -623,9 +596,36 @@ end)
 waitBtn.Activated:Connect(function()
 	doUnitCmd("wait")
 end)
-disbandBtn.Activated:Connect(function()
-	doUnitCmd("disband")
-end)
+-- plan step 3.4: Disband asks once more — the first press arms the button
+-- ("Sure? (X)"), a second inside UnitOrders.CONFIRM_WINDOW sends
+local disbandArmed = { id = nil, at = nil }
+local function doDisband()
+	if not can("disband") then
+		return
+	end
+	local u = selectedUnit()
+	if UnitOrders.disbandPress(disbandArmed.id, disbandArmed.at, u.id, os.clock()) == "send" then
+		disbandArmed.id, disbandArmed.at = nil, nil
+		doUnitCmd("disband")
+		return
+	end
+	disbandArmed.id, disbandArmed.at = u.id, os.clock()
+	print("[ActionBar] disband armed for " .. u.id)
+	task.delay(UnitOrders.CONFIRM_WINDOW, function()
+		if disbandArmed.id == u.id and os.clock() - disbandArmed.at >= UnitOrders.CONFIRM_WINDOW then
+			disbandArmed.id, disbandArmed.at = nil, nil
+		end
+	end)
+end
+disbandBtn.Activated:Connect(doDisband)
+local function doHelpWonder()
+	if can("helpWonder") then
+		local u = selectedUnit()
+		print("[ActionBar] helpWonder " .. u.id)
+		ClientState.send({ type = "helpWonder", unitId = u.id })
+	end
+end
+helpBtn.Activated:Connect(doHelpWonder)
 irrigateBtn.Activated:Connect(function()
 	doWork("irrigate")
 end)
@@ -670,7 +670,10 @@ governmentBtn.Activated:Connect(function()
 	end
 end)
 gotoBtn.Activated:Connect(function()
-	if ClientState.view ~= nil then
+	local u = ClientState.view ~= nil and selectedUnit() or nil
+	if u ~= nil and GoToPlan.hasPlan(u.id) then
+		GoToPlan.cancel(u.id) -- plan step 3.2: the button reads "Cancel route" meanwhile
+	elseif ClientState.view ~= nil then
 		GoToPlan.arm() -- toggles target-pick; the next map click is the target
 	end
 end)
@@ -764,6 +767,8 @@ RunService.Heartbeat:Connect(function()
 		.. "|" .. tostring(needBlink) .. phase .. "|" .. tostring(mounted)
 		.. "|" .. tostring(me and me.researching) .. "|" .. tostring(me and me.bulbs)
 		.. "|" .. tostring(GoToPlan.armed)
+		.. "|" .. tostring(u and u.x) .. "," .. tostring(u and u.y) .. "|" .. tostring(u and GoToPlan.hasPlan(u.id))
+		.. "|" .. tostring(disbandArmed.id) .. "|" .. tostring(me and me.techs and #me.techs)
 	if key == lastKey then
 		return
 	end
@@ -782,9 +787,23 @@ RunService.Heartbeat:Connect(function()
 	militaryBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	statsBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	foundBtn.BackgroundColor3 = can("found") and ENABLED or DISABLED
-	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
-	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED
-	roadBtn.BackgroundColor3 = can("road") and ENABLED or DISABLED
+	-- plan step 3.3: the label follows the tile (Clear / Drain, Plant, Rail)
+	local irr, mine, road = orderOf("irrigate"), orderOf("mine"), orderOf("road")
+	irrigateBtn.Text = irr.label or "Irr (I)"
+	mineBtn.Text = mine.label or "Mine (M)"
+	roadBtn.Text = road.label or "Road (R)"
+	irrigateBtn.BackgroundColor3 = irr.enabled and ENABLED or DISABLED
+	mineBtn.BackgroundColor3 = mine.enabled and ENABLED or DISABLED
+	roadBtn.BackgroundColor3 = road.enabled and ENABLED or DISABLED
+	local help = orderOf("helpWonder")
+	helpBtn.Text = help.label or "Help Wonder"
+	helpBtn.BackgroundColor3 = help.enabled and ENABLED or DISABLED
+	if (helpBtn.Parent ~= nil) ~= help.shown then
+		helpBtn.Parent = help.shown and bar or nil
+		if fitBar ~= nil then
+			fitBar()
+		end
+	end
 	fortBtn.BackgroundColor3 = can("fortress") and ENABLED or DISABLED
 	pillageBtn.BackgroundColor3 = can("pillage") and ENABLED or DISABLED
 	tradeBtn.BackgroundColor3 = can("trade") and ENABLED or DISABLED
@@ -800,9 +819,13 @@ RunService.Heartbeat:Connect(function()
 	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
 	-- armed target-pick shows gold; otherwise enabled like Wait (any movable unit)
+	local gotoOrder = orderOf("goto")
+	gotoBtn.Text = gotoOrder.label or "GoTo (G)"
 	gotoBtn.BackgroundColor3 = GoToPlan.armed and Color3.fromRGB(230, 185, 60)
-		or (can("wait") and ENABLED or DISABLED)
-	disbandBtn.BackgroundColor3 = can("disband") and ENABLED or DISABLED
+		or (gotoOrder.enabled and ENABLED or DISABLED)
+	local sure = disbandArmed.id ~= nil and u ~= nil and disbandArmed.id == u.id
+	disbandBtn.Text = sure and "Sure? (X)" or "Disband (X)"
+	disbandBtn.BackgroundColor3 = sure and Color3.fromRGB(214, 84, 70) or (can("disband") and ENABLED or DISABLED)
 	possessBtn.BackgroundColor3 = can("possess") and ENABLED or DISABLED
 	if needBlink then
 		local hot = phase == 0
@@ -831,7 +854,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	elseif input.KeyCode == Enum.KeyCode.Space then
 		doUnitCmd("wait")
 	elseif input.KeyCode == Enum.KeyCode.X then
-		doUnitCmd("disband")
+		doDisband()
+	elseif input.KeyCode == Enum.KeyCode.H then
+		doHelpWonder()
 	elseif input.KeyCode == Enum.KeyCode.I then
 		doWork("irrigate")
 	elseif input.KeyCode == Enum.KeyCode.M then
@@ -840,5 +865,23 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		doWork("road")
 	end
 end)
+
+-- plan step 3.3: every order button says what it does and, greyed, why
+for action, def in pairs({
+	found = { foundBtn, "Found a city here" }, fortify = { fortifyBtn, "Fortify: dig in, +50% defence" },
+	wait = { waitBtn, "Wait: come back to this unit later" }, goto = { gotoBtn, "Go to a tile you pick; the unit keeps marching over turns" },
+	disband = { disbandBtn, "Disband this unit for good (asks once more)" },
+	irrigate = { irrigateBtn, "Irrigate, or clear / drain where the land does not take water" },
+	mine = { mineBtn, "Mine, or plant forest where there is nothing to mine" },
+	road = { roadBtn, "Road; on a roaded tile, a railroad" }, fortress = { fortBtn, "Build a fortress" },
+	pillage = { pillageBtn, "Destroy the improvement on this tile" },
+	trade = { tradeBtn, "Set up a trade route with this city (uses up the Caravan)" },
+	helpWonder = { helpBtn, "Add this Caravan's shields to the wonder being built here (H)" },
+	upgrade = { upgradeBtn, "Upgrade to the newer unit for gold" }, possess = { possessBtn, "Ride with this unit" },
+}) do
+	Tooltip.attach(def[1], function()
+		return UnitOrders.card(def[2], orderOf(action))
+	end)
+end
 
 print("[ActionBar] action bar up (O fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")

@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules DiscoveryView CityView EmpireView BarFit; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules DiscoveryView CityView EmpireView BarFit UnitOrders; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -879,6 +879,26 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 61: lune absent"
+fi
+
+# gate 62 — unit order rules (UnitOrders, plan step 3): settlers jobs open /
+# greyed exactly as improvements.startWork accepts / refuses them on every
+# terrain, tile labels (Clear / Drain / Plant / Rail), Help Wonder vs
+# cities.helpWonder, disband confirm, route dots; ActionBar + GoToPlan wiring
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/unit-orders.luau >/dev/null 2>&1 \
+     && grep -q 'UnitOrders.order(action, view, u, ClientState.rulesets()' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'type = "helpWonder", unitId = u.id' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'UnitOrders.disbandPress(disbandArmed.id, disbandArmed.at, u.id, os.clock())' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'UnitOrders.card(def\[2\], orderOf(action))' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'GoToPlan.cancel(u.id)' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'UnitOrders.routeDots(points, #crumbs)' roblox/src/client/GoToPlan.luau; then
+    note PASS "gate 62: unit order rules vs the engine (lune) + ActionBar / GoToPlan wiring"
+  else
+    note FAIL "gate 62: unit orders — run: lune run roblox/selftest/unit-orders.luau"
+  fi
+else
+  note SKIP "gate 62: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

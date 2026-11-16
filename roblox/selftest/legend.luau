@@ -62,7 +62,7 @@ for _, s in ipairs(L.SECTIONS) do
 		end
 	end
 end
-check("row count", L.rowCount() == 24, L.rowCount())
+check("row count", L.rowCount() == 25, L.rowCount())
 check("plus rows join with +", L.capLayout({ keys = { "Shift", "T" }, plus = true }).joiners[1].text == "+")
 check("alt rows end with or", L.capLayout({ keys = { "WASD" }, alt = "arrows" }).joiners[1].text == "or arrows")
 

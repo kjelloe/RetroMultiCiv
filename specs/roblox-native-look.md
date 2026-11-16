@@ -220,7 +220,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 20 | civilization gallery (pick before start, default random), close X on every click-opened panel, tech hover card | built (gate 45) | a look; two players picking the same civ |
 | 21 | hills = bare half block (ridges withdrawn, shot17), mountains = cone massif; Cities / Government / Research panels; reading face in the remaining panels | built (gate 36) | a look at each; text clipping in the refaced panels |
 | 25 | city catalog: only buildable entries, hover card per row | built (gate 49) | hover a unit, a building, a locked row |
-| 24 | Statistics as civ cards, wonders list and captioned score chart | built (gate 48) | a look with 3 and with 14 civs |
+| 24 | Statistics as civ cards, wonders list and captioned chart with Score / Population / Cities / Techs chips | built (gate 48) | a look with 3 and with 14 civs |
 | 23 | Legend as a Controls panel (key caps), Turn log filter chips + kind words, bottom-left panels beside the button column | built (gates 46, 47) | a look at each |
 | 22 | city panel and host setup panel in the card style | built (session 2026-11-15) | a look at each; catalog row widths, option card scroll |
 | 26 | Statistics and Military buttons in the top row, Statistics on the end screen | built (gate 50) | a look; the five-button row on a narrow window |

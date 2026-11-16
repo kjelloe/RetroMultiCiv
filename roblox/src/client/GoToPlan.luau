@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local StepLegality = require(script.Parent:WaitForChild("StepLegality"))
+local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- routeDots
 local pathfind = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("pathfind"))
 
 local TILE = ClientState.TILE
@@ -53,21 +54,21 @@ local function tileTopY(x, y)
 	return part and (part.Position.Y + part.Size.Y / 2) or 0
 end
 
-local function showCrumbs(points)
+-- plan step 3.2: the route stays drawn while the selected unit is on it
+-- (it was a 3 second flash); the last dot, the destination, is larger
+local function placeCrumbs(points)
 	crumbGen += 1
-	local gen = crumbGen
+	local dots = UnitOrders.routeDots(points, #crumbs)
 	for i, c in ipairs(crumbs) do
-		local p = points[i]
+		local p = dots[i]
+		local size = i == #dots and 0.9 or 0.5
+		c.Size = Vector3.new(size, size, size)
 		c.Position = p ~= nil and Vector3.new(p.x * TILE, tileTopY(p.x, p.y) + 1.2, p.y * TILE)
 			or Vector3.new(0, -60, 0)
 	end
-	task.delay(3, function()
-		if gen == crumbGen then
-			for _, c in ipairs(crumbs) do
-				c.Position = Vector3.new(0, -60, 0)
-			end
-		end
-	end)
+end
+local function showCrumbs(points)
+	placeCrumbs(points)
 end
 
 local function planPath(view, u)
@@ -123,6 +124,26 @@ function M.cancel(unitId)
 		print("[GoTo] plan dropped for " .. unitId)
 	end
 end
+
+function M.hasPlan(unitId)
+	return unitId ~= nil and plans[unitId] ~= nil
+end
+
+-- the selected unit's route, redrawn when the unit, its tile or its target changes
+local routeKey = nil
+game:GetService("RunService").Heartbeat:Connect(function()
+	local view = ClientState.view
+	local id = ClientState.selectedUnitId
+	local u = view ~= nil and id ~= nil and view.units[id] or nil
+	local target = u ~= nil and plans[id] or nil
+	local key = target ~= nil and ("%s|%d|%d|%d|%d"):format(id, u.x, u.y, target.x, target.y) or ""
+	if key == routeKey then
+		return
+	end
+	routeKey = key
+	local path = target ~= nil and planPath(view, u) or nil
+	placeCrumbs(path ~= nil and path.points or {})
+end)
 
 -- the driver: one step per view push while it is our turn and the unit can
 -- move; re-plans every step so fog lifts and blockers reroute (A65 rule)
