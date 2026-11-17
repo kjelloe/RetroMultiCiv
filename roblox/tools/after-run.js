@@ -20,7 +20,7 @@ function analyse(text) {
   const r = {
     init: null, lastTurn: 0, final: null, commands: 0, refused: 0, refusedBy: {}, refusedByType: {},
     clientRejects: 0, notSent: 0, diagFail: [], warnings: 0, errors: 0,
-    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null,
+    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null, badges: [],
   };
   const stamp = {};
   for (const line of lines) {
@@ -28,7 +28,7 @@ function analyse(text) {
     const msg = m ? m[5] : line.trim();
     const t = m ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000 : null;
     let x;
-    if (msg.startsWith('[R4INIT]')) { r.init = msg.slice(9); r.final = null; r.endscreen = null; } // a final line above the game start is the previous Play's
+    if (msg.startsWith('[R4INIT]')) { r.init = msg.slice(9); r.final = null; r.endscreen = null; r.badges = []; } // a final line above the game start is the previous Play's
    
     else if ((x = /^\[R4CODE\] turn=(\d+)/.exec(msg))) {
       r.lastTurn = Math.max(r.lastTurn, +x[1]);
@@ -58,6 +58,7 @@ function analyse(text) {
     else if (msg.includes('not sent')) r.notSent += 1;
     else if ((x = /^\[Client\] AI regency (ON|OFF)/.exec(msg))) r.regent.push(x[1]);
     else if (msg.startsWith('[SO7] endscreen sent')) r.endscreen = msg.slice(22);
+    else if ((x = /^\[RMC-BADGE\] earned (\S+)/.exec(msg))) r.badges.push(x[1]);
   }
   // seconds per turn over four equal spans of the turns that carry a time stamp
   const turns = Object.keys(stamp).map(Number).sort((a, b) => a - b);
@@ -94,6 +95,7 @@ function render(r, extra) {
   }
   out.push(`client: ${r.clientRejects} rejected line(s), ${r.notSent} not sent while the regent held the seat, regency ${r.regent.join(' > ') || 'never on'}`);
   if (r.turnTimes.length) out.push('seconds per turn: ' + r.turnTimes.map(t => `${t.secs} (turns ${t.from}-${t.to})`).join(', '));
+  if (r.init) out.push(`badges: ${r.badges.length} earned${r.badges.length ? ' - ' + r.badges.join(', ') : ''}`);
   if (extra.replay) out.push(`replay: ${extra.replay}`);
   return out.join('\n');
 }

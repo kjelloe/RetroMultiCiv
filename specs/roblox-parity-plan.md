@@ -10,7 +10,7 @@ engine port already accepts.
 - 205 browser features: 141 available, 24 partial, 25 missing, 15 n/a
   (revision 1 started at 115 / 37 / 39).
 - 18 scenarios: 11 playable, 3 degraded, 4 blocked (started at 6 / 2 / 10).
-- 63 gates. Four regent games replayed hash-exact. The latest, session
+- 64 gates. Four regent games replayed hash-exact. The latest, session
   2026-11-16 14:51Z: 546 turns, 0 errors, 0 diagnostics failures, tour 20
   of 20.
 - Built under revision 1: step 0 (tour, `after-run.js`, top-row pins),
@@ -150,12 +150,14 @@ Result: 3 degraded becomes 0.
 7.4 Diplomacy and Options panels in the card style.
 
 ### R8: badges
-8.3 `BadgeAward` server script: `BadgeService:AwardBadge`, once per player
-    per badge, failures logged as `[RMC-DIAG]`, never blocking play. Ids
-    in one table, 0 until the badge exists.
-8.4 USER: create the badges on the Creator Hub and paste the ids. Check
-    the creation fee and the daily free allowance there first.
-Waits on ruling 3. Independent of R1-R7.
+8.3 DONE 2026-11-17 (gate 64): `BadgeTrack` (pure, per seated user),
+    `BadgeAward` (`BadgeService:AwardBadge` once per user per badge, in its
+    own thread, failures as `[RMC-DIAG]`, no call in Studio), `BadgeIds`
+    (all 0). Earned keys print as `[RMC-BADGE]` and in `after-run.js`.
+8.4 USER: create the 50 badges on the Creator Hub (names and texts:
+    `BadgeRules.BADGES`) and paste the ids into `BadgeIds.luau`. Check the
+    creation fee and the daily free allowance there first. Awards happen
+    only in a published place.
 
 ## 5. Manual runs
 
@@ -176,7 +178,10 @@ After any run: `node roblox/tools/after-run.js`.
    reject, offer peace, declare war, Propose (peace / tribute / tech swap),
    envoy card. S11 playable.
 2. Skip vote: not applicable (mp-15 n/a). S17 playable.
-3. Badges: open - talked through with the user, see R8.
+3. Badges (ruled 2026-11-17): milestones count whoever played the turn;
+   victory badges need the user to have ended at least half the turns;
+   a game with a debug command used earns nothing; only the user in the
+   winning seat wins. BUILT (R8.3). A resumed save counts from turn 1.
 4. Statistics charts: same as the browser (rivals shown during play).
 5. Large / xlarge / huge maps: offered with a latency label. BUILT (gf-34
    yes, S01 playable). No game on them has been run.

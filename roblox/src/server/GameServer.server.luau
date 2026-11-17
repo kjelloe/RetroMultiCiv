@@ -39,6 +39,9 @@ local ageSnapshots = require(shared:WaitForChild("age-snapshots")) -- instant la
 local civShuffle = require(shared:WaitForChild("civ-shuffle")) -- roster-shuffle: seed-shuffled default lineup (browser parity)
 local Deck = require(script.Parent:WaitForChild("Deck"))
 local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
+local BadgeRules = require(script.Parent:WaitForChild("BadgeRules"))
+local BadgeTrack = require(script.Parent:WaitForChild("BadgeTrack"))
+local BadgeAward = require(script.Parent:WaitForChild("BadgeAward"))
 
 local gameData = ReplicatedStorage:WaitForChild("GameData")
 local rulesetsFolder = gameData:WaitForChild("rulesets")
@@ -467,7 +470,22 @@ local function pushSeat(player, pid, rawEvents)
 	remote:FireClient(player, payload)
 end
 
+-- plan R8: badges. Every engine event batch passes here exactly once
+-- (pushAll, and the non-endTurn command path); nil while no game runs.
+local badgeTrack = nil
+local function badgeEvents(events)
+	if badgeTrack == nil or state == nil then
+		return
+	end
+	BadgeAward.grant(BadgeTrack.onEvents(badgeTrack, events, state, seatOfUser))
+	if state.gameOver == true then
+		BadgeAward.grant(BadgeTrack.finish(badgeTrack, state, seatOfUser,
+			{ difficulty = setup.difficulty, combat = setup.combat, civs = #state.playerOrder }))
+	end
+end
+
 local function pushAll(rawEvents)
+	badgeEvents(rawEvents)
 	-- CP16: spectators ride every push with the omniscient view
 	for userId in pairs(spectators) do
 		local player = Players:GetPlayerByUserId(userId)
@@ -891,6 +909,7 @@ local function resetServer()
 		end
 	end
 	state = nil
+	badgeTrack = nil
 	hostUserId = nil
 	endscreenSent = false
 	roundInFlight = false
@@ -1181,6 +1200,7 @@ local function startGame()
 
 	-- bind the pre-start claims: seat 1 = host, 2.. = join-pad order
 	seatMeta = {} -- R6: rebuild the seat registry fresh for this game
+	badgeTrack = BadgeTrack.new(BadgeRules, ruleset, state.turn)
 	for i = 1, setup.humans do
 		local userId = seatUserIds[i]
 		if userId ~= nil then
@@ -1358,6 +1378,7 @@ local function resumeGame(player, rawCode)
 	hostUserId = player.UserId
 	seatOfUser = { [player.UserId] = "p1" }
 	seatUserIds = { player.UserId }
+	badgeTrack = BadgeTrack.new(BadgeRules, ruleset, 1) -- turns before the resume are not on record
 	civPicks = {}
 	seatMeta = {} -- R6
 	bindSeatMeta("p1", player.UserId, player.Name)
@@ -1968,6 +1989,9 @@ remote.OnServerEvent:Connect(function(player, msg)
 	state = res.state
 	local pending = res.events
 	if cmd.type == "endTurn" then
+		if badgeTrack ~= nil then
+			BadgeTrack.onTurn(badgeTrack, player.UserId, pid) -- the user ended this turn, not the regent
+		end
 		-- an OK endTurn is subsumed by its round entry (replay re-derives it);
 		-- advance() runs the AI chain, the round log, and any regent seats
 		local collected = {}
@@ -1980,6 +2004,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 	else
 		logEntry({ t = "cmd", turn = state.turn, cmd = cmd, ok = true,
 			hash = statehash.hashState(state) })
+		badgeEvents(res.events)
 	end
 
 	local events = visibility.filterEvents(state, pending, pid)

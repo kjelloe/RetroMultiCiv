@@ -252,17 +252,19 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19zg. Session 2026-11-16 14:51Z + camera F guard [done: 2026-11-16 — 40x25 continents, 3 civs, prince, levels=7, seed 840743, regent on: 546 turns, score victory p1, final 0x9a25f498, replay hash-exact; 0 DIAG FAIL, 0 warnings, 0 errors; tour 20 of 20 (first run with the Economy stop); 893 of 27,966 commands refused (3.2 %: impassable 796, zoc 49, techRequired 48); 0.55-0.76 s per turn. Session 08:11Z: F (follow-avatar) toggled three times in 1.5 s while walking; F is now ignored while W / A / S / D is held (gate 46 pin). The user confirmed the walk is right again. Plan revised: `specs/roblox-parity-plan.md` revision 2. gamesim-golden-neutral]
 
+## 19zi. Badge awards [done: 2026-11-17 — rulings: milestones count regent turns, victory badges need half the turns ended by the user, debug-used games earn nothing, only the winning seat wins. `BadgeTrack` + `BadgeIds` (all 0) + `BadgeAward`, hooks in `GameServer` (`badgeEvents`, `onTurn`), `roblox/selftest/badge-track.luau` over a real 80-turn engine game (gate 64), `after-run.js` prints earned keys. Not run in Studio. Open: USER creates the 50 badges and pastes ids (plan 8.4). gamesim-golden-neutral]
+
 ## 19zh. Rulings 2026-11-16: treaty actions, big maps, skip vote [done: 2026-11-16 — (1) Foreign-relations panel acts: accept / reject, offer peace, declare war (two presses), Propose card (peace / demand tribute / tech swap or gift), envoy card for an incoming offer; `DiplomacyView` rules + `roblox/selftest/diplomacy-actions.luau` drive the real engine through filterView (gate 63); dip-03..08 to yes, S11 playable. (2) mp-15 n/a, S17 playable. (5) large / xlarge / huge offered in the host setup with a latency label (server `MAP_SIZES` + lobby), gf-34 yes, S01 playable. Parity: 141 available, 24 partial, 25 missing, 15 n/a; scenarios 11 playable, 3 degraded, 4 blocked. Not run in Studio; no game on a big map has been run. gamesim-golden-neutral]
 
 ## 20. Next [open] (2026-11-16, after session 14:51Z)
 
 **Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 63 gates. Four regent games replayed hash-exact.
+State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 64 gates. Four regent games replayed hash-exact.
 
 Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 
-Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts stay as the browser's, big maps offered. Open: badges (regent turns, debug games, multiplayer winners, badge ids).
+Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts stay as the browser's, big maps offered. Badges ruled and built 2026-11-17 (19zi). Open: badge ids (user, plan 8.4).
 
 Earlier open items still standing:
 - Two-player civilization pick contention; owner paths on a published server (need a second account / a published place). Run D.

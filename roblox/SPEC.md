@@ -1148,6 +1148,18 @@ seat/reset flow; JS engine untouched). Delivered:
   read back through `visibility.filterView`, and every refusal reason of
   `luau/diplomacy.luau` has a line. Not shown: a rival's reputation band -
   `filterView` does not carry `players[].reputation` (luau/ lane).
+  BADGE AWARDS (plan R8.3, rulings 2026-11-17, gate 64): `BadgeTrack`
+  (pure) keeps one progress table per seated user, fed every engine event
+  batch exactly once (`badgeEvents` in `pushAll` + the non-endTurn command
+  path) and one `onTurn` per endTurn the user sent. Milestones count
+  whoever played the turn; victory badges need the user's own endTurns to
+  be at least half of (final turn - start turn), go to the user in the
+  winning seat only, and nothing is earned once `debugUsed` is set. A
+  resumed save counts from turn 1, so turns before the resume are not
+  held. `BadgeAward` prints `[RMC-BADGE] earned <key> user=<id> id=<n>`
+  and calls BadgeService only for a non-zero id in `BadgeIds`, outside
+  Studio, in its own thread. `BadgeIds` is all 0 until the user creates
+  the badges. `after-run.js` prints the earned keys.
   MAP SIZES (same ruling): the host setup offers large 104x65, xlarge
   128x80 and huge 160x100 beside the three small sizes, labelled "(slow
   turns)" / "(very slow)". No game on them has been run in Studio.
