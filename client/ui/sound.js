@@ -19,6 +19,12 @@ import { musicMoment, themeFor } from '../../shared/music-theme.js';
 // (specs/game-soundtrack-design.md §4); pieces mix their own track gains
 const MUSIC_LEVEL = 0.3;
 const MUSIC_TICK_MS = 100;
+// the long fanfares duck the map music while they ring (brief §6); combat and
+// discovery cues never duck it (brief §8, the cue test)
+const DUCK_CUES = { wonder: true, 'wonder-triumph': true, age: true };
+const DUCK_LEVEL = 0.35;
+const DUCK_TAIL = 0.5;  // seconds past the fanfare's last note
+const DUCK_GLIDE = 0.4; // per tick, the share of the way to the target volume
 const scores = {}; // piece id -> parsed JSON, shared by every sound instance on the page
 
 // equal-tempered note frequencies (Hz), A4=440
@@ -93,6 +99,8 @@ export function initSound(ctx) {
   let wanted = null;    // the theme asked for; plays once its piece has loaded
   let lastCombatTurn = -1;
   let winnerId;
+  let duckUntil = 0;    // AudioContext time the current duck ends
+  let musicVol = 0;     // the volume the music is gliding from
   let played = 0;       // cue counter (test hook)
 
   function ensureContext() {
@@ -144,6 +152,11 @@ export function initSound(ctx) {
     if (!recipe) return;
     render(recipe, 'fx');
     played += 1;
+    if (DUCK_CUES[id] && actx) {
+      let end = 0;
+      for (const [, delay, dur] of recipe.notes) end = Math.max(end, delay + dur);
+      duckUntil = Math.max(duckUntil, actx.currentTime + end + DUCK_TAIL);
+    }
   }
 
   // --- music: one theme at a time, cross-faded --------------------------------
@@ -158,7 +171,9 @@ export function initSound(ctx) {
   function musicTick() {
     const c = actx;
     if (!c || !music) return;
-    music.volume = vol('music') * MUSIC_LEVEL;
+    const target = vol('music') * MUSIC_LEVEL * (c.currentTime < duckUntil ? DUCK_LEVEL : 1);
+    musicVol += (target - musicVol) * DUCK_GLIDE;
+    music.volume = musicVol;
     if (vol('music') <= 0 && music.theme !== null) music.stop();
     else if (wanted !== null && music.theme !== wanted && scores[wanted]) music.play(wanted);
     music.update(c.currentTime, document.hidden === true);

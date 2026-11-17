@@ -60,15 +60,18 @@ test('theme: screens, endings, war over the era, the space programme', async () 
   const m = o => Object.assign({ screen: 'game', era: 'ancient', space: false, turn: 50, lastCombatTurn: -1, outcome: '' }, o);
   assert.strictEqual(theme.themeFor(m({ screen: 'title' })), 'intro-title');
   assert.strictEqual(theme.themeFor(m({ screen: 'loading' })), 'loading-age');
-  assert.strictEqual(theme.themeFor(m({})), 'map-ancient');
-  assert.strictEqual(theme.themeFor(m({ era: 'industrial' })), 'map-industrial');
+  assert.strictEqual(theme.themeFor(m({ turn: 0 })), 'map-ancient');
+  assert.strictEqual(theme.themeFor(m({ era: 'industrial', turn: 48 })), 'map-industrial');
+  assert.strictEqual(theme.themeFor(m({ era: 'industrial', turn: 48 + theme.MAP_VARIANT_TURNS })), 'map-industrial-b', 'the era alternates its two pieces');
+  assert.strictEqual(theme.themeFor(m({ era: 'industrial', turn: 48 + 2 * theme.MAP_VARIANT_TURNS })), 'map-industrial');
+  assert.strictEqual(theme.themeFor(m({ era: 'modern', space: true, turn: 52 })), 'map-space', 'space has one piece');
   assert.strictEqual(theme.themeFor(m({ era: 'modern', space: true })), 'map-space');
   assert.strictEqual(theme.themeFor(m({ era: 'modern', space: true, lastCombatTurn: 49 })), 'map-war', 'war wins over every era');
   assert.strictEqual(theme.themeFor(m({ lastCombatTurn: 50 - theme.WAR_TURNS - 1 })), 'map-ancient', 'an old fight fades');
   assert.strictEqual(theme.themeFor(m({ lastCombatTurn: 50, outcome: 'defeat' })), 'end-defeat', 'a finished game wins over war');
   assert.strictEqual(theme.themeFor(m({ outcome: 'victory' })), 'end-victory');
   for (const era of ['ancient', 'renaissance', 'industrial', 'modern']) {
-    assert.ok(theme.PIECES.includes(theme.themeFor(m({ era }))), era);
+    for (const turn of [0, theme.MAP_VARIANT_TURNS]) assert.ok(theme.PIECES.includes(theme.themeFor(m({ era, turn }))), era + turn);
   }
 });
 

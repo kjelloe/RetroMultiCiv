@@ -183,6 +183,69 @@ const PIECES = [
     ]
   },
   {
+    // the same valley at dusk: the dawn tune answered from the other side of the hill
+    id: 'map-ancient-b', bpm: 66, beats: 3, pad: 0.15, // A Dorian
+    chords: { Am: 'A2 C4 E4', G: 'G2 B3 D4', D: 'D2 A3 F#4', Em: 'E2 G3 B3', C: 'C2 G3 E4' },
+    prog: ['Am', 'G', 'Am', 'Em', 'D', 'Am', 'G', 'Am', 'C', 'G', 'D', 'Am', 'Em', 'D', 'G', 'Am'],
+    bass: { style: 'hold', gain: 0.32 },
+    lines: [
+      { patch: 'bell', gain: 0.22, bars: [
+        'E5:1 D5:1 B4:1', 'A4:2 r:1', 'r:1 C5:1 E5:1', 'D5:1.5 B4:0.5 G4:1',
+        'F#4:3', 'r:1 A4:1 B4:1', 'D5:2 B4:1', 'A4:3',
+        'r:1 G4:1 C5:1', 'B4:1.5 A4:0.5 G4:1', 'A4:2 F#4:1', 'E4:3',
+        'r:1 B4:1 E5:1', 'D5:1 A4:2', 'B4:1 G4:1 D4:1', 'E4:2 r:1'] }
+    ]
+  },
+  {
+    // the town's guild hall at evening: the argument goes on, quieter, in two voices
+    id: 'map-renaissance-b', bpm: 92, beats: 4, pad: 0.14, // G Mixolydian
+    chords: { G: 'G2 B3 D4', F: 'F2 A3 C4', C: 'C2 G3 E4', Am: 'A2 C4 E4', Dm: 'D2 A3 F4', Em: 'E2 G3 B3' },
+    prog: ['C', 'G', 'F', 'G', 'Em', 'Am', 'Dm', 'G', 'C', 'F', 'G', 'Em', 'Am', 'F', 'C', 'G'],
+    bass: { style: 'halves', gain: 0.34 },
+    lines: [
+      { patch: 'bell', gain: 0.21, bars: [
+        'E5:1 D5:1 C5:1 G4:1', 'A4:1 B4:1 D5:2', 'C5:1.5 A4:0.5 F4:1 A4:1', 'G4:3 r:1',
+        'B4:1 E5:1 D5:1 B4:1', 'C5:2 A4:1 r:1', 'D5:1 F5:1 E5:1 D5:1', 'B4:3 r:1',
+        'G4:1 A4:1 D5:1.5 C5:0.5', 'A4:2 C5:2', 'D5:1 B4:1 G4:1 B4:1', 'E5:3 r:1',
+        'C5:1 E5:1 A4:2', 'F4:1 A4:1 C5:1 F5:1', 'E5:1.5 D5:0.5 C5:1 E5:1', 'D5:3 r:1'] },
+      { patch: 'lead', gain: 0.15, bars: [
+        'G3:2 C4:2', 'D4:2 G3:2', 'A3:2 C4:2', 'B3:2 D4:2', 'G3:2 B3:2', 'E4:2 C4:2', 'A3:4', 'D4:2 B3:2',
+        'E4:2 C4:2', 'C4:2 A3:2', 'B3:2 D4:2', 'G3:2 B3:2', 'A3:2 E4:2', 'C4:4', 'G3:2 E4:2', 'B3:4'] }
+    ]
+  },
+  {
+    // the night shift: the valley's first tune again, in A, carried by the machine
+    id: 'map-industrial-b', bpm: 80, beats: 4, pad: 0.14, // E Aeolian
+    chords: { Em: 'E2 G3 B3', C: 'C2 G3 E4', D: 'D2 A3 F#4', Am: 'A1 C4 E4', Bm: 'B1 F#3 D4', G: 'G2 B3 D4' },
+    prog: ['Am', 'Em', 'C', 'D', 'Am', 'Em', 'Bm', 'Em', 'G', 'D', 'C', 'Em', 'Am', 'Bm', 'C', 'D'],
+    bass: { style: 'walk', gain: 0.3 },
+    lines: [
+      { patch: 'bell', gain: 0.2, bars: [
+        'A4:1 B4:1 E5:1 D5:1', 'B4:2 G4:1 E4:1', 'r:1 E4:1 G4:1 C5:1', 'A4:3 r:1',
+        'A4:1 B4:1 E5:1 D5:1', 'E5:1.5 D5:0.5 B4:2', 'r:2 D5:1 F#4:1', 'G4:3 r:1',
+        'D5:1 B4:1 G4:1 B4:1', 'A4:2 F#4:2', 'G4:1 E4:1 C5:2', 'B4:3 r:1',
+        'C5:1 B4:1 A4:1 E4:1', 'F#4:2 D4:2', 'E4:1 G4:1 B4:1 C5:1', 'A4:3 r:1'] }
+    ],
+    drums: [{ midi: 42, gain: 0.08, len: 0.1, hits: [0.5, 1.5, 2.5, 3.5] }]
+  },
+  {
+    // the same city before dawn: fewer lights, the long tones first, the bell later
+    id: 'map-modern-b', bpm: 76, beats: 4, pad: 0.15, // F Lydian
+    chords: { F: 'F2 A3 C4', G: 'G2 B3 D4', Am: 'A2 C4 E4', C: 'C2 G3 E4', Em: 'E2 G3 B3', Dm: 'D2 A3 F4' },
+    prog: ['Dm', 'G', 'F', 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'G', 'F', 'Em', 'Dm', 'G', 'C', 'F'],
+    bass: { style: 'hold', gain: 0.32 },
+    lines: [
+      { patch: 'bell', gain: 0.19, bars: [
+        'r:1 A4:1 D5:1 F5:1', 'B4:2 D5:1 r:1', 'F4:1 G4:1 C5:1 B4:1', 'G4:3 r:1',
+        'r:1 F4:1 A4:1 D5:1', 'E5:2 B4:1 r:1', 'C5:1 A4:1 F4:1 A4:1', 'B4:3 r:1',
+        'r:1 C5:1 E5:1 A4:1', 'D5:2 B4:2', 'F4:1 G4:1 C5:1 B4:1', 'G4:3 r:1',
+        'r:1 D5:1 A4:1 F4:1', 'G4:2 B4:1 r:1', 'E4:1 G4:1 C5:2', 'A4:3 r:1'] },
+      { patch: 'lead', gain: 0.11, bars: [
+        'A4:4', 'B4:4', 'C5:4', 'G4:4', 'F4:4', 'G4:4', 'A4:4', 'B4:4',
+        'r:4', 'r:4', 'r:4', 'r:4', 'r:4', 'r:4', 'r:4', 'r:4'] }
+    ]
+  },
+  {
     // the space programme: high, open, almost weightless — the calmest piece of the set
     id: 'map-space', bpm: 60, beats: 4, pad: 0.13, // C Lydian
     chords: { C: 'C2 G3 E4', D: 'D2 A3 F#4', Em: 'E2 B3 G4', Am: 'A1 C4 E4', Bm: 'B1 D4 F#4' },

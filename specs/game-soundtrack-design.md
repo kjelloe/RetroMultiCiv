@@ -7,16 +7,21 @@ layer and are NOT part of this commission — see §7 for how the two coexist.
 
 **Shipped in the meantime (user ruling 2026-11-16, "build it now, follow the
 brief"):** an in-house synth score, written to this brief, plays in the
-browser. Ten looping pieces under these ids: `intro-title`, `loading-age`,
+browser. Fourteen looping pieces (ten at first) under these ids: `intro-title`, `loading-age`,
 `map-ancient` … `map-space`, plus `map-war` (a viewer-involved combat this turn
 or last; restrained: no snare blasts, never loud), `end-victory` and
 `end-defeat`. Player: `client/music/` (overworld's FM score player, MIT, copied;
 4 s cross-fade). Theme rule: `shared/music-theme.js`. Notes:
-`tools/compose-music.js` (each era opens on the same 1-2-5-4 motif). Not covered
-yet: the stings (§2 D), separate conquest/score/space endings (one
-`end-victory` serves all three), `intro-first-launch`, `map-ancient-water`, the
-rest between loops (§6), and the brief's lengths (the score format caps a piece
-at 32 bars, so loops run 30–70 s). A commissioned track can replace any piece
+`tools/compose-music.js` (each era opens on the same 1-2-5-4 motif). 2026-11-17
+(A120): the four main eras have a second piece each (`map-<era>-b`), the rule
+alternating them every 4 turns, against the three-hour test; the stings are
+the existing effect cues (`wonder` / `wonder-triumph` for a wonder, `order` for
+a celebration), and the wonder and new-age fanfares duck the map music to 35%
+while they ring (§6); combat and discovery cues never duck it (§8). Not
+covered yet: separate conquest/score/space endings (one `end-victory` serves
+all three), `intro-first-launch`, `map-ancient-water`, the rest between loops
+(§6), and the brief's lengths (the score format caps a piece at 32 bars, so
+each loop runs 30–70 s). A commissioned track can replace any piece
 by id. Roblox keeps its two uploaded tunes (user ruling 2026-11-17); this
 soundtrack is browser and native-client only.
 

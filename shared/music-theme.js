@@ -7,11 +7,16 @@
 export const PIECES = [
   'intro-title', 'loading-age',
   'map-ancient', 'map-renaissance', 'map-industrial', 'map-modern', 'map-space',
+  'map-ancient-b', 'map-renaissance-b', 'map-industrial-b', 'map-modern-b',
   'map-war', 'end-victory', 'end-defeat'
 ];
 
 // a combat involving the viewer this turn or the previous one keeps the war theme
 export const WAR_TURNS = 1;
+// the four main eras have two pieces each, alternating every MAP_VARIANT_TURNS
+// turns, so a long era is not one 40-70 s loop for an hour (brief §8, the
+// three-hour test); the swap cross-fades on a turn change
+export const MAP_VARIANT_TURNS = 4;
 // knowing this tech moves the map music to the space-age piece (the five ages of
 // rules.ages; techs.json has four eras, the fifth is the space programme)
 export const SPACE_TECH = 'space-flight';
@@ -41,7 +46,8 @@ export function musicMoment(view, viewer, techsTable, lastCombatTurn, winnerId) 
 }
 
 // moment: { screen: 'title' | 'loading' | 'game', era, space, turn, lastCombatTurn, outcome }.
-// Order: the screen, then a finished game, then war, then the era.
+// Order: the screen, then a finished game, then war, then the era (two pieces
+// each, by turn).
 export function themeFor(m) {
   if (m.screen === 'title') return 'intro-title';
   if (m.screen === 'loading') return 'loading-age';
@@ -49,5 +55,6 @@ export function themeFor(m) {
   if (m.outcome === 'defeat') return 'end-defeat';
   if (m.lastCombatTurn >= 0 && m.turn - m.lastCombatTurn <= WAR_TURNS) return 'map-war';
   if (m.space) return 'map-space';
-  return 'map-' + (ERA_RANK[m.era] !== undefined ? m.era : 'ancient');
+  const era = ERA_RANK[m.era] !== undefined ? m.era : 'ancient';
+  return Math.floor(m.turn / MAP_VARIANT_TURNS) % 2 === 1 ? 'map-' + era + '-b' : 'map-' + era;
 }

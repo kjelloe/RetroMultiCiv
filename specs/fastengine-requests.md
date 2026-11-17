@@ -281,3 +281,9 @@ scores and the output node are arguments, the cross-fade is 4 s. No golden /
 we-love-the-king piece (the brief has it as a short sting, which the format
 does not carry).
 
+2026-11-17 (A120): four more pieces, `map-ancient-b`, `map-renaissance-b`,
+`map-industrial-b`, `map-modern-b` (in `PIECES`). `themeFor` alternates an
+era's two pieces every `MAP_VARIANT_TURNS` (4) turns; `map-space` has one.
+Browser-only (not in the rule): the wonder and new-age fanfares duck the music
+to 35% while they ring.
+
