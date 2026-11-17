@@ -3,7 +3,7 @@
 _LIVING DOCUMENT, deliberately looser than `plan-version1.md`: an unordered
 holding list of everything explicitly designated post-1.0, so nothing is
 lost and nothing sneaks into the v1 critical path. An item leaves this file
-only by a user ruling. Last updated: 2026-11-02 — the first-use nuke evaluation was recorded under the nuclear item (retaliation half shipped as A115/A117; first use awaits a user ruling, and so does whether the AI may build Manhattan); nothing left the shelf. Before that: 2026-08-01 — **the v1 engine programme is
+only by a user ruling. Last updated: 2026-11-17 — the Roblox soundtrack arrived on the shelf (user ruling: Roblox keeps its two tunes). Before: 2026-11-02 — the first-use nuke evaluation was recorded under the nuclear item (retaliation half shipped as A115/A117; first use awaits a user ruling, and so does whether the AI may build Manhattan); nothing left the shelf. Before that: 2026-08-01 — **the v1 engine programme is
 COMPLETE (W1–W8 all tagged, marker-0111), so this shelf is now the definitive
 list of what v1.0 deliberately does NOT do.** Three items ARRIVED this pass, all
 from measurement rather than speculation: overseas expansion on saturation, the
@@ -292,6 +292,11 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
   gate, crafted-state tests only; and decide separately whether the AI
   should ever build Manhattan itself (that is the change that would make
   nukes appear in AI games).]**
+- **Roblox soundtrack** (ADDED 2026-11-17 by user ruling "roblox keeps old
+  tunes"): the browser and native client play the synth soundtrack
+  (client/music, A119); Roblox keeps its two uploaded tunes. Bringing the
+  pieces over would mean offline-rendered audio assets plus a Luau theme
+  rule.
 - **Overseas expansion on saturation** (§8, ADDED 2026-07-31 by user ruling
   after the W7 naval acceptance): when a civ's home landmass has no legal city
   site left, it should re-evaluate expansion across water instead of simply

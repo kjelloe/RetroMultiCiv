@@ -38,7 +38,8 @@ Optional: `node tools/render-sounds.js /some/other/dir` renders elsewhere.
    roblox-helper wires the ids + Volume values into the Sound instances.
 4. The uploaded `tune-creation` / `tune-splash` assets (2026-07) stay in use on
    Roblox. The browser replaced those two tunes with the score player in
-   `client/music/` (2026-11-16); the renderer no longer writes them.
+   `client/music/` (2026-11-16); the renderer no longer writes them. User
+   ruling 2026-11-17: Roblox keeps these two tunes (no rendered soundtrack).
 
 ## Changing a sound later
 

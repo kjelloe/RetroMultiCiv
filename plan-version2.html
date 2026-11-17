@@ -71,7 +71,7 @@
   <strong>An item leaves this file only by a user ruling.</strong> Provenance tags follow the civ-mixing ruling:
   <code>Civ1-authentic</code> / <code>Civ2-shape</code> / <code>Civ4-shape</code> / <code>original</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-11-02</strong> — first-use nuke evaluation recorded; awaits a user ruling (and whether the AI may build Manhattan). Before: 2026-08-01 — the v1 engine programme is COMPLETE (W1–W8, marker-0111), so this shelf is now the definitive list of what v1.0 deliberately does not do. Three items ARRIVED, all from measurement; none left.</span>
+    <span class="chip">Updated: <strong>2026-11-17</strong> — Roblox soundtrack added to the shelf (Roblox keeps its two tunes). Before: 2026-11-02 — first-use nuke evaluation recorded; awaits a user ruling (and whether the AI may build Manhattan). Before: 2026-08-01 — the v1 engine programme is COMPLETE (W1–W8, marker-0111), so this shelf is now the definitive list of what v1.0 deliberately does not do. Three items ARRIVED, all from measurement; none left.</span>
     <span class="chip">The 1.0 tree lives in <strong>plan-version1.html</strong></span>
   </div>
 </header>
@@ -202,6 +202,9 @@
 <section>
   <div class="sec-head"><h2>Roblox parity remainder</h2><span class="tag">v1.x point release (standing ruling)</span></div>
   <div class="bar" style="background: var(--play);"></div>
+  <div class="item"><div class="t">Roblox soundtrack (added 2026-11-17, user ruling "roblox keeps old tunes")</div>
+    <div class="d">The browser and native client play the synth soundtrack (<code>client/music</code>, A119); Roblox keeps its two uploaded tunes. Bringing the pieces over would mean offline-rendered audio assets plus a Luau theme rule.</div>
+  </div>
   <div class="item"><div class="t">F1 — city naming diverges</div>
     <div class="d">The browser asks for a city name in a modal; Roblox's <code>doFound()</code> auto-names ("Colony N") with no rename surface. Ruled a v1.0 divergence (docs/13). For whoever builds it: the platform shape is a TextBox pre-filled with the auto-name plus a confirm button, focus released on close — and do <em>not</em> port the browser modal naively, because that modal had a touch overlay covering its own confirm button (fixed 2026-07-30), a trap harder to see where focus handling is less inspectable.</div>
   </div>

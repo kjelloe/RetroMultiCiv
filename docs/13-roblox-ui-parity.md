@@ -295,7 +295,9 @@ one-motif Studio confirmation render — rides the C1b Studio session,
 see `roblox/acceptance/editableimage-glyph-spike.md` — and (b) the ~32
 provisional MOTIFS awaiting the ally concept pass, which is shared
 motif DATA feeding both clients. SO15 sound RESOLVED — audio LIVE
-since 2026-08-04, #2922.) **TileProps drift note
+since 2026-08-04, #2922. Music: the browser plays the synth soundtrack
+(client/music, A119, 2026-11-16); Roblox keeps its two uploaded tunes —
+user ruling 2026-11-17, a deliberate divergence.) **TileProps drift note
 (2026-08-15):** the browser's H13/H13b window restyled the props.js
 road/rail block after CP1 landed — 5-stage viewer-era roads
 (`roadStageFor` in shared/city-era.js), twin steel rails double-tracked

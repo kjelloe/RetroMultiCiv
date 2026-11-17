@@ -17,7 +17,8 @@ yet: the stings (§2 D), separate conquest/score/space endings (one
 `end-victory` serves all three), `intro-first-launch`, `map-ancient-water`, the
 rest between loops (§6), and the brief's lengths (the score format caps a piece
 at 32 bars, so loops run 30–70 s). A commissioned track can replace any piece
-by id.
+by id. Roblox keeps its two uploaded tunes (user ruling 2026-11-17); this
+soundtrack is browser and native-client only.
 
 **The game:** *A World Begun* (project name RetroMultiCiv) — a turn-based 4X in
 the tradition of the 1991 original. A session runs **1–6 hours**, mostly on one

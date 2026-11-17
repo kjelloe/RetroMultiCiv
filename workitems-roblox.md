@@ -263,7 +263,7 @@ Noticed, other lanes (report only, `luau/` is read-only here):
 - Regent seat: 3,184 of 27,254 logged p1 commands were refused by the engine (moveUnit: zoc 2,116, impassable 834, atPeace 222; startWork techRequired 12). `aiModule.pickCommand` proposes them, `playRegentSeat` logs them as ordinary entries (the browser shape). The 00:00Z game had 1,010 of 2,282. Not a replay problem (they replay as refusals); it is AI work spent on moves that cannot happen.
 - Turn time under the regent grew through the game on the 60x38 / 6-civ map: 1.9 s/turn (turns 130-200), 3.0 (300-500), 3.5 (500-546). The 40x25 / 3-civ game ran at about 0.54 s/turn.
 
-## 21. Soundtrack on Roblox [architect, queued 2026-11-16, design call first]
+## 21. Soundtrack on Roblox [architect, queued 2026-11-16] [closed: 2026-11-17 — user ruling "roblox keeps old tunes": no Roblox work; the uploaded `tune-creation` / `tune-splash` assets stay. Reopen only by ruling.]
 
 The browser plays ten synth pieces (`client/music/pieces/*.json`, theme rule
 `shared/music-theme.js`, A119). Roblox has no live synth, so the pieces would
