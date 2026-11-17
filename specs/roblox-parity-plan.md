@@ -222,6 +222,10 @@ Sessions: `workitems-roblox.md` 19z-19zg.
 
 ## 8. Not in this plan
 
+- Encyclopedia pictures and the wonder scene: their own track,
+  `specs/roblox-pedia-art.md` (2026-11-18, P0-P6). P3 uses R1's action
+  stops.
+
 - Hotseat, save files, join codes: the platform covers each (n/a rows).
 - Any change under `luau/` or `engine/`. Two findings for those lanes are
   in `workitems-roblox.md` 20 (regent refusals, late turn time) and
