@@ -62,6 +62,13 @@ function M.beatAt(t)
 	return "card"
 end
 
+-- how the player's own wonder is shown: the full scene, or the card alone
+-- when the Options switch is off or the wonder has no model (the Debug
+-- menu preview follows the same rule)
+function M.ownMode(scenes, hasModel)
+	return (scenes ~= false and hasModel) and "scene" or "card"
+end
+
 -- events = one view push's events; ctx = { you, cities = view.cities,
 -- models = id -> model, scenes = the Options switch, away, tour,
 -- fastForward, theater, gameOver }
@@ -79,7 +86,7 @@ function M.plan(events, ctx)
 			local mine = city ~= nil and city.owner == ctx.you
 			local mode = "rival"
 			if mine then
-				mode = (ctx.scenes ~= false and ctx.models[e.wonder] ~= nil) and "scene" or "card"
+				mode = M.ownMode(ctx.scenes, ctx.models[e.wonder] ~= nil)
 			end
 			out[#out + 1] = { mode = mode, wonder = e.wonder, cityId = e.cityId }
 		end

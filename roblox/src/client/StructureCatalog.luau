@@ -3,4 +3,5 @@
 local S = require(script.Parent:WaitForChild("StructureModels"))
 require(script.Parent:WaitForChild("BuildingModels"))(S)
 require(script.Parent:WaitForChild("EmblemModels"))(S)
+require(script.Parent:WaitForChild("CivEmblems"))(S)
 return S

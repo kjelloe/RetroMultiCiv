@@ -43,6 +43,9 @@ M.ROLES = {
 	black = { color = "#2b2d33", material = "SmoothPlastic" },
 	copper = { color = "#6fae9a", material = "Metal" },
 	violet = { color = "#7a4fa0", material = "Fabric" },
+	-- a civ's own two colours; the builder's tint argument replaces them
+	civPrimary = { color = "#b83c3c", material = "Fabric" },
+	civSecondary = { color = "#f2c66d", material = "Fabric" },
 }
 
 local function part(s, x, y, z, w, h, d, role, yaw, tilt)

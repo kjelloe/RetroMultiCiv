@@ -11,7 +11,7 @@ local function hexColor(hex)
 	return Color3.fromRGB(math.floor(n / 65536) % 256, math.floor(n / 256) % 256, n % 256)
 end
 
-local function piece(parent, className, role)
+local function piece(parent, className, role, tint)
 	local def = StructureModels.ROLES[role]
 	local p = Instance.new(className)
 	p.Anchored = true
@@ -20,44 +20,44 @@ local function piece(parent, className, role)
 	p.CastShadow = true
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.Color = hexColor(def.color)
+	p.Color = tint ~= nil and tint[role] or hexColor(def.color)
 	p.Material = Enum.Material[def.material]
 	p.Parent = parent
 	return p
 end
 
-local function primitive(parent, prim, origin, k)
+local function primitive(parent, prim, origin, k, tint)
 	local w, h, d = prim.size[1] * k, prim.size[2] * k, prim.size[3] * k
 	local base = origin * CFrame.new(prim.at[1] * k, prim.at[2] * k, prim.at[3] * k)
 		* CFrame.Angles(0, math.rad(prim.yaw or 0), 0) * CFrame.Angles(math.rad(prim.tilt or 0), 0, 0)
 	local out = {}
 	local s = prim.s
 	if s == "box" then
-		local p = piece(parent, "Part", prim.role)
+		local p = piece(parent, "Part", prim.role, tint)
 		p.Size = Vector3.new(w, h, d)
 		p.CFrame = base * CFrame.new(0, h / 2, 0)
 		out[1] = p
 	elseif s == "cyl" then
-		local p = piece(parent, "Part", prim.role)
+		local p = piece(parent, "Part", prim.role, tint)
 		p.Shape = Enum.PartType.Cylinder
 		p.Size = Vector3.new(h, w, w)
 		p.CFrame = base * CFrame.new(0, h / 2, 0) * CFrame.Angles(0, 0, math.rad(90))
 		out[1] = p
 	elseif s == "ball" then
-		local p = piece(parent, "Part", prim.role)
+		local p = piece(parent, "Part", prim.role, tint)
 		p.Shape = Enum.PartType.Ball
 		p.Size = Vector3.new(w, w, w)
 		p.CFrame = base * CFrame.new(0, w / 2, 0)
 		out[1] = p
 	elseif s == "wedge" then
-		local p = piece(parent, "WedgePart", prim.role)
+		local p = piece(parent, "WedgePart", prim.role, tint)
 		p.Size = Vector3.new(w, h, d)
 		p.CFrame = base * CFrame.new(0, h / 2, 0)
 		out[1] = p
 	elseif s == "pyramid" then
 		local r = w / 2
 		for i = 0, 3 do
-			local p = piece(parent, "CornerWedgePart", prim.role)
+			local p = piece(parent, "CornerWedgePart", prim.role, tint)
 			p.Size = Vector3.new(r, h, r)
 			p.CFrame = base * CFrame.Angles(0, math.rad(90 * i), 0) * CFrame.new(-r / 2, h / 2, r / 2)
 			out[#out + 1] = p
@@ -66,7 +66,7 @@ local function primitive(parent, prim, origin, k)
 		local r, n = w / 2, 8
 		local chord = 2 * r * math.tan(math.pi / n)
 		for i = 0, n - 1 do
-			local p = piece(parent, "WedgePart", prim.role)
+			local p = piece(parent, "WedgePart", prim.role, tint)
 			p.Size = Vector3.new(chord, h, r)
 			p.CFrame = base * CFrame.Angles(0, (i + 0.5) * 2 * math.pi / n, 0) * CFrame.new(0, h / 2, -r / 2)
 			out[#out + 1] = p
@@ -76,12 +76,13 @@ local function primitive(parent, prim, origin, k)
 end
 
 -- origin = the centre of the model's floor; k = studs per model unit.
+-- tint = role -> Color3 overriding a role's colour (optional).
 -- Returns { groups = { {Instance,...}, ... } bottom-up, ground = Part }
-function M.build(parent, def, origin, k)
+function M.build(parent, def, origin, k, tint)
 	k = k or 1
 	local groups = {}
 	for _, prim in ipairs(StructureModels.expand(def)) do
-		groups[#groups + 1] = primitive(parent, prim, origin, k)
+		groups[#groups + 1] = primitive(parent, prim, origin, k, tint)
 	end
 	local ground = piece(parent, "Part", def.ground)
 	ground.Shape = Enum.PartType.Cylinder

@@ -13,6 +13,7 @@ for id in pairs(S.MODELS) do
 end
 require("../src/client/BuildingModels")(S)
 require("../src/client/EmblemModels")(S)
+require("../src/client/CivEmblems")(S)
 
 local fails = 0
 local function check(name, ok, detail)
@@ -148,6 +149,25 @@ end
 check("the 22 wonders have a model", WONDERS >= 22, WONDERS)
 check("the 21 buildings have a model", nModels - WONDERS >= 21, nModels - WONDERS)
 check("governments and concepts have an emblem", nEmblems >= 35, nEmblems)
+
+-- the civilization gallery: a scene for every civ and for "random", each
+-- flying the civ's two colours
+local serde = require("@lune/serde")
+local nCivs = 0
+for id in pairs(serde.decode("json", fs.readFile("data/civs.json"))) do
+	nCivs += 1
+	check("civ scene " .. id, S.EMBLEMS.civs[id] ~= nil)
+end
+check("civ scene random", S.EMBLEMS.civs.random ~= nil)
+for id, def in pairs(S.EMBLEMS.civs) do
+	local roles = {}
+	for _, p in ipairs(def.parts) do
+		roles[p.role] = true
+	end
+	check("civ scene " .. id .. " flies the civ colours", id == "random" or (roles.civPrimary and roles.civSecondary))
+	nCivs -= 1
+end
+check("no civ scene without a civ", nCivs == -1, nCivs)
 if fails > 0 then
 	error(("structure-models: %d failure(s)"):format(fails))
 end

@@ -34,6 +34,9 @@ p = W.plan({ unseen }, ctx())
 check("a wonder in a city out of sight is a rival card", #p == 1 and p[1].mode == "rival")
 p = W.plan({ own }, ctx({ scenes = false }))
 check("switch off: the card only", #p == 1 and p[1].mode == "card")
+check("the preview rule: scene, or the card when the switch is off or no model",
+	W.ownMode(nil, true) == "scene" and W.ownMode(true, true) == "scene" and W.ownMode(false, true) == "card"
+		and W.ownMode(true, false) == "card")
 p = W.plan({ own }, ctx({ models = {} }))
 check("no model: the card only", #p == 1 and p[1].mode == "card")
 p = W.plan({ rival }, ctx({ scenes = false }))

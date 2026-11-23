@@ -106,7 +106,7 @@ local function drawStructure(box, art, conns)
 	local def = art.set ~= nil and StructureModels.EMBLEMS[art.set][art.id] or StructureModels.MODELS[art.id]
 	local base = PediaArt.CAMERA.structure
 	local model = Instance.new("Model")
-	StructureBuilder.build(model, def, CFrame.new(), 1)
+	StructureBuilder.build(model, def, CFrame.new(), 1, art.tint)
 	return viewport(box, model, { yaw = def.camera.yaw, pitch = def.camera.pitch, fit = base.fit, turn = base.turn }, conns)
 end
 

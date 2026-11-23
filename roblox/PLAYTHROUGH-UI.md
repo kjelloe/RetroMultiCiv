@@ -61,7 +61,9 @@ wonder)": bars close, the model rises piece by piece, the camera circles,
 a card with Encyclopedia / Go to city / Continue; a click during the build
 skips to the card; afterwards the map view and every HUD part are back.
 "Show rival wonder card": a small card at the top for 6 s. Options >
-wonder scenes off: the card only. K (Studio) shows all 43 wonder and
+wonder scenes off: the card only (the Debug menu row too). Before a game:
+Choose civilization shows a turning scene per civilization with a banner
+in its colours. K (Studio) shows all 43 wonder and
 building models behind the gallery grid. Badges:
 `after-run.js` lists the keys a game earned; a tour run uses debug
 commands, so that game earns none afterwards.

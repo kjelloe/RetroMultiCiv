@@ -74,7 +74,7 @@ function sceneOf(cell) {
   ground.position.y = -0.15;
   s.add(ground);
   let top = 1;
-  for (const p of cell.parts) { s.add(mesh(p, sheet.roles)); top = Math.max(top, p.at[1] + p.size[1]); }
+  for (const p of cell.parts) { s.add(mesh(p, cell.roles ? Object.assign({}, sheet.roles, cell.roles) : sheet.roles)); top = Math.max(top, p.at[1] + p.size[1]); }
   s.userData.top = top;
   return s;
 }

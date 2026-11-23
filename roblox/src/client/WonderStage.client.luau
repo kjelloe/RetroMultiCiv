@@ -495,7 +495,10 @@ ClientState.previewWonderScene = function(wonderId, mode, startAtCard)
 			end
 		end
 	end
-	play({ mode = mode or "scene", wonder = wonderId, cityId = cityId }, { startAtCard = startAtCard })
+	if mode == nil or mode == "scene" then
+		mode = WonderScene.ownMode(ClientState.options.wonderScenes, StructureModels.MODELS[wonderId] ~= nil)
+	end
+	play({ mode = mode, wonder = wonderId, cityId = cityId }, { startAtCard = startAtCard })
 end
 
 ClientState.registerPanel("wonder", holder, function()

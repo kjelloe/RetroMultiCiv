@@ -201,6 +201,7 @@ Each step ends with gates green and a local commit.
 | P2 | BUILT 2026-11-23: style C (diorama) picked; the 22 wonder models in `StructureModels.MODELS` (20-54 parts each), sheets `roblox/art/wonders-1..4.png`; the encyclopedia shows them; `tilt` added to the part format (bowls, telescopes, sloped walls) | 22 | look at each sheet |
 | P3 | BUILT 2026-11-23 (gate 67): `WonderScene` (rules, blurbs), `WonderStage.client` (stage, beats, skip, card, rival card), Options switch, Debug menu rows, tour stop `wonder`, `after-run.js` scene line; info-18 to yes after a Studio run | 0 | one tour run |
 | P4 | BUILT 2026-11-23: 21 building models (`BuildingModels`), sheets `roblox/art/buildings-1..2.png`. City panel rows: not built | 21 | look at the sheet |
+| P5b | BUILT 2026-11-24: a scene per civilization in the "Choose your civilization" gallery (`CivEmblems`, `EMBLEMS.civs`, 14 + random; banner tinted with the civ's colours), sheets `roblox/art/civs-1-8.png`, `civs-9-15.png`; the Debug menu wonder preview follows the Options switch (`WonderScene.ownMode`) | 15 | look at the gallery before a game |
 | P5 | BUILT 2026-11-23: 6 government and 29 concept emblem models (`EmblemModels`), sheets `roblox/art/governments.png`, `concepts-*.png`; caption line under the picture | 35 | look at the sheet |
 | P6 | optional: the wonder as a landmark on its city tile | 0 | ruling |
 

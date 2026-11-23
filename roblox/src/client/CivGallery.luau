@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 local Diag = require(script.Parent:WaitForChild("Diag"))
+local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
 
 local M = {}
 
@@ -18,7 +19,7 @@ gui.ResetOnSpawn = false
 gui.DisplayOrder = 30 -- over the host setup panel
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local W, H = 660, 430
+local W, H = 780, 430
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, W, 0, H)
 frame.Position = UDim2.new(0.5, -W / 2, 0.5, -H / 2)
@@ -102,12 +103,21 @@ civName.TextYAlignment = Enum.TextYAlignment.Center
 civName.TextStrokeTransparency = 0.5
 local leader = text(banner, "Leader", 18, 50, CW - 36, 20, 16, Enum.Font.GothamBold, Color3.new(1, 1, 1))
 leader.TextStrokeTransparency = 0.6
-local strengthCap = text(card, "StrengthCap", 16, 96, CW - 32, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
-local strength = text(card, "Strength", 16, 114, CW - 32, 44, 18)
-local temperCap = text(card, "TemperCap", 16, 162, CW - 32, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
-local temper = text(card, "Temper", 16, 180, CW - 32, 22, 17)
-local citiesCap = text(card, "CitiesCap", 16, 208, CW - 32, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
-local cities = text(card, "Cities", 16, 226, CW - 32, 50, 16)
+-- the civ's scene (CivEmblems), turning, right of the text
+local PIC = 180
+local TW = CW - 44 - PIC
+local picBox = Instance.new("Frame")
+picBox.Name = "Picture"
+picBox.Position = UDim2.new(0, CW - 16 - PIC, 0, 94)
+picBox.Size = UDim2.new(0, PIC, 0, PIC)
+picBox.BackgroundTransparency = 1
+picBox.Parent = card
+local strengthCap = text(card, "StrengthCap", 16, 96, TW, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
+local strength = text(card, "Strength", 16, 114, TW, 44, 18)
+local temperCap = text(card, "TemperCap", 16, 162, TW, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
+local temper = text(card, "Temper", 16, 180, TW, 22, 17)
+local citiesCap = text(card, "CitiesCap", 16, 208, TW, 16, 14, Enum.Font.GothamBold, Color3.fromRGB(143, 155, 179))
+local cities = text(card, "Cities", 16, 226, TW, 50, 16)
 
 local counter = text(frame, "Counter", CX, 344, CW, 18, 14, UiTheme.BODY_FONT, Color3.fromRGB(143, 155, 179))
 counter.TextXAlignment = Enum.TextXAlignment.Center
@@ -154,6 +164,32 @@ local function ensureEntries()
 	end
 end
 
+local picture = nil -- { id, root, conns }
+local function clearPicture()
+	if picture ~= nil then
+		for _, c in ipairs(picture.conns) do
+			c:Disconnect()
+		end
+		picture.root:Destroy()
+		picture = nil
+	end
+end
+-- a failed picture is a Diag.fail and an empty box; the card still works
+local function showPicture(id, primary, secondary)
+	if picture ~= nil and picture.id == id then
+		return
+	end
+	clearPicture()
+	local art = { kind = "structure", set = "civs", id = id,
+		tint = id ~= "random" and { civPrimary = primary, civSecondary = secondary } or nil }
+	local root, conns = PediaPicture.draw(picBox, art, nil, nil)
+	if root == nil then
+		Diag.fail("civgallery", ("picture %s (the box stays empty)"):format(id), conns)
+		return
+	end
+	picture = { id = id, root = root, conns = conns }
+end
+
 local function paint()
 	ensureEntries()
 	local civs = ClientState.rulesets().civs
@@ -171,12 +207,14 @@ local function paint()
 		chooseBtn.Text = isCurrent and "Random - your current choice" or "Play a random civilization"
 		chooseBtn.Active = true
 		chooseBtn.BackgroundTransparency = 0
+		showPicture(id)
 		return
 	end
 	local c = civs[id]
 	local v = c.visual or {}
 	banner.BackgroundColor3 = hex(v.primary or c.color, Color3.fromRGB(70, 78, 104))
 	trim.BackgroundColor3 = hex(v.secondary or c.color, Color3.new(1, 1, 1))
+	showPicture(id, banner.BackgroundColor3, trim.BackgroundColor3)
 	civName.Text = c.name
 	leader.Text = c.leader ~= nil and ("Leader: " .. c.leader) or ""
 	strengthCap.Text = "SPECIAL STRENGTH"
@@ -218,6 +256,7 @@ end
 
 function M.close()
 	frame.Visible = false
+	clearPicture()
 end
 
 -- yourCiv = the confirmed pick (nil = random); takenBy = civ id -> player name
@@ -243,6 +282,7 @@ function M.open(chooseFn)
 		return
 	end
 	frame.Visible = true
+	print(("[CivGallery] open pictures=%s"):format(picture ~= nil and "on" or "none"))
 end
 
 prevBtn.Activated:Connect(function()

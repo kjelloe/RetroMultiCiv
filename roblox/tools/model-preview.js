@@ -15,7 +15,7 @@ const mode = arg('--variants') ? ['variants', arg('--variants')]
   : arg('--set') ? [arg('--set'), arg('--range') || '1-99'] // governments | concepts, a slice of the sorted ids
   : ['models', arg('--models') || 'all'];
 const out = arg('--out');
-if (!out) { console.error('usage: model-preview.js (--variants <id> | --models <ids|all> | --set governments|concepts [--range 1-8]) --out file.png'); process.exit(2); }
+if (!out) { console.error('usage: model-preview.js (--variants <id> | --models <ids|all> | --set governments|concepts|civs [--range 1-8]) --out file.png'); process.exit(2); }
 
 const exp = spawnSync('lune', ['run', 'roblox/tools/model-export.luau', ...mode], { cwd: root, encoding: 'utf8' });
 if (exp.status !== 0) { console.error('model-preview: export failed\n' + exp.stderr); process.exit(1); }

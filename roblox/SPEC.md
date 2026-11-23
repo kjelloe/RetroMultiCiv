@@ -1019,7 +1019,12 @@ seat/reset flow; JS engine untouched). Delivered:
   `ApplyStrokeMode = Border`; the engine writes `researching = ""` for
   none - `ClientState` turns it into nil on the view; `ClientState.send`
   returns nil and sends nothing while the regent has the seat. shot15:
-  **civilization pick** - `CivGallery.luau` (own gui `RMCCivGallery`),
+  **civilization pick** - `CivGallery.luau` (own gui `RMCCivGallery`;
+  each card shows the civ's turning scene from `CivEmblems` -
+  `EMBLEMS.civs`, 14 civs + `random`, the banner roles `civPrimary` /
+  `civSecondary` tinted with the civ's colours through
+  `StructureBuilder.build`'s `tint`; sheets `roblox/art/civs-*.png`;
+  log line `[CivGallery] open pictures=on`),
   server `pickCiv` + `civPicks` (UserId -> civ, one per civ, cleared with
   each host window), swapped into the human's roster slot in `startGame`;
   a pick makes a pre-baked age snapshot fall through to the live
