@@ -3,6 +3,16 @@
 -- and that the Roblox builder and the headless preview draw every shape.
 local fs = require("@lune/fs")
 local S = require("../src/client/StructureModels")
+local WONDERS = 0
+for _ in pairs(S.MODELS) do
+	WONDERS += 1
+end
+local isWonder = {}
+for id in pairs(S.MODELS) do
+	isWonder[id] = true
+end
+require("../src/client/BuildingModels")(S)
+require("../src/client/EmblemModels")(S)
 
 local fails = 0
 local function check(name, ok, detail)
@@ -85,11 +95,26 @@ for id, list in pairs(S.VARIANTS) do
 	end
 end
 
--- every model stands on a full ground slab and has a setting, not one lone subject
+-- governments and concepts: the same data, checked the same way
+local nEmblems = 0
+local ALL = {}
 for id, def in pairs(S.MODELS) do
+	ALL[id] = def
+end
+for set, list in pairs(S.EMBLEMS) do
+	for id, def in pairs(list) do
+		nEmblems += 1
+		checkModel(set .. "/" .. id, def)
+		ALL[set .. "/" .. id] = def
+	end
+end
+
+-- every model stands on a full ground slab and has a setting, not one lone
+-- subject (a wonder is the richest: 20 parts; a building or emblem 12)
+for id, def in pairs(ALL) do
 	local first = def.parts[1]
 	check(id .. " ground slab", first.s == "box" and first.at[2] == 0 and first.size[1] == 11.6 and first.size[3] == 11.6)
-	check(id .. " is a diorama", #S.expand(def) >= 20, #S.expand(def))
+	check(id .. " is a diorama", #S.expand(def) >= (isWonder[id] and 20 or 12), #S.expand(def))
 	local roles = {}
 	for _, p in ipairs(def.parts) do
 		roles[p.role] = true
@@ -98,7 +123,7 @@ for id, def in pairs(S.MODELS) do
 	for _ in pairs(roles) do
 		nRole += 1
 	end
-	check(id .. " uses several materials", nRole >= 4, nRole)
+	check(id .. " uses several materials", nRole >= (isWonder[id] and 4 or 3), nRole)
 end
 
 -- an arch is two posts and a lintel that span exactly its size
@@ -120,8 +145,10 @@ for shape in pairs(S.SHAPES) do
 	end
 end
 
+check("the 22 wonders have a model", WONDERS >= 22, WONDERS)
+check("the 21 buildings have a model", nModels - WONDERS >= 21, nModels - WONDERS)
+check("governments and concepts have an emblem", nEmblems >= 35, nEmblems)
 if fails > 0 then
 	error(("structure-models: %d failure(s)"):format(fails))
 end
-check("the 22 wonders have a model", nModels >= 22, nModels)
-print(("structure-models: ok (%d models)"):format(nModels))
+print(("structure-models: ok (%d models, %d emblems)"):format(nModels, nEmblems))

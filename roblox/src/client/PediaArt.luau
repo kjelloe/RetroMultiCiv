@@ -5,7 +5,8 @@ local M = {}
 
 -- kinds: unit (AssetFactory model), structure (StructureModels), plate
 -- (tech glyph on its era card), terrain (3 x 3 tile patch), none
--- have = { units = unitSilhouette, structures = MODELS, glyphs = GLYPH, terrain = palette }
+-- have = { units = unitSilhouette, structures = MODELS, emblems = EMBLEMS,
+--   glyphs = GLYPH, terrain = palette }
 function M.resolve(catKey, id, have)
 	if catKey == "units" then
 		if have.units[id] ~= nil then
@@ -14,6 +15,11 @@ function M.resolve(catKey, id, have)
 	elseif catKey == "buildings" or catKey == "wonders" then
 		if have.structures[id] ~= nil then
 			return { kind = "structure", id = id }
+		end
+	elseif catKey == "governments" or catKey == "concepts" then
+		local set = have.emblems ~= nil and have.emblems[catKey] or nil
+		if set ~= nil and set[id] ~= nil then
+			return { kind = "structure", id = id, set = catKey }
 		end
 	elseif catKey == "techs" then
 		if have.glyphs[id] ~= nil then
@@ -53,11 +59,33 @@ function M.layout(paneW, kind)
 	local boxW = math.max(0, paneW - 2 * M.PAD)
 	return {
 		box = { x = M.PAD, y = M.PAD, w = boxW, h = boxH },
-		textY = boxH > 0 and (boxH + 2 * M.PAD) or 6,
+		-- the caption line sits between the picture and the text
+		captionY = boxH + 2 * M.PAD,
+		textY = boxH > 0 and (boxH + 2 * M.PAD + M.CAPTION_H + 4) or 6,
 		-- a plate is a square card centred in the box
 		plate = math.max(0, math.min(boxH - 24, boxW - 24)),
 	}
 end
+
+-- the line under the picture: what it costs and needs (things that are
+-- built), the era (an advance), else nothing
+function M.caption(catKey, def, techName, eraName)
+	if def == nil then
+		return ""
+	end
+	if catKey == "units" or catKey == "buildings" or catKey == "wonders" then
+		local bits = {}
+		if def.cost ~= nil then
+			bits[#bits + 1] = ("%d shields"):format(def.cost)
+		end
+		bits[#bits + 1] = techName ~= nil and ("needs " .. techName) or "available from the start"
+		return table.concat(bits, " - ")
+	elseif catKey == "techs" then
+		return eraName ~= nil and (eraName .. " ERA") or ""
+	end
+	return ""
+end
+M.CAPTION_H = 20
 
 -- camera per kind: degrees, distance as a multiple of the model's radius,
 -- degrees per second of the slow turn

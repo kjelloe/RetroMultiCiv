@@ -54,8 +54,15 @@ afterwards; Propose... > Demand tribute / Tech swap; an AI offer raises the
 envoy card on your turn; Declare war under a treaty asks twice.
 Encyclopedia (2026-11-23): click one unit (turning model, drag turns it),
 one advance (glyph on the era card), one terrain (3 x 3 tile patch), one
-wonder (diorama model); governments and concepts have no picture yet.
-K (Studio) shows all 22 wonder models behind the gallery grid. Badges:
+wonder (diorama model), one building, one government, one concept (models
+too); a gold caption line sits under the picture. The Pyramids must be
+solid pyramids, not four spikes. Debug menu > "Play wonder scene (next
+wonder)": bars close, the model rises piece by piece, the camera circles,
+a card with Encyclopedia / Go to city / Continue; a click during the build
+skips to the card; afterwards the map view and every HUD part are back.
+"Show rival wonder card": a small card at the top for 6 s. Options >
+wonder scenes off: the card only. K (Studio) shows all 43 wonder and
+building models behind the gallery grid. Badges:
 `after-run.js` lists the keys a game earned; a tour run uses debug
 commands, so that game earns none afterwards.
 
@@ -67,7 +74,7 @@ for what the tour does not open (lobby, gallery, end screen, replay).
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 66 gates on tip
+- `roblox/check.sh` ALL GREEN — 67 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),

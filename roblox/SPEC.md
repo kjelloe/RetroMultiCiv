@@ -1171,7 +1171,15 @@ seat/reset flow; JS engine untouched). Delivered:
   part's own X, pivot at the base centre). `MODELS` holds the 22 wonders in
   the diorama style (ground slab, setting, at least 20 parts and 4 roles);
   all stand behind the gallery grid (K). `VARIANTS` holds style candidates
-  when a pick is open.
+  when a pick is open. `BuildingModels` adds the 21 buildings to `MODELS`
+  and `EmblemModels` fills `EMBLEMS.governments` (6) and `.concepts` (29)
+  (at least 12 parts and 3 roles each); both are functions applied by
+  `StructureCatalog` in Roblox and by path in the lune selftests. The
+  preview takes `--set governments|concepts [--range 1-10]`. Sheets:
+  `roblox/art/`. A square pyramid is four CornerWedgeParts whose tall
+  corner (local +x -z, measured in Studio 2026-11-23) meets on the axis:
+  offset `(-r/2, h/2, r/2)` in `StructureBuilder` and `AssetFactory`
+  (gate 67 pins it; before that date the pieces pointed outward).
   ENCYCLOPEDIA PICTURES (pedia-art P1, gate 66): `PediaArt.resolve(cat,
   id, have)` names the picture kind (unit / structure / plate / terrain /
   none) and `PediaArt.layout(paneW, kind)` the box above the text (240 px,
@@ -1180,7 +1188,26 @@ seat/reset flow; JS engine untouched). Delivered:
   glyph on its era card; one picture exists at a time; a failure is a
   `[RMC-DIAG] FAIL pedia` and an empty box. Each show prints `[Pedia]
   picture <cat>/<id> kind=<k> box=WxH`. `TileHeight.top(palette, id)` is
-  the one tile-top rule (ViewRenderer.tileTop delegates to it).
+  the one tile-top rule (ViewRenderer.tileTop delegates to it). Since
+  2026-11-23 every one of the 186 entries has a picture (buildings,
+  governments and concepts as models) and a caption line under it
+  (`PediaArt.caption`: cost and requirement, or the era); wonder entries
+  lead with `WonderScene.BLURB`.
+  WONDER SCENE (pedia-art P3, gate 67): `WonderScene.plan(events, ctx)`
+  (pure) turns `wonderBuilt` events into `scene` (own wonder), `card`
+  (own, with Options > wonder scenes off or no model) or `rival` (small
+  card, 6 s); nothing plays under the regent, the tour, fast-forward, the
+  replay theater or after game over. `WonderStage.client` builds the model
+  at a stage far from the map, raises the parts bottom-up (0.6 s open,
+  3.4 s build, 3.5 s reveal with a quarter orbit, card at 7.5 s), holds
+  `ClientState.sceneActive` (Camera and HudGate stand down), turns every
+  other ScreenGui off and restores it. Any click or key skips to the card.
+  Lines: `[WonderScene] play <id> mode=<m>`, `beat <id> <name>`, `done
+  <id> skipped=<b> camera=restored`; a failure is `[RMC-DIAG] FAIL
+  wonder` and the view is handed back. Debug menu: "Play wonder scene
+  (next wonder)" and "Show rival wonder card" need no wonder built. The
+  script is named WonderStage because WonderScene.luau already takes the
+  Rojo name.
   MAP SIZES (same ruling): the host setup offers large 104x65, xlarge
   128x80 and huge 160x100 beside the three small sizes, labelled "(slow
   turns)" / "(very slow)". No game on them has been run in Studio.

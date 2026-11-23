@@ -177,12 +177,18 @@ Shown when the player's own city completes a wonder.
 
 ### 2.8 Built so far against this design (2026-11-23)
 
-- Built: 2.2 (except governments and concepts), 2.3, 2.4, 2.5 picture box.
-- Not built yet: the caption line under the picture (2.5); the tour stops
-  and the scene line in `after-run.js` (2.7, with P3); the wonder scene
-  (2.6, P3). `after-run.js` already counts pictures by kind.
-- Nothing of this track has been run in Studio. First ViewportFrame and
-  first use of `StructureBuilder` in the client.
+- Built: 2.2 to 2.7. All 186 entries have a picture.
+- Differs from the design: governments and concepts are models (emblem
+  scenes in `EmblemModels`), not 2D plates - one pipeline, one preview
+  sheet, and they turn like the rest. The tour stop opens the scene at its
+  card (the build beats are played from the Debug menu, not the tour).
+  Buildings are not yet shown on the city panel rows.
+- Studio 2026-11-23 (session 21:17Z): unit, structure, plate and terrain
+  pictures drew, 0 failures; drag turns the model; map heights unchanged.
+  The user reported every pyramid as four outward spikes: the corner
+  wedge pieces stood in the wrong quarter (fixed, gate 67). Not yet run:
+  the wonder scene, the building / government / concept pictures, the
+  caption line.
 
 ## 3. Plan
 
@@ -193,9 +199,9 @@ Each step ends with gates green and a local commit.
 | P0 | BUILT 2026-11-23 (gate 65): `StructureModels`, `StructureBuilder`, `roblox/tools/model-preview.js`; the Pyramids in three styles, `roblox/art/pyramids-styles.png`, also behind the Studio gallery grid (K) | 1 x 3 | pick a style |
 | P1 | BUILT 2026-11-23 (gate 66): `PediaArt` (rules), `PediaPicture` (drawing), picture box in the encyclopedia for units (model), advances (plate), terrain (3 x 3 patch); 78 entries still without art keep the text-only pane; `after-run.js` counts pictures by kind | 0 | look once |
 | P2 | BUILT 2026-11-23: style C (diorama) picked; the 22 wonder models in `StructureModels.MODELS` (20-54 parts each), sheets `roblox/art/wonders-1..4.png`; the encyclopedia shows them; `tilt` added to the part format (bowls, telescopes, sloped walls) | 22 | look at each sheet |
-| P3 | wonder scene: stage, beats, skip, card, rival card, Options switch, tour stops, gate B; info-18 to yes | 0 | one tour run |
-| P4 | building models; city panel rows show them | 21 | look at the sheet |
-| P5 | government emblems and concept plates (existing menu pictograms reused where they fit) | 35 | look at the sheet |
+| P3 | BUILT 2026-11-23 (gate 67): `WonderScene` (rules, blurbs), `WonderStage.client` (stage, beats, skip, card, rival card), Options switch, Debug menu rows, tour stop `wonder`, `after-run.js` scene line; info-18 to yes after a Studio run | 0 | one tour run |
+| P4 | BUILT 2026-11-23: 21 building models (`BuildingModels`), sheets `roblox/art/buildings-1..2.png`. City panel rows: not built | 21 | look at the sheet |
+| P5 | BUILT 2026-11-23: 6 government and 29 concept emblem models (`EmblemModels`), sheets `roblox/art/governments.png`, `concepts-*.png`; caption line under the picture | 35 | look at the sheet |
 | P6 | optional: the wonder as a landmark on its city tile | 0 | ruling |
 
 After P5 the coverage gate allows no missing entry.

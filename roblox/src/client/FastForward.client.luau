@@ -139,6 +139,7 @@ local function onProgress(msg)
 	title.Text = ("Advancing to the %s Age..."):format(titleCase(msg.age or "new"))
 	sub.Text = ("Simulating history - turn %d of %d"):format(turn, target)
 	panel.Visible = true
+	ClientState.fastForwardActive = true
 	shown = true
 	if msg.done == true then
 		title.Text = ("Entering the %s Age"):format(titleCase(msg.age or "new"))
@@ -156,6 +157,7 @@ ClientState.onView(function()
 	if shown then
 		shown = false
 		panel.Visible = false
+		ClientState.fastForwardActive = false
 	end
 end)
 
@@ -166,6 +168,7 @@ RunService.Heartbeat:Connect(function()
 	end
 	if hideAt > 0 and os.clock() >= hideAt then
 		panel.Visible = false
+		ClientState.fastForwardActive = false
 		shown = false
 		return
 	end

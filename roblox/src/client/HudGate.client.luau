@@ -15,6 +15,9 @@ local HUD_PARTS = { "Status", "EndTurn", "Regency" }
 local hidden = {} -- part -> the Visible it had when hidden
 
 local function apply()
+	if ClientState.sceneActive then
+		return -- the wonder scene holds every gui off and restores them itself
+	end
 	local on = ClientState.view ~= nil
 	local hud = playerGui:FindFirstChild("RMCHud")
 	if hud ~= nil then

@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight DiscoveryView CityView EmpireView BarFit UnitOrders; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -982,6 +982,31 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 66: lune absent"
+fi
+
+# gate 67 — the wonder completion scene (WonderScene, specs/roblox-pedia-art.md
+# P3): what plays for which event and when nothing plays, beats, part rise,
+# camera path, card lines, a model and a blurb per wonder; the stage script's
+# wiring; the pyramid pieces meet at the axis (the corner wedge's tall corner
+# is local +x -z, measured in Studio 2026-11-23 - it was drawn outward)
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/wonder-scene.luau >/dev/null 2>&1 \
+     && grep -q 'WonderScene.plan(events, {' roblox/src/client/WonderStage.client.luau \
+     && grep -q 'ClientState.sceneActive = true' roblox/src/client/WonderStage.client.luau \
+     && grep -q 'ClientState.sceneActive = false' roblox/src/client/WonderStage.client.luau \
+     && grep -q 'ClientState.introActive or ClientState.sceneActive' roblox/src/client/Camera.client.luau \
+     && grep -q 'if ClientState.sceneActive then' roblox/src/client/HudGate.client.luau \
+     && grep -q 'o.wonderScenes ~= false' roblox/src/client/Options.client.luau \
+     && grep -q 'ClientState.registerPanel("wonder", holder' roblox/src/client/WonderStage.client.luau \
+     && grep -q 'CFrame.new(-r / 2, h / 2, r / 2)' roblox/src/client/StructureBuilder.luau \
+     && grep -q 'CFrame.new(-r / 2, h / 2, r / 2)' roblox/src/client/AssetFactory.luau \
+     && [ ! -e roblox/src/client/WonderScene.client.luau ]; then
+    note PASS "gate 67: wonder scene rules (lune) + stage wiring + pyramid placement"
+  else
+    note FAIL "gate 67: wonder scene — run: lune run roblox/selftest/wonder-scene.luau"
+  fi
+else
+  note SKIP "gate 67: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

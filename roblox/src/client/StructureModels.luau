@@ -601,6 +601,13 @@ do -- Cure for Cancer: the research hospital
 	M.MODELS["cure-for-cancer"] = done(m)
 end
 
+-- governments and concepts: a small emblem scene each (EmblemModels fills it)
+M.EMBLEMS = { governments = {}, concepts = {} }
+
+-- what BuildingModels and EmblemModels author with
+M.kit = { new = new, done = done, part = part, r2 = r2, G = G, gable = gable, house = house, palm = palm, tree = tree,
+	cypress = cypress, obelisk = obelisk, flag = flag, columns = columns, ship = ship, courses = courses }
+
 -- style candidates awaiting a pick: id -> { { key, name, ground, parts, camera } x3 }
 M.VARIANTS = {}
 

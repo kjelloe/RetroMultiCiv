@@ -125,15 +125,17 @@ end
 
 -- square pyramid: 4 CornerWedgeParts, apex corners meeting at the axis.
 -- baseCF = base-center CFrame IN THE PRIMITIVE'S ROTATED FRAME (a tilted
--- cone's base shifts along its own axis). The +180 yaw is the flip the
--- user's model-house-fail1.png proved necessary (apexes pointed outward,
--- a crown) — the gallery grid (K) is the verification surface.
+-- cone's base shifts along its own axis). A CornerWedgePart's tall corner
+-- is its local (+x, -z) (TerrainSkirts measures it; Studio 2026-11-23), so
+-- each piece sits in the (-x, +z) quarter and that corner lands on the axis.
+-- Until then the pieces stood in the (+x, -z) quarter: four spikes pointing
+-- outward. roblox/check.sh gate 67 pins the offset.
 local function pyramid(model, baseCF, r, h, color)
 	for i = 0, 3 do
 		local piece = basePart("CornerWedgePart")
 		piece.Size = Vector3.new(r, h, r)
 		piece.Color = color
-		piece.CFrame = baseCF * CFrame.Angles(0, math.rad(90 * i + 180), 0) * CFrame.new(r / 2, h / 2, -r / 2)
+		piece.CFrame = baseCF * CFrame.Angles(0, math.rad(90 * i), 0) * CFrame.new(-r / 2, h / 2, r / 2)
 		piece.Parent = model
 	end
 end

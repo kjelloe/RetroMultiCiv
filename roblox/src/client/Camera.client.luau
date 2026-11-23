@@ -101,7 +101,7 @@ RunService.RenderStepped:Connect(function(dt)
 	-- camera reverts CameraType to Custom and fights whoever owns the view
 	-- (the runL intro-bounce bug). We only skip the deck CFrame below.
 	camera.CameraType = Enum.CameraType.Scriptable
-	if ClientState.theaterActive or ClientState.introActive then
+	if ClientState.theaterActive or ClientState.introActive or ClientState.sceneActive then
 		return -- the replay theater (runJ) / boot intro (runL) own the CFrame while active
 	end
 

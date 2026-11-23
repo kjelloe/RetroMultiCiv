@@ -26,6 +26,10 @@ const lines = [
   '  09:00:08.600  [RMC-BADGE] earned first-city user=101 id=0',
   '  09:00:08.700  [RMC-BADGE] earned first-tech user=101 id=0',
   '  09:00:08.800  [Pedia] picture units/legion kind=unit box=428x240',
+  '  09:00:08.800  [WonderScene] play pyramids mode=scene',
+  '  09:00:08.800  [WonderScene] beat pyramids open t=0.0',
+  '  09:00:08.800  [WonderScene] done pyramids skipped=true camera=restored',
+  '  09:00:08.800  [WonderScene] play colossus mode=rival',
   '  09:00:08.810  [Pedia] picture wonders/pyramids kind=structure box=428x240',
   '  09:00:08.820  [Pedia] picture units/militia kind=unit box=428x240',
   '  09:00:08.830  [Pedia] picture concepts/cities kind=none box=428x0',
@@ -64,6 +68,8 @@ check('badges', r.badges.join() === 'first-city,first-tech', r.badges);
 check('pictures by kind', r.pictures.unit === 2 && r.pictures.structure === 1 && r.pictures.none === 1, r.pictures);
 check('report: badges line', text.includes('badges: 2 earned - first-city, first-tech'), text);
 check('report: pictures line', text.includes('encyclopedia pictures: unit 2, '), text);
+check('scenes', r.scenes.played.scene === 1 && r.scenes.played.rival === 1 && r.scenes.done === 1 && r.scenes.skipped === 1, r.scenes);
+check('report: scenes line', text.includes('wonder scenes: scene 1, rival 1; 1 ended with the camera restored, 1 skipped'), text);
 check('report: replay line', text.includes('replay: R4 ACCEPTANCE: ALL HASHES MATCH'));
 check('report: seconds per turn', text.includes('seconds per turn: 1 (turns 1-3)'), text);
 

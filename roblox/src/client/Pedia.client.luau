@@ -14,6 +14,8 @@ local CONCEPTS = require(script.Parent:WaitForChild("PediaConcepts"))
 local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs")) -- run-F #9
 local PediaArt = require(script.Parent:WaitForChild("PediaArt"))
 local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
+local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs"))
+local WonderScene = require(script.Parent:WaitForChild("WonderScene"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCPedia"
@@ -124,6 +126,16 @@ artBox.BackgroundTransparency = 1
 artBox.BorderSizePixel = 0
 artBox.Visible = false
 artBox.Parent = detail
+local artCaption = Instance.new("TextLabel") -- cost and requirement, or the era
+artCaption.Name = "ArtCaption"
+artCaption.BackgroundTransparency = 1
+artCaption.Font = Enum.Font.GothamBold
+artCaption.TextSize = 15
+artCaption.TextColor3 = Color3.fromRGB(240, 198, 60)
+artCaption.TextXAlignment = Enum.TextXAlignment.Left
+artCaption.TextTruncate = Enum.TextTruncate.AtEnd
+artCaption.Visible = false
+artCaption.Parent = detail
 
 local function fmtYields(y)
 	if y == nil then
@@ -183,7 +195,9 @@ local function makeCats(rs, cat)
 		{ key = "wonders", label = "Wonders", list = function()
 			return sorted(rs.wonders)
 		end, render = function(id, w)
-			return stat("Cost", (w.cost or 0) .. " shields")
+			local blurb = WonderScene.BLURB[id] -- the completion card shows the same line
+			return (blurb ~= nil and blurb .. "\n\n" or "")
+				.. stat("Cost", (w.cost or 0) .. " shields")
 				.. "\n" .. (cat.effectText(w) ~= "" and cat.effectText(w) or "a wonder of the world")
 				.. reqLine(w)
 		end },
@@ -270,6 +284,13 @@ local function showEntry(catDef, id, def)
 	artBox.Size = UDim2.new(1, -2 * lay.box.x, 0, lay.box.h)
 	artBox.Visible = lay.box.h > 0
 	detailText.Position = UDim2.new(0, 8, 0, lay.textY)
+	local rs = ClientState.rulesets()
+	local caption = PediaArt.caption(catDef.key, def, (def.tech ~= nil and def.tech ~= "") and techName(rs, def.tech) or nil,
+		catDef.key == "techs" and TechGlyphs.ERA_NAME[TechGlyphs.eraOf(rs.techs, id)] or nil)
+	artCaption.Visible = lay.box.h > 0 and caption ~= ""
+	artCaption.Position = UDim2.fromOffset(lay.box.x, lay.captionY)
+	artCaption.Size = UDim2.new(1, -2 * lay.box.x, 0, PediaArt.CAPTION_H)
+	artCaption.Text = caption
 	local shown = PediaPicture.show(artBox, catDef.key, id, lay, ClientState.rulesets())
 	print(("[Pedia] picture %s/%s kind=%s box=%dx%d"):format(catDef.key, id, shown, lay.box.w, lay.box.h))
 end

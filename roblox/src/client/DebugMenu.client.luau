@@ -45,8 +45,8 @@ do
 end
 
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 250, 0, 276)
-panel.Position = UDim2.new(0, 8, 1, -506)
+panel.Size = UDim2.new(0, 250, 0, 332)
+panel.Position = UDim2.new(0, 8, 1, -562)
 panel.BackgroundColor3 = Color3.fromRGB(34, 22, 22)
 panel.BackgroundTransparency = 0.06
 panel.BorderSizePixel = 0
@@ -145,6 +145,17 @@ end
 
 -- specs/roblox-parity-plan.md step 0: stage the game, open every surface,
 -- check each, print [RMC-TOUR] lines (node roblox/tools/after-run.js reads them)
+row(272, "Play wonder scene (next wonder)", function()
+	panel.Visible = false
+	if ClientState.previewWonderScene ~= nil then
+		ClientState.previewWonderScene(nil, "scene")
+	end
+end)
+row(300, "Show rival wonder card (next wonder)", function()
+	if ClientState.previewWonderScene ~= nil then
+		ClientState.previewWonderScene(nil, "rival")
+	end
+end)
 row(244, "Run UI tour (stages + checks all panels)", function()
 	panel.Visible = false
 	if ClientState.runTour ~= nil then

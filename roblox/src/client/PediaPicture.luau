@@ -8,7 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PediaArt = require(script.Parent:WaitForChild("PediaArt"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
-local StructureModels = require(script.Parent:WaitForChild("StructureModels"))
+local StructureModels = require(script.Parent:WaitForChild("StructureCatalog"))
 local StructureBuilder = require(script.Parent:WaitForChild("StructureBuilder"))
 local TileProps = require(script.Parent:WaitForChild("TileProps"))
 local TileHeight = require(script.Parent:WaitForChild("TileHeight"))
@@ -22,7 +22,7 @@ local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitFo
 local M = {}
 
 function M.have()
-	return { units = AssetFactory.data().unitSilhouette, structures = StructureModels.MODELS,
+	return { units = AssetFactory.data().unitSilhouette, structures = StructureModels.MODELS, emblems = StructureModels.EMBLEMS,
 		glyphs = GlyphData.GLYPH, terrain = TerrainPalette }
 end
 
@@ -103,7 +103,7 @@ local function drawUnit(box, art, conns)
 end
 
 local function drawStructure(box, art, conns)
-	local def = StructureModels.MODELS[art.id]
+	local def = art.set ~= nil and StructureModels.EMBLEMS[art.set][art.id] or StructureModels.MODELS[art.id]
 	local base = PediaArt.CAMERA.structure
 	local model = Instance.new("Model")
 	StructureBuilder.build(model, def, CFrame.new(), 1)
@@ -165,13 +165,9 @@ local function drawPlate(box, art, layout, rs)
 	return card
 end
 
--- box = the Frame PediaArt.layout sized; returns the art kind actually shown
-function M.show(box, catKey, id, layout, rs)
-	M.clear()
-	local art = PediaArt.resolve(catKey, id, M.have())
-	if art.kind == "none" then
-		return "none"
-	end
+-- draws `art` into box without touching the encyclopedia's own picture
+-- (the wonder cards use it); the caller disconnects conns and destroys root
+function M.draw(box, art, layout, rs)
 	local conns = {}
 	local ok, root = pcall(function()
 		if art.kind == "unit" then
@@ -187,7 +183,21 @@ function M.show(box, catKey, id, layout, rs)
 		for _, c in ipairs(conns) do
 			c:Disconnect()
 		end
-		Diag.fail("pedia", ("picture %s/%s (%s; the box stays empty)"):format(catKey, id, art.kind), root)
+		return nil, root
+	end
+	return root, conns
+end
+
+-- box = the Frame PediaArt.layout sized; returns the art kind actually shown
+function M.show(box, catKey, id, layout, rs)
+	M.clear()
+	local art = PediaArt.resolve(catKey, id, M.have())
+	if art.kind == "none" then
+		return "none"
+	end
+	local root, conns = M.draw(box, art, layout, rs)
+	if root == nil then
+		Diag.fail("pedia", ("picture %s/%s (%s; the box stays empty)"):format(catKey, id, art.kind), conns)
 		return "failed"
 	end
 	current = { root = root, conns = conns }

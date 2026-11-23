@@ -264,19 +264,21 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19zh. Rulings 2026-11-16: treaty actions, big maps, skip vote [done: 2026-11-16 — (1) Foreign-relations panel acts: accept / reject, offer peace, declare war (two presses), Propose card (peace / demand tribute / tech swap or gift), envoy card for an incoming offer; `DiplomacyView` rules + `roblox/selftest/diplomacy-actions.luau` drive the real engine through filterView (gate 63); dip-03..08 to yes, S11 playable. (2) mp-15 n/a, S17 playable. (5) large / xlarge / huge offered in the host setup with a latency label (server `MAP_SIZES` + lobby), gf-34 yes, S01 playable. Parity: 141 available, 24 partial, 25 missing, 15 n/a; scenarios 11 playable, 3 degraded, 4 blocked. Not run in Studio; no game on a big map has been run. gamesim-golden-neutral]
 
+## 19zn. Pedia art P3-P5 + pyramid fix [done: 2026-11-23 — after Studio session 21:17Z (pictures drew, 0 failures; user: pyramids were four outward spikes, governments had no picture). Pyramid pieces moved to the quarter where the corner wedge's tall corner meets the axis (`StructureBuilder`, `AssetFactory`; apex measured at local +x -z). Wonder scene: `WonderScene` rules + 22 blurbs, `WonderStage.client` (stage away from the map, parts rise bottom-up, quarter orbit, card; rival card; skip), Options > wonder scenes, two Debug menu rows, tour stop `wonder`, `after-run.js` scene line, gate 67. 21 building models, 6 government and 29 concept emblem models; 186 of 186 entries have a picture; caption line under the picture; wonder entries lead with the blurb. Sheets in `roblox/art/`. 67 gates. Scene, new pictures and caption not run in Studio. gamesim-golden-neutral]
+
 ## 20. Next [open] (2026-11-16, after session 14:51Z)
 
 **Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 66 gates. Four regent games replayed hash-exact.
+State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 67 gates. Four regent games replayed hash-exact.
 
 Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 
 Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts stay as the browser's, big maps offered. Badges ruled and built 2026-11-17 (19zi). Open: badge ids (user, plan 8.4).
 
-Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P2 built 2026-11-23 (19zk-19zm): 130 of 186 entries have a picture. Next: P3 wonder scene, P4 building models (21), P5 government and concept plates (35).
+Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P5 built 2026-11-23 (19zk-19zn): 186 of 186 entries have a picture; the wonder scene is built. Left: buildings on the city panel rows, P6 map landmark (needs a ruling), info-18 to yes after the scene has run in Studio.
 
-Built since the last Studio run (2026-11-16 14:51Z), not run in Studio: treaty actions panel / envoy / Propose cards, big map sizes, badge tracking (`[RMC-BADGE]` lines), encyclopedia picture box (first ViewportFrame), `StructureBuilder`, the tile-height rule moved to `TileHeight` (map heights must be unchanged).
+Studio session 2026-11-23 21:17Z: encyclopedia pictures (unit, structure, plate, terrain) drew with 0 failures, drag turns the model, map heights unchanged after the `TileHeight` move. Still not run in Studio: treaty actions panel / envoy / Propose cards, big map sizes, badge tracking past one command, the wonder scene and rival card, building / government / concept pictures, the caption line, the corrected pyramid.
 
 Earlier open items still standing:
 - Two-player civilization pick contention; owner paths on a published server (need a second account / a published place). Run D.

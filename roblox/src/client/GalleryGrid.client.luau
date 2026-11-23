@@ -13,7 +13,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
-local StructureModels = require(script.Parent:WaitForChild("StructureModels"))
+local StructureModels = require(script.Parent:WaitForChild("StructureCatalog"))
 local StructureBuilder = require(script.Parent:WaitForChild("StructureBuilder"))
 
 local Y = 80 -- floats above any terrain

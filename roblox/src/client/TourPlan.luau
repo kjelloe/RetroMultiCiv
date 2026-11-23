@@ -30,6 +30,7 @@ M.STOPS = {
 	{ id = "diplomacy", panel = "diplomacy", gui = "RMCDiplomacy", title = "Diplomacy", minTexts = 1 },
 	{ id = "overlays", panel = "overlays", gui = "RMCOverlays", title = "Map overlays", minTexts = 3 },
 	{ id = "ship", panel = "ship", gui = "RMCShip", title = "Spaceship", minTexts = 3 },
+	{ id = "wonder", panel = "wonder", gui = "RMCWonderScene", title = "Wonder completion card", minTexts = 5 },
 	{ id = "regent", panel = "regent", gui = "RMCRegentDialog", title = "Regent stance", minTexts = 5 },
 	-- always-on surfaces: measured where they stand, nothing to open
 	{ id = "hud", gui = "RMCHud", title = "Top-left status and End Turn", minTexts = 2, always = true },

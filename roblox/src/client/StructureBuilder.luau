@@ -1,7 +1,7 @@
 -- Builds a StructureModels entry out of Parts (specs/roblox-pedia-art.md).
 -- Returns one list of instances per primitive, bottom-up, so the wonder
 -- scene can raise them in order. The pyramid and the cone fan follow
--- AssetFactory's proven piece placement.
+-- AssetFactory's piece placement (the corner wedge's tall corner on the axis).
 local StructureModels = require(script.Parent:WaitForChild("StructureModels"))
 
 local M = {}
@@ -59,7 +59,7 @@ local function primitive(parent, prim, origin, k)
 		for i = 0, 3 do
 			local p = piece(parent, "CornerWedgePart", prim.role)
 			p.Size = Vector3.new(r, h, r)
-			p.CFrame = base * CFrame.Angles(0, math.rad(90 * i + 180), 0) * CFrame.new(r / 2, h / 2, -r / 2)
+			p.CFrame = base * CFrame.Angles(0, math.rad(90 * i), 0) * CFrame.new(-r / 2, h / 2, r / 2)
 			out[#out + 1] = p
 		end
 	elseif s == "cone" then

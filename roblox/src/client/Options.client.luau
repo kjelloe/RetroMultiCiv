@@ -45,7 +45,7 @@ require(script.Parent:WaitForChild("HudDock")).register(optionsBtn, { id = "opti
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 300)
+panel.Size = UDim2.new(0, 200, 0, 324)
 panel.Position = UDim2.new(1, -208, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
@@ -86,6 +86,7 @@ local autoResearchBtn = toggleButton(200, "") -- session-E round 7
 local discoveryBtn = toggleButton(224, "") -- SO3 tech-discovery cards
 local paletteBtn = toggleButton(248, "") -- SO14 accessibility palette
 local adviceBtn = toggleButton(272, "") -- SO5 advice nudges
+local wonderBtn = toggleButton(296, "") -- the wonder completion scene (off: the card only)
 
 -- always-visible clock readout, left of the top-right button row
 local clockLabel = Instance.new("TextLabel")
@@ -137,6 +138,7 @@ local function paint()
 	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")
 	adviceBtn.Text = ("  advice tips: %s"):format(o.adviceCards ~= false and "ON" or "off")
+	wonderBtn.Text = ("  wonder scenes: %s"):format(o.wonderScenes ~= false and "ON" or "off")
 	-- run-S shot16: the state reads by colour - ON green, off grey, a named choice blue
 	for _, b in ipairs(panel:GetChildren()) do
 		if b:IsA("TextButton") and b.Name ~= "PanelClose" then
@@ -208,6 +210,10 @@ end)
 paletteBtn.Activated:Connect(function()
 	ClientState.options.civPalette = ClientState.options.civPalette == "deuteranopia-safe"
 		and "default" or "deuteranopia-safe"
+	paint()
+end)
+wonderBtn.Activated:Connect(function()
+	ClientState.options.wonderScenes = ClientState.options.wonderScenes == false
 	paint()
 end)
 adviceBtn.Activated:Connect(function()

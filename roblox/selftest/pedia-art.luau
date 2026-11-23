@@ -5,6 +5,8 @@ local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local A = require("../src/client/PediaArt")
 local S = require("../src/client/StructureModels")
+require("../src/client/BuildingModels")(S)
+require("../src/client/EmblemModels")(S)
 local G = require("../src/client/GlyphData")
 local H = require("../src/client/TileHeight")
 local CONCEPTS = require("../src/client/PediaConcepts")
@@ -22,7 +24,7 @@ local function load(name)
 end
 local recipes = serde.decode("json", fs.readFile("data/assets/asset-recipes.json"))
 local terrains = load("terrain").terrains
-local have = { units = recipes.unitSilhouette, structures = S.MODELS, glyphs = G.GLYPH, terrain = terrains }
+local have = { units = recipes.unitSilhouette, structures = S.MODELS, emblems = S.EMBLEMS, glyphs = G.GLYPH, terrain = terrains }
 
 local CATS = { units = load("units"), buildings = load("buildings"), wonders = load("wonders"),
 	techs = load("techs"), governments = load("governments"), terrain = terrains }
@@ -41,12 +43,26 @@ end
 expect("units", "unit")
 expect("techs", "plate")
 expect("terrain", "terrain")
-expect("buildings", nil)
-expect("wonders", nil)
-expect("governments", nil)
+expect("buildings", "structure")
+expect("wonders", "structure")
+expect("governments", "structure")
 for _, c in ipairs(CONCEPTS) do
 	entries[#entries + 1] = { "concepts", c.id }
+	local art = A.resolve("concepts", c.id, have)
+	check("concepts/" .. c.id .. " has an emblem", art.kind == "structure" and art.set == "concepts", art.kind)
 end
+for id in pairs(S.EMBLEMS.concepts) do
+	local known = false
+	for _, c in ipairs(CONCEPTS) do
+		known = known or c.id == id
+	end
+	check("emblem is a concept: " .. id, known)
+end
+for id in pairs(S.EMBLEMS.governments) do
+	check("emblem is a government: " .. id, CATS.governments[id] ~= nil)
+end
+check("a government picture names its set", A.resolve("governments", "monarchy", have).set == "governments")
+check("no emblem table, no picture", A.resolve("governments", "monarchy", { structures = {} }).kind == "none")
 check("entry counts", count.units == 29 and count.techs == 68 and count.terrain == 11 and count.buildings == 21
 	and count.wonders == 22 and count.governments == 6 and #CONCEPTS == 29, #entries)
 
@@ -69,8 +85,16 @@ for _ in pairs(S.MODELS) do
 	nModels += 1
 end
 local missing = A.missing(entries, have)
-check("missing count", #missing == 21 + 22 - nModels + 6 + 29, #missing)
-check("missing is sorted and named cat/id", missing[1] < missing[#missing] and missing[1]:find("/", 1, true) ~= nil)
+check("every entry has a picture", #missing == 0, table.concat(missing, " "))
+check("models cover buildings and wonders", nModels == 43, nModels)
+local some = A.missing({ { "wonders", "b" }, { "wonders", "a" } }, { structures = {} })
+check("missing is sorted and named cat/id", #some == 2 and some[1] == "wonders/a" and some[2] == "wonders/b")
+
+-- the caption line under the picture
+check("caption: cost and requirement", A.caption("wonders", { cost = 300 }, "Masonry") == "300 shields - needs Masonry")
+check("caption: no requirement", A.caption("units", { cost = 10 }, nil) == "10 shields - available from the start")
+check("caption: an advance names its era", A.caption("techs", {}, nil, "ANCIENT") == "ANCIENT ERA")
+check("caption: nothing for a concept", A.caption("concepts", {}, nil) == "" and A.caption("terrain", {}, nil) == "")
 
 -- layout: the box and the text never overlap; no picture -> no box
 for _, w in ipairs({ 240, 300, 359, 360, 444, 600, 900 }) do
@@ -78,7 +102,8 @@ for _, w in ipairs({ 240, 300, 359, 360, 444, 600, 900 }) do
 		local l = A.layout(w, kind)
 		check(("box height at %d"):format(w), l.box.h == (w < 360 and 150 or 240), l.box.h)
 		check(("box inside the pane at %d"):format(w), l.box.x >= 0 and l.box.x + l.box.w <= w and l.box.w > 0)
-		check(("text below the box at %d"):format(w), l.textY >= l.box.y + l.box.h + A.PAD)
+		check(("caption below the box at %d"):format(w), l.captionY >= l.box.y + l.box.h + A.PAD)
+		check(("text below the caption at %d"):format(w), l.textY >= l.captionY + A.CAPTION_H)
 		check(("plate fits the box at %d"):format(w), l.plate > 40 and l.plate <= l.box.h and l.plate <= l.box.w)
 	end
 	local none = A.layout(w, "none")
