@@ -1,6 +1,6 @@
 # marker-0137 — fastengine follow-ups, the soundtrack
 
-**Tag:** `marker-0137` at `7b27b4a` · **merge-consistent — the user may merge this**
+**Tag:** `marker-0137` at `b8222bd` (re-pointed 2026-11-24 after the rebase onto the Roblox lane's `151287b`; first cut at `7b27b4a`, never pushed) · **merge-consistent — the user may merge this**
 (supersedes marker-0136). Golden-neutral: no pinned hash moved. Two
 additive surfaces: a seat-view field and a new music folder.
 
@@ -49,7 +49,7 @@ The tag is local only (no GitHub credentials in the agent shell):
    tunes are gone from the browser; the Music option and master volume
    control the player. The soundboard lists every piece.
 3. **Roblox keeps its two uploaded tunes** (user ruling 2026-11-17). Recorded
-   in workitems-roblox (item 11 closed), docs/13, the brief, and the v2 shelf.
+   in workitems-roblox (item 21 closed; numbered 11 before the rebase onto the Roblox lane's items 11-20), docs/13, the brief, and the v2 shelf.
 
 ## Golden state
 
@@ -62,6 +62,16 @@ hashed; the music is client-only.
   followed it in their #197.
 - fastengine mirrors: new `shared/music-theme.js` and
   `client/music/pieces/*.json`; named in `f632736`.
+
+## Rebase 2026-11-24
+
+dev_night was rebased onto `151287b` (53 Roblox-lane commits: `roblox/`, docs/13,
+`specs/roblox-native-look.md`, `specs/roblox-parity-plan.md`, workitems-roblox items
+11-20; no engine, client or shared change). The only conflicts were in
+`workitems-roblox.md`; the soundtrack item moved from 11 to 21. Commit ids in the
+table above are the pre-rebase ones (`f632736` = `fe3356e`, `1158b95` = `3ce3ad0`,
+`7b27b4a` = `b8222bd`). After the rebase: node suite 1094 tests, 1084 pass, 0 fail,
+10 skipped; roblox/check.sh 52 gates pass (gates 1-2 need rojo, absent here).
 
 ## Test state
 
