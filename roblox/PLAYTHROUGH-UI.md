@@ -64,8 +64,10 @@ skips to the card; afterwards the map view and every HUD part are back.
 wonder scenes off: the card only (the Debug menu row too). Before a game:
 Choose civilization shows a turning scene per civilization with a banner
 in its colours. Map overlays > Resources: food / shield / trade
-icons on the tiles around the view, following a pan. City view: the tile
-icons fill the tile. K (Studio) shows all 43 wonder and
+icons (wheat ear, coin, two arrows) on a dark chip on the tiles around the
+view, following a pan. City view: the same icons fill the tile, AUTO on
+the centre at 60 % of the label height; a click still places / removes a
+worker. Log: `[YieldLabel] icons drawn`. K (Studio) shows all 43 wonder and
 building models behind the gallery grid. Badges:
 `after-run.js` lists the keys a game earned; a tour run uses debug
 commands, so that game earns none afterwards.

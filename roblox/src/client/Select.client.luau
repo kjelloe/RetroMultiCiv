@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- R14
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
+local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities")) -- runI item 16: tileYields
 
 local TILE = ClientState.TILE
@@ -62,10 +63,6 @@ do
 	l.Padding = UDim.new(0, 4)
 	l.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	l.Parent = cardRoot
-end
-local function cardIconRun(n, glyph, color)
-	if n == nil or n <= 0 then return "" end
-	return ('<font color="%s">%s</font>'):format(color, string.rep(glyph, n))
 end
 local function hideTileCard()
 	cardRoot.Visible = false
@@ -117,10 +114,7 @@ local function showTileCard(view, tx, ty, tile)
 	end
 	order += 1
 	local ok, y = pcall(citiesModule.tileYields, tile, rs)
-	local yields = ok and y ~= nil and (
-		cardIconRun(y.food, "\u{25CF}", "#7fd08a") .. " "
-		.. cardIconRun(y.shields, "\u{25AE}", "#c8c8c8") .. " "
-		.. cardIconRun(y.trade, "\u{25C6}", "#e0c060")) or ""
+	local yields = ok and y ~= nil and YieldIcons.inline(y) or ""
 	local imps = {}
 	if tile.road then table.insert(imps, "road") end
 	if tile.railroad then table.insert(imps, "rail") end

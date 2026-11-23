@@ -20,7 +20,7 @@ function analyse(text) {
   const r = {
     init: null, lastTurn: 0, final: null, commands: 0, refused: 0, refusedBy: {}, refusedByType: {},
     clientRejects: 0, notSent: 0, diagFail: [], warnings: 0, errors: 0,
-    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null, badges: [], pictures: {}, scenes: { played: {}, done: 0, skipped: 0 },
+    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null, badges: [], pictures: {}, scenes: { played: {}, done: 0, skipped: 0 }, gallery: null, resources: 0, yieldIcons: false,
   };
   const stamp = {};
   for (const line of lines) {
@@ -61,6 +61,9 @@ function analyse(text) {
     else if ((x = /^\[RMC-BADGE\] earned (\S+)/.exec(msg))) r.badges.push(x[1]);
     else if ((x = /^\[WonderScene\] play \S+ mode=(\S+)/.exec(msg))) r.scenes.played[x[1]] = (r.scenes.played[x[1]] || 0) + 1;
     else if ((x = /^\[WonderScene\] done \S+ skipped=(\S+) camera=restored/.exec(msg))) { r.scenes.done++; if (x[1] === 'true') r.scenes.skipped++; }
+    else if ((x = /^\[CivGallery\] open pictures=(\S+)/.exec(msg))) r.gallery = { opens: (r.gallery ? r.gallery.opens : 0) + 1, pictures: x[1] };
+    else if (msg.startsWith('[Overlays] resources on')) r.resources += 1;
+    else if (msg.startsWith('[YieldLabel] icons drawn')) r.yieldIcons = true;
     else if ((x = /^\[Pedia\] picture \S+ kind=(\S+)/.exec(msg))) r.pictures[x[1]] = (r.pictures[x[1]] || 0) + 1;
   }
   // seconds per turn over four equal spans of the turns that carry a time stamp
@@ -101,6 +104,8 @@ function render(r, extra) {
   if (r.init) out.push(`badges: ${r.badges.length} earned${r.badges.length ? ' - ' + r.badges.join(', ') : ''}`);
   if (Object.keys(r.pictures).length) out.push(`encyclopedia pictures: ${top(r.pictures)}`);
   if (Object.keys(r.scenes.played).length) out.push(`wonder scenes: ${top(r.scenes.played)}; ${r.scenes.done} ended with the camera restored, ${r.scenes.skipped} skipped`);
+  if (r.gallery) out.push(`civ gallery: opened ${r.gallery.opens}, pictures ${r.gallery.pictures}`);
+  if (r.resources || r.yieldIcons) out.push(`yield icons: ${r.yieldIcons ? 'drawn' : 'not drawn (glyph text shown)'}; Resources overlay switched on ${r.resources} time(s)`);
   if (extra.replay) out.push(`replay: ${extra.replay}`);
   return out.join('\n');
 }

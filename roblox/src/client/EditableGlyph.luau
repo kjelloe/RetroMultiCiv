@@ -220,27 +220,15 @@ function M.renderPrims(parent, prims, px, ink)
 		Diag.fail("icon", "unknown icon id", "no MenuIcons entry")
 		return nil
 	end
-	local ok, img = pcall(function()
-		return AssetService:CreateEditableImage({ Size = Vector2.new(RES, RES) })
-	end)
-	if not ok or img == nil then
-		Diag.fail("icon", "CreateEditableImage (buttons stay text-only; check Game Settings > Security > Allow Mesh / Image APIs)", img)
-		return nil
-	end
-	local drawn, drawErr = pcall(function()
-		for _, pr in ipairs(prims) do
-			drawPrim(img, pr, ink)
-		end
-	end)
-	if not drawn then
-		Diag.fail("icon", "draw (buttons stay text-only)", drawErr)
+	local content = M.primsContent(prims, ink)
+	if content == nil then
 		return nil
 	end
 	local label = Instance.new("ImageLabel")
 	label.Size = UDim2.fromOffset(px, px)
 	label.BackgroundTransparency = 1
 	label.Active = false
-	local set, setErr = pcall(function() label.ImageContent = Content.fromObject(img) end)
+	local set, setErr = pcall(function() label.ImageContent = content end)
 	if not set then
 		Diag.fail("icon", "ImageContent (buttons stay text-only)", setErr)
 		label:Destroy()
@@ -249,6 +237,36 @@ function M.renderPrims(parent, prims, px, ink)
 	Diag.count("icon", "rendered")
 	label.Parent = parent
 	return label
+end
+
+-- The drawn image alone, as a Content any number of ImageLabels can show
+-- (the yield icons: one image per resource, hundreds of labels). A prim with
+-- shade = true is drawn in a darker ink (two tones from one colour).
+-- nil + a Diag.fail when EditableImage is unavailable.
+function M.primsContent(prims, ink)
+	local ok, img = pcall(function()
+		return AssetService:CreateEditableImage({ Size = Vector2.new(RES, RES) })
+	end)
+	if not ok or img == nil then
+		Diag.fail("icon", "CreateEditableImage (buttons stay text-only; check Game Settings > Security > Allow Mesh / Image APIs)", img)
+		return nil
+	end
+	local dark = ink:Lerp(Color3.new(0, 0, 0), 0.5)
+	local drawn, drawErr = pcall(function()
+		for _, pr in ipairs(prims) do
+			drawPrim(img, pr, pr.shade and dark or ink)
+		end
+	end)
+	if not drawn then
+		Diag.fail("icon", "draw (buttons stay text-only)", drawErr)
+		return nil
+	end
+	local made, content = pcall(Content.fromObject, img)
+	if not made then
+		Diag.fail("icon", "Content.fromObject (buttons stay text-only)", content)
+		return nil
+	end
+	return content
 end
 
 M.PRIMITIVE_KINDS = KINDS -- gate 31: every kind GlyphData uses must be a key here

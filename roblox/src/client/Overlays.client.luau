@@ -16,6 +16,7 @@ local RunService = game:GetService("RunService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local Palette = require(script.Parent:WaitForChild("Palette"))
 local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
+local YieldLabel = require(script.Parent:WaitForChild("YieldLabel"))
 local Diag = require(script.Parent:WaitForChild("Diag"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
@@ -143,7 +144,7 @@ end
 local resHome = Instance.new("Folder")
 resHome.Name = "ResourceLabels"
 resHome.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-local resLabels = {} -- tile index -> { bb, label }
+local resLabels = {} -- tile index -> { bb, label, sig }
 local resAt = nil -- { x, y } the window was built around
 local function clearResources()
 	resHome:ClearAllChildren()
@@ -171,16 +172,18 @@ local function drawResources()
 			local part = terrain:FindFirstChild(("Tile_%d_%d"):format(x, y))
 			if tile ~= nil and tile.t ~= "unknown" and part ~= nil then -- fog-honest
 				local ok, yl = pcall(citiesModule.tileYields, tile, rs)
-				local text = ok and YieldIcons.text(yl) or ""
 				local e = resLabels[idx]
-				if text ~= "" then
+				if ok and #YieldIcons.rows(yl) > 0 then
 					if e == nil then
 						local bb = Instance.new("BillboardGui")
 						bb.Size = UDim2.fromScale(TILE * YieldIcons.LABEL.w, TILE * YieldIcons.LABEL.h)
 						bb.AlwaysOnTop = true
+						bb.MaxDistance = 600 -- not drawn from the wonder stage, far off the map
 						local label = Instance.new("TextLabel")
 						label.Size = UDim2.fromScale(1, 1)
-						label.BackgroundTransparency = 1
+						label.BackgroundColor3 = Color3.fromRGB(16, 20, 28) -- the icons read on grass and on desert
+						label.BackgroundTransparency = 0.45
+						label.BorderSizePixel = 0
 						label.RichText = true
 						label.TextScaled = true
 						label.Font = Enum.Font.Code
@@ -193,8 +196,10 @@ local function drawResources()
 					end
 					e.bb.Adornee = part
 					e.bb.StudsOffsetWorldSpace = Vector3.new(0, part.Size.Y / 2 + 1.2, 0)
-					if e.label.Text ~= text then
-						e.label.Text = text
+					local sig = YieldIcons.signature(yl)
+					if e.sig ~= sig then
+						e.sig = sig
+						e.label.Text = YieldLabel.fill(e.label, yl) and "" or YieldIcons.text(yl)
 					end
 					keep[idx] = true
 					n += 1

@@ -1056,12 +1056,25 @@ seat/reset flow; JS engine untouched). Delivered:
   tag, escaped body; the narrator strings themselves are unchanged, so
   the browser parity gates 17 / 22 / 28 / 29 hold); gate 47. The four
   **Resources overlay / yield labels** - `YieldIcons.luau` (pure, gate
-  68): one row per resource, one glyph per point. `WorkedTiles` sizes the
-  city view's tile label in studs (`YieldIcons.LABEL`, fills the tile).
-  Map overlays has a fourth switch, Resources: a label on every known tile
-  within `YieldIcons.RADIUS` (9) tiles of `ClientState.cameraFocus`,
-  rebuilt after a pan of `STEP` tiles, hidden while a city view is open;
-  log line `[Overlays] resources on: N tile label(s) around x,y`.
+  68): one row per resource, one icon per point. The icons are drawn
+  (`YieldIcons.ICONS`, EditableGlyph primitives: food an ear of wheat,
+  shields a coin with a darker inner ring via `shade`, trade two arrows
+  passing each other; colours stay food green / shields silver / trade
+  gold). `YieldLabel.fill(box, yields)` draws the rows as one tiled
+  `ImageLabel` per resource; all labels share one image per resource
+  (`EditableGlyph.primsContent`). When images cannot be drawn the glyph
+  text (`YieldIcons.text`) is shown. The tile info card uses
+  `YieldIcons.inline`. `WorkedTiles` sizes the city view's tile label in
+  studs (`YieldIcons.LABEL`, fills the tile); the centre's AUTO word is
+  `AUTO_SCALE` (0.6) of the label height. Map overlays has a fourth
+  switch, Resources: a label (dark backdrop) on every known tile within
+  `YieldIcons.RADIUS` (9) tiles of `ClientState.cameraFocus`, rebuilt
+  after a pan of `STEP` tiles, redrawn only when a tile's yields change,
+  hidden while a city view is open, `MaxDistance` 600. Log lines
+  `[Overlays] resources on: N tile label(s) around x,y`, `[YieldLabel]
+  icons drawn: ...`; `after-run.js` reports both and the civ gallery
+  line. Headless sheet: `node roblox/tools/icon-preview.js --out
+  roblox/art/yield-icons.png`.
   bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
   at x = 206, beside the 190 px button column, not over it.
   Statistics (J): civ cards + wonders + chart (Score, Population, Cities, Techs chips) in one scrolling

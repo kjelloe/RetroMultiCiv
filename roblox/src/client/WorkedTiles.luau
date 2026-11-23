@@ -16,6 +16,7 @@ local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
+local YieldLabel = require(script.Parent:WaitForChild("YieldLabel"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
 local TILE = ClientState.TILE
@@ -104,7 +105,23 @@ local function quad(c, worked, isCenter, onClick)
 	btn.TextColor3 = Color3.fromRGB(235, 235, 235)
 	btn.Font = Enum.Font.Code
 	btn.TextSize = 14
-	btn.Text = isCenter and "AUTO" or YieldIcons.text(c.yields)
+	btn.Text = ""
+	if isCenter then -- the word at AUTO_SCALE of the label's height
+		local auto = Instance.new("TextLabel")
+		auto.AnchorPoint = Vector2.new(0.5, 0.5)
+		auto.Position = UDim2.fromScale(0.5, 0.5)
+		auto.Size = UDim2.fromScale(1, YieldIcons.AUTO_SCALE)
+		auto.BackgroundTransparency = 1
+		auto.Active = false
+		auto.Font = Enum.Font.Code
+		auto.TextScaled = true
+		auto.TextColor3 = Color3.fromRGB(235, 235, 235)
+		auto.TextStrokeTransparency = 0.3
+		auto.Text = "AUTO"
+		auto.Parent = btn
+	elseif not YieldLabel.fill(btn, c.yields) then
+		btn.Text = YieldIcons.text(c.yields)
+	end
 	btn.Parent = bb
 	bb.Parent = bbHome
 	btn.Activated:Connect(onClick)

@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -1013,10 +1013,16 @@ else
 fi
 
 # gate 68 — tile yield icon rows (YieldIcons): one row per resource, one
-# glyph per point, the label sized in studs to fill its tile (city view) and
+# icon per point (drawn: wheat, coin, two arrows; glyph text as fallback), the label sized in studs to fill its tile (city view) and
 # the map's Resources overlay window around the camera focus
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/yield-icons.luau >/dev/null 2>&1 \
+     && lune run roblox/tools/icon-export.luau 2>/dev/null | grep -q '"icons":\[{' \
+     && grep -q 'YieldLabel.fill(btn, c.yields)' roblox/src/client/WorkedTiles.luau \
+     && grep -q 'UDim2.fromScale(1, YieldIcons.AUTO_SCALE)' roblox/src/client/WorkedTiles.luau \
+     && grep -q 'YieldLabel.fill(e.label, yl)' roblox/src/client/Overlays.client.luau \
+     && grep -q 'YieldIcons.inline(y)' roblox/src/client/Select.client.luau \
+     && grep -q 'drawPrim(img, pr, pr.shade and dark or ink)' roblox/src/client/EditableGlyph.luau \
      && grep -q 'YieldIcons.text(c.yields)' roblox/src/client/WorkedTiles.luau \
      && grep -q 'UDim2.fromScale(TILE \* YieldIcons.LABEL.w' roblox/src/client/WorkedTiles.luau \
      && grep -q 'toggleRow(78, "resources", "Resources"' roblox/src/client/Overlays.client.luau \

@@ -22,6 +22,7 @@ no engine, state, command, or shared-recipe change; gamesim-golden-neutral.
 |---|---|
 | UI style | chunky game-style: thick rounded buttons, rounded display font, dark outline, gradient, icon + short label, press/hover feedback |
 | icons | drawn in code (the EditableImage glyph renderer) — no uploads |
+| tile yields | user 2026-11-24: pictures, not abstract glyphs — food an ear of wheat, shields a coin, trade two arrows passing; labels sized to fill the tile; a Resources map overlay (`YieldIcons`, `YieldLabel`, gate 68) |
 | terrain | sculpted parts per tile; tile blocks stay (no EditableMesh, no voxel Terrain) |
 | order | UI buttons first, terrain second |
 | button colours | one colour per ROLE (as built): `menu` blue, `go` green, `danger` red, `space` purple, `science` amber, `neutral` slate |
