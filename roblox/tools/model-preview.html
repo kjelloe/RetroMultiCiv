@@ -1,0 +1,120 @@
+<!doctype html>
+<!-- roblox/tools/model-preview.js: draws preview/sheet.json. Up to four
+     models: each from its own camera (top row) and from above (bottom row).
+     More: one view each in a grid. Flat light, no shadows, on the
+     encyclopedia's pane colour - what a ViewportFrame shows. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body { margin: 0; background: #1a1e28; overflow: hidden; }
+    .label { position: absolute; color: #e8e8e8; font: 600 15px sans-serif; padding: 6px 10px; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../../client/vendor/three.module.min.js" } }
+  </script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+
+const W = 1280, H = 800;
+const sheet = await (await fetch('preview/sheet.json')).json();
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H);
+renderer.setScissorTest(true);
+document.body.appendChild(renderer.domElement);
+
+const mats = {};
+const mat = hex => (mats[hex] = mats[hex] || new THREE.MeshLambertMaterial({ color: hex, flatShading: true, side: THREE.DoubleSide }));
+
+function wedge(w, h, d) { // ramp, high edge at +z, base on y = 0
+  const x = w / 2, z = d / 2;
+  const v = [[-x, 0, -z], [x, 0, -z], [x, 0, z], [-x, 0, z], [-x, h, z], [x, h, z]];
+  const tris = [[0, 1, 2], [0, 2, 3], [3, 2, 5], [3, 5, 4], [0, 4, 5], [0, 5, 1], [0, 3, 4], [1, 5, 2]];
+  const pos = [];
+  for (const t of tris) for (const i of t) pos.push(...v[i]);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.computeVertexNormals();
+  return g;
+}
+
+function mesh(p, roles) {
+  const [w, h, d] = p.size;
+  let g, lift = h / 2, spin = 0;
+  if (p.s === 'box') g = new THREE.BoxGeometry(w, h, d);
+  else if (p.s === 'cyl') g = new THREE.CylinderGeometry(w / 2, w / 2, h, 16);
+  else if (p.s === 'ball') { g = new THREE.SphereGeometry(w / 2, 16, 12); lift = w / 2; }
+  else if (p.s === 'pyramid') { g = new THREE.ConeGeometry(w / Math.SQRT2, h, 4); spin = Math.PI / 4; }
+  else if (p.s === 'cone') g = new THREE.ConeGeometry(w / 2, h, 8);
+  else if (p.s === 'wedge') { g = wedge(w, h, d); lift = 0; }
+  else throw new Error('unknown shape ' + p.s);
+  const m = new THREE.Mesh(g, mat(roles[p.role]));
+  m.rotation.y = spin;
+  const holder = new THREE.Group();
+  holder.add(m);
+  m.position.y = lift;
+  holder.position.set(p.at[0], p.at[1], p.at[2]);
+  holder.rotation.y = (p.yaw || 0) * Math.PI / 180;
+  return holder;
+}
+
+function sceneOf(cell) {
+  const s = new THREE.Scene();
+  s.background = new THREE.Color('#1a1e28');
+  s.add(new THREE.AmbientLight(0xffffff, 1.5));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.9);
+  sun.position.set(-4, 9, 6);
+  s.add(sun);
+  const span = sheet.half * 2 + 5;
+  const ground = new THREE.Mesh(new THREE.CylinderGeometry(span / 2, span / 2, 0.3, 40), mat(cell.ground));
+  ground.position.y = -0.15;
+  s.add(ground);
+  let top = 1;
+  for (const p of cell.parts) { s.add(mesh(p, sheet.roles)); top = Math.max(top, p.at[1] + p.size[1]); }
+  s.userData.top = top;
+  return s;
+}
+
+function cameraFor(cell, top, aspect, pitchOverride) {
+  const cam = new THREE.PerspectiveCamera(30, aspect, 0.1, 500);
+  const yaw = (cell.camera.yaw * Math.PI) / 180;
+  const pitch = ((pitchOverride ?? cell.camera.pitch) * Math.PI) / 180;
+  const dist = (cell.camera.fit * 9.2) / Math.tan((15 * Math.PI) / 180) / Math.max(1, Math.min(aspect, 1.25));
+  const target = new THREE.Vector3(0, top * 0.4, 0);
+  cam.position.set(target.x + Math.sin(yaw) * Math.cos(pitch) * dist, target.y + Math.sin(pitch) * dist, target.z + Math.cos(yaw) * Math.cos(pitch) * dist);
+  cam.lookAt(target);
+  return cam;
+}
+
+const n = sheet.cells.length;
+const two = n <= 4;
+const cols = two ? n : Math.ceil(Math.sqrt(n * 1.6));
+const rows = two ? 2 : Math.ceil(n / cols);
+const cw = W / cols, ch = H / rows;
+const scenes = sheet.cells.map(sceneOf);
+function draw() {
+  sheet.cells.forEach((cell, i) => {
+    const views = two ? [[i, 0, null], [i, 1, 52]] : [[i % cols, Math.floor(i / cols), null]];
+    for (const [cx, cy, pitch] of views) {
+      const x = cx * cw + 2, y = H - (cy + 1) * ch + 2;
+      renderer.setViewport(x, y, cw - 4, ch - 4);
+      renderer.setScissor(x, y, cw - 4, ch - 4);
+      renderer.render(scenes[i], cameraFor(cell, scenes[i].userData.top, (cw - 4) / (ch - 4), pitch));
+    }
+  });
+}
+sheet.cells.forEach((cell, i) => {
+  const l = document.createElement('div');
+  l.className = 'label';
+  l.textContent = cell.label;
+  l.style.left = (two ? i : i % cols) * cw + 'px';
+  l.style.top = (two ? 0 : Math.floor(i / cols)) * ch + 'px';
+  document.body.appendChild(l);
+});
+draw();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

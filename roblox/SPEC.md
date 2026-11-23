@@ -1160,6 +1160,15 @@ seat/reset flow; JS engine untouched). Delivered:
   and calls BadgeService only for a non-zero id in `BadgeIds`, outside
   Studio, in its own thread. `BadgeIds` is all 0 until the user creates
   the badges. `after-run.js` prints the earned keys.
+  STRUCTURE MODELS (specs/roblox-pedia-art.md P0, gate 65):
+  `client/StructureModels.luau` holds wonder / building models as data
+  (box, cyl, cone, pyramid, wedge, ball, arch; colour and material by
+  role; 12 x 12 x 12 box, at most 80 parts, bottom-up). `StructureBuilder`
+  makes the Parts and returns them grouped per primitive in build order.
+  `node roblox/tools/model-preview.js (--variants <id> | --models <ids|all>)
+  --out file.png` draws the same primitive list headless; read the PNG
+  before asking for a Studio look. `VARIANTS` holds style candidates, shown
+  behind the gallery grid (K).
   MAP SIZES (same ruling): the host setup offers large 104x65, xlarge
   128x80 and huge 160x100 beside the three small sizes, labelled "(slow
   turns)" / "(very slow)". No game on them has been run in Studio.

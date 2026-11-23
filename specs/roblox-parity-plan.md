@@ -10,7 +10,7 @@ engine port already accepts.
 - 205 browser features: 141 available, 24 partial, 25 missing, 15 n/a
   (revision 1 started at 115 / 37 / 39).
 - 18 scenarios: 11 playable, 3 degraded, 4 blocked (started at 6 / 2 / 10).
-- 64 gates. Four regent games replayed hash-exact. The latest, session
+- 65 gates. Four regent games replayed hash-exact. The latest, session
   2026-11-16 14:51Z: 546 turns, 0 errors, 0 diagnostics failures, tour 20
   of 20.
 - Built under revision 1: step 0 (tour, `after-run.js`, top-row pins),

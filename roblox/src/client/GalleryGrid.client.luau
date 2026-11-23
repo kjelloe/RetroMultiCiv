@@ -13,6 +13,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
+local StructureModels = require(script.Parent:WaitForChild("StructureModels"))
+local StructureBuilder = require(script.Parent:WaitForChild("StructureBuilder"))
 
 local Y = 80 -- floats above any terrain
 local STEP = 8
@@ -102,6 +104,20 @@ local function build()
 		label(model, key, CFrame.new(col * STEP, Y, zC))
 		model.Parent = folder
 		col += 1
+	end
+
+	-- pedia-art P0: the style variants of a structure, side by side behind the grid
+	local nStruct = 0
+	for id, list in pairs(StructureModels.VARIANTS) do
+		for i, v in ipairs(list) do
+			local model = Instance.new("Model")
+			model.Name = ("S_%s_%s"):format(id, v.key)
+			local at = CFrame.new(-20 - (i - 1) * 20, Y, nStruct * 20)
+			StructureBuilder.build(model, v, at, 1)
+			label(model, ("%s %s: %s"):format(id, v.key, v.name), at)
+			model.Parent = folder
+		end
+		nStruct += 1
 	end
 
 	folder.Parent = workspace
