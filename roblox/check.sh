@@ -1020,7 +1020,8 @@ if command -v lune >/dev/null 2>&1; then
      && lune run roblox/tools/icon-export.luau 2>/dev/null | grep -q '"icons":\[{' \
      && grep -q 'YieldLabel.fill(btn, c.yields)' roblox/src/client/WorkedTiles.luau \
      && grep -q 'UDim2.fromScale(1, YieldIcons.AUTO_SCALE)' roblox/src/client/WorkedTiles.luau \
-     && grep -q 'YieldLabel.fill(e.label, yl)' roblox/src/client/Overlays.client.luau \
+     && grep -q 'YieldLabel.fill(e.label, yl, true)' roblox/src/client/Overlays.client.luau \
+     && grep -q 'sg.Face = Enum.NormalId.Top' roblox/src/client/Overlays.client.luau \
      && grep -q 'YieldIcons.inline(y)' roblox/src/client/Select.client.luau \
      && grep -q 'drawPrim(img, pr, pr.shade and dark or ink)' roblox/src/client/EditableGlyph.luau \
      && grep -q 'YieldIcons.text(c.yields)' roblox/src/client/WorkedTiles.luau \

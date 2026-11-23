@@ -138,16 +138,20 @@ local function redraw()
 	end
 end
 
--- Resources: one stud-sized label per known tile in the window around the
--- camera focus, adorned to the tile's own part; rebuilt when the focus has
+-- Resources: one label per known tile in the window around the camera
+-- focus, lying flat just above the tile (no backdrop); rebuilt when the focus has
 -- moved YieldIcons.STEP tiles, refreshed on every view
 local resHome = Instance.new("Folder")
 resHome.Name = "ResourceLabels"
 resHome.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-local resLabels = {} -- tile index -> { bb, label, sig }
+local resLabels = {} -- tile index -> { plate, gui, label, sig }
 local resAt = nil -- { x, y } the window was built around
+local folderRes = Instance.new("Folder")
+folderRes.Name = "ResourcePlates"
+folderRes.Parent = workspace
 local function clearResources()
 	resHome:ClearAllChildren()
+	folderRes:ClearAllChildren()
 	resLabels, resAt = {}, nil
 end
 local function drawResources()
@@ -175,31 +179,43 @@ local function drawResources()
 				local e = resLabels[idx]
 				if ok and #YieldIcons.rows(yl) > 0 then
 					if e == nil then
-						local bb = Instance.new("BillboardGui")
-						bb.Size = UDim2.fromScale(TILE * YieldIcons.LABEL.w, TILE * YieldIcons.LABEL.h)
-						bb.AlwaysOnTop = true
-						bb.MaxDistance = 600 -- not drawn from the wonder stage, far off the map
+						-- a clear plate just above the tile; the label is on its top face
+						local plate = Instance.new("Part")
+						plate.Anchored = true
+						plate.CanCollide = false
+						plate.CanQuery = false
+						plate.CanTouch = false
+						plate.CastShadow = false
+						plate.Transparency = 1
+						plate.Size = Vector3.new(TILE * YieldIcons.LABEL.w, 0.05, TILE * YieldIcons.LABEL.h)
+						plate.Parent = folderRes
+						local sg = Instance.new("SurfaceGui")
+						sg.Face = Enum.NormalId.Top
+						sg.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+						sg.CanvasSize = Vector2.new(YieldIcons.PIXELS, YieldIcons.PIXELS * YieldIcons.LABEL.h / YieldIcons.LABEL.w)
+						sg.LightInfluence = 0
+						sg.AlwaysOnTop = true -- trees and peaks do not hide a tile's label
+						sg.MaxDistance = 600 -- not drawn from the wonder stage, far off the map
+						sg.Adornee = plate
 						local label = Instance.new("TextLabel")
 						label.Size = UDim2.fromScale(1, 1)
-						label.BackgroundColor3 = Color3.fromRGB(16, 20, 28) -- the icons read on grass and on desert
-						label.BackgroundTransparency = 0.45
-						label.BorderSizePixel = 0
+						label.BackgroundTransparency = 1
 						label.RichText = true
 						label.TextScaled = true
 						label.Font = Enum.Font.Code
 						label.TextColor3 = Color3.fromRGB(235, 235, 235)
 						label.TextStrokeTransparency = 0.25
-						label.Parent = bb
-						bb.Parent = resHome
-						e = { bb = bb, label = label }
+						label.Text = ""
+						label.Parent = sg
+						sg.Parent = resHome
+						e = { plate = plate, gui = sg, label = label }
 						resLabels[idx] = e
 					end
-					e.bb.Adornee = part
-					e.bb.StudsOffsetWorldSpace = Vector3.new(0, part.Size.Y / 2 + 1.2, 0)
+					e.plate.CFrame = CFrame.new(part.Position.X, part.Position.Y + part.Size.Y / 2 + YieldIcons.LIFT, part.Position.Z)
 					local sig = YieldIcons.signature(yl)
 					if e.sig ~= sig then
 						e.sig = sig
-						e.label.Text = YieldLabel.fill(e.label, yl) and "" or YieldIcons.text(yl)
+						e.label.Text = YieldLabel.fill(e.label, yl, true) and "" or YieldIcons.text(yl)
 					end
 					keep[idx] = true
 					n += 1
@@ -209,7 +225,8 @@ local function drawResources()
 	end
 	for idx, e in pairs(resLabels) do
 		if not keep[idx] then
-			e.bb:Destroy()
+			e.gui:Destroy()
+			e.plate:Destroy()
 			resLabels[idx] = nil
 		end
 	end

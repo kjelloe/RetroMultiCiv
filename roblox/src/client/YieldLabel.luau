@@ -30,8 +30,27 @@ local function contents()
 	return content
 end
 
--- box = a GuiObject; replaces the rows it holds. -> true when drawn
-function M.fill(box, yields)
+local function rowLabel(box, row, image, dx, dy)
+	local label = Instance.new("ImageLabel")
+	label.Name = "YieldRow"
+	label.AnchorPoint = Vector2.new(0.5, 0)
+	label.Position = UDim2.fromScale(0.5 + dx, row.y + dy)
+	label.Size = UDim2.fromScale(1, row.h)
+	label.BackgroundTransparency = 1
+	label.Active = false
+	label.ImageContent = image
+	label.ScaleType = Enum.ScaleType.Tile
+	label.TileSize = UDim2.fromScale(1 / row.n, 1)
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = row.n
+	aspect.Parent = label
+	label.Parent = box
+	return label
+end
+
+-- box = a GuiObject; replaces the rows it holds. shadow = a dark copy
+-- behind each row (labels with no backdrop). -> true when drawn
+function M.fill(box, yields, shadow)
 	local imgs = contents()
 	if not imgs then
 		return false
@@ -42,20 +61,12 @@ function M.fill(box, yields)
 		end
 	end
 	for _, row in ipairs(YieldIcons.layout(yields)) do
-		local label = Instance.new("ImageLabel")
-		label.Name = "YieldRow"
-		label.AnchorPoint = Vector2.new(0.5, 0)
-		label.Position = UDim2.fromScale(0.5, row.y)
-		label.Size = UDim2.fromScale(1, row.h)
-		label.BackgroundTransparency = 1
-		label.Active = false
-		label.ImageContent = imgs[row.key]
-		label.ScaleType = Enum.ScaleType.Tile
-		label.TileSize = UDim2.fromScale(1 / row.n, 1)
-		local aspect = Instance.new("UIAspectRatioConstraint")
-		aspect.AspectRatio = row.n
-		aspect.Parent = label
-		label.Parent = box
+		if shadow then
+			local dark = rowLabel(box, row, imgs[row.key], YieldIcons.SHADOW, YieldIcons.SHADOW)
+			dark.ImageColor3 = Color3.new(0, 0, 0)
+			dark.ImageTransparency = 0.3
+		end
+		rowLabel(box, row, imgs[row.key], 0, 0).ZIndex = 2
 	end
 	return true
 end

@@ -1067,7 +1067,9 @@ seat/reset flow; JS engine untouched). Delivered:
   `YieldIcons.inline`. `WorkedTiles` sizes the city view's tile label in
   studs (`YieldIcons.LABEL`, fills the tile); the centre's AUTO word is
   `AUTO_SCALE` (0.6) of the label height. Map overlays has a fourth
-  switch, Resources: a label (dark backdrop) on every known tile within
+  switch, Resources: a label lying flat `YieldIcons.LIFT` studs above the
+  tile top (a `SurfaceGui` on a clear plate, no backdrop, a dark shadow
+  copy of each row, drawn over props) on every known tile within
   `YieldIcons.RADIUS` (9) tiles of `ClientState.cameraFocus`, rebuilt
   after a pan of `STEP` tiles, redrawn only when a tile's yields change,
   hidden while a city view is open, `MaxDistance` 600. Log lines

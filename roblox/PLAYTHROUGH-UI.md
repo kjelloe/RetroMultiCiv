@@ -64,7 +64,7 @@ skips to the card; afterwards the map view and every HUD part are back.
 wonder scenes off: the card only (the Debug menu row too). Before a game:
 Choose civilization shows a turning scene per civilization with a banner
 in its colours. Map overlays > Resources: food / shield / trade
-icons (wheat ear, coin, two arrows) on a dark chip on the tiles around the
+icons (wheat ear, coin, two arrows) lying flat on the tiles around the
 view, following a pan. City view: the same icons fill the tile, AUTO on
 the centre at 60 % of the label height; a click still places / removes a
 worker. Log: `[YieldLabel] icons drawn`. K (Studio) shows all 43 wonder and

@@ -88,6 +88,13 @@ function M.inline(y)
 	return table.concat(runs, " ")
 end
 
+-- the Resources overlay lies flat on the tile, this many studs above its
+-- top, with no backdrop; a dark copy of each row, offset by SHADOW of the
+-- label, keeps the icons readable on grass and desert
+M.LIFT = 0.2
+M.SHADOW = 0.025
+M.PIXELS = 160 -- label canvas width in pixels
+
 -- the map overlay labels only the tiles around the camera focus
 M.RADIUS = 9
 M.STEP = 2 -- tiles the focus moves before the window is rebuilt

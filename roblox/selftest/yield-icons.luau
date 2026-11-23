@@ -65,6 +65,7 @@ check("one row sits in the middle", #lay == 1 and math.abs(lay[1].y - 1 / 3) < 1
 check("signature follows the yields", Y.signature({ food = 2, shields = 0, trade = 1 }) == "2/0/1" and Y.signature(nil) == "0/0/0")
 check("inline text is one line", Y.inline({ food = 2, shields = 1, trade = 1 }):find("\n") == nil and Y.inline({}) == "")
 check("AUTO is 60 % of the label height", Y.AUTO_SCALE == 0.6)
+check("the overlay label sits just above the tile", Y.LIFT > 0 and Y.LIFT <= 0.5 and Y.SHADOW > 0 and Y.SHADOW <= 0.05 and Y.PIXELS >= 96)
 
 if fails > 0 then
 	error(("yield-icons: %d failure(s)"):format(fails))
