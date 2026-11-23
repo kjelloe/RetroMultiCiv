@@ -29,7 +29,7 @@ end
 local function primitive(parent, prim, origin, k)
 	local w, h, d = prim.size[1] * k, prim.size[2] * k, prim.size[3] * k
 	local base = origin * CFrame.new(prim.at[1] * k, prim.at[2] * k, prim.at[3] * k)
-		* CFrame.Angles(0, math.rad(prim.yaw or 0), 0)
+		* CFrame.Angles(0, math.rad(prim.yaw or 0), 0) * CFrame.Angles(math.rad(prim.tilt or 0), 0, 0)
 	local out = {}
 	local s = prim.s
 	if s == "box" then

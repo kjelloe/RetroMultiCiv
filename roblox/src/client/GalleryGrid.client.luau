@@ -106,18 +106,19 @@ local function build()
 		col += 1
 	end
 
-	-- pedia-art P0: the style variants of a structure, side by side behind the grid
-	local nStruct = 0
-	for id, list in pairs(StructureModels.VARIANTS) do
-		for i, v in ipairs(list) do
-			local model = Instance.new("Model")
-			model.Name = ("S_%s_%s"):format(id, v.key)
-			local at = CFrame.new(-20 - (i - 1) * 20, Y, nStruct * 20)
-			StructureBuilder.build(model, v, at, 1)
-			label(model, ("%s %s: %s"):format(id, v.key, v.name), at)
-			model.Parent = folder
-		end
-		nStruct += 1
+	-- pedia-art: every structure model in a row block behind the grid
+	local ids = {}
+	for id in pairs(StructureModels.MODELS) do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	for i, id in ipairs(ids) do
+		local model = Instance.new("Model")
+		model.Name = "S_" .. id
+		local at = CFrame.new(-20 - ((i - 1) % 6) * 18, Y, math.floor((i - 1) / 6) * 18)
+		StructureBuilder.build(model, StructureModels.MODELS[id], at, 1)
+		label(model, id, at)
+		model.Parent = folder
 	end
 
 	folder.Parent = workspace

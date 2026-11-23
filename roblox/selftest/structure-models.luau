@@ -13,7 +13,7 @@ local function check(name, ok, detail)
 end
 
 local MATERIALS = { Sand = true, Sandstone = true, Marble = true, Slate = true, Brick = true, WoodPlanks = true,
-	Metal = true, Concrete = true, Glass = true, SmoothPlastic = true, Grass = true, Neon = true }
+	Metal = true, Concrete = true, Glass = true, SmoothPlastic = true, Grass = true, Neon = true, Fabric = true }
 local nRoles = 0
 for name, def in pairs(S.ROLES) do
 	nRoles += 1
@@ -44,16 +44,27 @@ local function checkModel(id, def)
 			check(tag .. " square base", w == d, ("%s x %s"):format(w, d))
 		end
 		-- the footprint stays inside the box (a part at an odd angle by its bounding circle)
-		local yaw = (p.yaw or 0) % 180
-		local rx, rz = math.sqrt(w * w + d * d) / 2, math.sqrt(w * w + d * d) / 2
-		if yaw == 0 then
-			rx, rz = w / 2, d / 2
-		elseif yaw == 90 then
-			rx, rz = d / 2, w / 2
+		-- the part's eight corners, tilted about its base centre and then turned
+		local ya, ti = math.rad(p.yaw or 0), math.rad(p.tilt or 0)
+		local minX, maxX, minY, maxY, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge, math.huge, -math.huge
+		for _, cx in ipairs({ -w / 2, w / 2 }) do
+			for _, cy in ipairs({ 0, h }) do
+				for _, cz in ipairs({ -d / 2, d / 2 }) do
+					local y1 = cy * math.cos(ti) - cz * math.sin(ti)
+					local z1 = cy * math.sin(ti) + cz * math.cos(ti)
+					local x2 = cx * math.cos(ya) + z1 * math.sin(ya)
+					local z2 = -cx * math.sin(ya) + z1 * math.cos(ya)
+					minX, maxX = math.min(minX, p.at[1] + x2), math.max(maxX, p.at[1] + x2)
+					minY, maxY = math.min(minY, p.at[2] + y1), math.max(maxY, p.at[2] + y1)
+					minZ, maxZ = math.min(minZ, p.at[3] + z2), math.max(maxZ, p.at[3] + z2)
+				end
+			end
 		end
-		check(tag .. " inside the box", math.abs(p.at[1]) + rx <= S.LIMIT.half + 1e-6
-			and math.abs(p.at[3]) + rz <= S.LIMIT.half + 1e-6, ("%s,%s"):format(p.at[1], p.at[3]))
-		check(tag .. " height", p.at[2] >= 0 and p.at[2] + h <= S.LIMIT.height + 1e-6, p.at[2] + h)
+		check(tag .. " tilt", math.abs(p.tilt or 0) <= 180)
+		local lim = S.LIMIT.half + 1e-6
+		check(tag .. " inside the box", minX >= -lim and maxX <= lim and minZ >= -lim and maxZ <= lim,
+			("x %.2f..%.2f z %.2f..%.2f"):format(minX, maxX, minZ, maxZ))
+		check(tag .. " height", minY >= -1e-6 and maxY <= S.LIMIT.height + 1e-6, ("%.2f..%.2f"):format(minY, maxY))
 		check(tag .. " bottom-up", p.at[2] >= lastY, p.at[2])
 		lastY = p.at[2]
 	end
@@ -72,6 +83,22 @@ for id, list in pairs(S.VARIANTS) do
 		keys[v.key] = true
 		checkModel(id .. " " .. v.key, v)
 	end
+end
+
+-- every model stands on a full ground slab and has a setting, not one lone subject
+for id, def in pairs(S.MODELS) do
+	local first = def.parts[1]
+	check(id .. " ground slab", first.s == "box" and first.at[2] == 0 and first.size[1] == 11.6 and first.size[3] == 11.6)
+	check(id .. " is a diorama", #S.expand(def) >= 20, #S.expand(def))
+	local roles = {}
+	for _, p in ipairs(def.parts) do
+		roles[p.role] = true
+	end
+	local nRole = 0
+	for _ in pairs(roles) do
+		nRole += 1
+	end
+	check(id .. " uses several materials", nRole >= 4, nRole)
 end
 
 -- an arch is two posts and a lintel that span exactly its size
@@ -96,4 +123,5 @@ end
 if fails > 0 then
 	error(("structure-models: %d failure(s)"):format(fails))
 end
-print(("structure-models: ok (%d models, %d variant sets)"):format(nModels, 1))
+check("the 22 wonders have a model", nModels >= 22, nModels)
+print(("structure-models: ok (%d models)"):format(nModels))

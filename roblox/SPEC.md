@@ -1167,8 +1167,11 @@ seat/reset flow; JS engine untouched). Delivered:
   makes the Parts and returns them grouped per primitive in build order.
   `node roblox/tools/model-preview.js (--variants <id> | --models <ids|all>)
   --out file.png` draws the same primitive list headless; read the PNG
-  before asking for a Studio look. `VARIANTS` holds style candidates, shown
-  behind the gallery grid (K).
+  before asking for a Studio look. Parts take `yaw` and `tilt` (about the
+  part's own X, pivot at the base centre). `MODELS` holds the 22 wonders in
+  the diorama style (ground slab, setting, at least 20 parts and 4 roles);
+  all stand behind the gallery grid (K). `VARIANTS` holds style candidates
+  when a pick is open.
   ENCYCLOPEDIA PICTURES (pedia-art P1, gate 66): `PediaArt.resolve(cat,
   id, have)` names the picture kind (unit / structure / plate / terrain /
   none) and `PediaArt.layout(paneW, kind)` the box above the text (240 px,

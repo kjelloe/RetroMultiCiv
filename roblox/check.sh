@@ -949,11 +949,12 @@ fi
 
 # gate 65 — wonder / building model data (StructureModels,
 # specs/roblox-pedia-art.md P0): known shapes and roles, at most 80 parts,
-# inside the 12 x 12 x 12 box, bottom-up order, arch expansion; the Roblox
+# inside the 12 x 12 x 12 box (exact tilted bounds), bottom-up order, arch
+# expansion, a diorama model for each of the 22 wonders; the Roblox
 # builder and the headless preview draw every shape; the export runs
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/structure-models.luau >/dev/null 2>&1 \
-     && lune run roblox/tools/model-export.luau variants pyramids 2>/dev/null | grep -q '"cells":\[{' \
+     && lune run roblox/tools/model-export.luau models pyramids 2>/dev/null | grep -q '"cells":\[{' \
      && grep -q 'StructureBuilder.build(' roblox/src/client/GalleryGrid.client.luau; then
     note PASS "gate 65: structure models (lune) + builder / preview shape coverage"
   else

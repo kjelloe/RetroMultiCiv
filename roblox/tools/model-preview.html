@@ -56,7 +56,9 @@ function mesh(p, roles) {
   holder.add(m);
   m.position.y = lift;
   holder.position.set(p.at[0], p.at[1], p.at[2]);
+  holder.rotation.order = 'YXZ';
   holder.rotation.y = (p.yaw || 0) * Math.PI / 180;
+  holder.rotation.x = (p.tilt || 0) * Math.PI / 180;
   return holder;
 }
 

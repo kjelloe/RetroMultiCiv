@@ -181,7 +181,7 @@ Each step ends with gates green and a local commit.
 |---|---|---|---|
 | P0 | BUILT 2026-11-23 (gate 65): `StructureModels`, `StructureBuilder`, `roblox/tools/model-preview.js`; the Pyramids in three styles, `roblox/art/pyramids-styles.png`, also behind the Studio gallery grid (K) | 1 x 3 | pick a style |
 | P1 | BUILT 2026-11-23 (gate 66): `PediaArt` (rules), `PediaPicture` (drawing), picture box in the encyclopedia for units (model), advances (plate), terrain (3 x 3 patch); 78 entries still without art keep the text-only pane; `after-run.js` counts pictures by kind | 0 | look once |
-| P2 | wonder models in the picked style, four batches with a contact sheet each; encyclopedia shows them | 22 | look at each sheet |
+| P2 | BUILT 2026-11-23: style C (diorama) picked; the 22 wonder models in `StructureModels.MODELS` (20-54 parts each), sheets `roblox/art/wonders-1..4.png`; the encyclopedia shows them; `tilt` added to the part format (bowls, telescopes, sloped walls) | 22 | look at each sheet |
 | P3 | wonder scene: stage, beats, skip, card, rival card, Options switch, tour stops, gate B; info-18 to yes | 0 | one tour run |
 | P4 | building models; city panel rows show them | 21 | look at the sheet |
 | P5 | government emblems and concept plates (existing menu pictograms reused where they fit) | 35 | look at the sheet |
@@ -200,8 +200,8 @@ not built, P3 ships its own minimal stop and R1 absorbs it.
 
 Ruled 2026-11-23: 1 built and drawn in code; 2 rival wonders get the small
 card; 3 about 8 seconds, skippable, on by default; 4 buildings as 3D
-models; go ahead. Open: the style pick of P0 (`roblox/art/pyramids-styles.png`:
-A icon, B courses, C diorama).
+models; go ahead. Style pick 2026-11-23: C diorama (`roblox/art/pyramids-styles.png` keeps
+the three candidates).
 
 1. **Picture style.** Recommended: built and drawn in code as above (no
    uploads, reviewable, one model serves picture and scene). The
