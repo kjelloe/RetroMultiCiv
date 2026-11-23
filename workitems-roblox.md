@@ -284,7 +284,11 @@ Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts sta
 
 Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P5 built 2026-11-23 (19zk-19zn): 186 of 186 entries have a picture; the wonder scene is built. Left: buildings on the city panel rows, P6 map landmark (needs a ruling), info-18 to yes after the scene has run in Studio.
 
-Studio session 2026-11-23 21:17Z: encyclopedia pictures (unit, structure, plate, terrain) drew with 0 failures, drag turns the model, map heights unchanged after the `TileHeight` move. Still not run in Studio: treaty actions panel / envoy / Propose cards, big map sizes, badge tracking past one command, the wonder scene and rival card, building / government / concept pictures, the caption line, the corrected pyramid.
+Studio sessions 2026-11-23 21:17Z and 23:25Z: encyclopedia pictures of every kind (unit, wonder, building, government, concept, advance, terrain) drew with 0 failures, drag turns the model, the corrected pyramid is solid, the wonder scene and the rival card played and handed the camera back (2 scenes, 3 rival cards), map heights unchanged. Still not run in Studio: civ gallery scenes (19zo), Resources overlay and drawn yield icons (19zp, 19zq), the Debug wonder preview with the Options switch off, tour stop `wonder`, treaty actions panel / envoy / Propose cards, big map sizes, badge tracking past one command.
+
+Noticed in session 23:25Z (not traced): 486 of 3,684 commands were `startWork` refused with `techRequired` (settler work proposed before its advance); 2.28 s per turn in turns 98-146 against 0.07-0.31 s in the other spans (prince, 40x25, 4 civs).
+
+Known gaps, own lane: the wonder card's effect line has a fixed height (a long effect text can overflow); the K gallery grid does not show the civ scenes; the civ gallery is 780 px wide and has not been looked at on a phone-sized viewport; unit models are the low-detail baseline (user: "crude").
 
 Earlier open items still standing:
 - Two-player civilization pick contention; owner paths on a published server (need a second account / a published place). Run D.
