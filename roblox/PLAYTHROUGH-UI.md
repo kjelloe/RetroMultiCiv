@@ -52,6 +52,12 @@ the Studio window under about 1,300 px (bottom bar moves above the corner
 buttons). Diplomacy (Y) once a rival is met: Offer peace reads "offer sent"
 afterwards; Propose... > Demand tribute / Tech swap; an AI offer raises the
 envoy card on your turn; Declare war under a treaty asks twice.
+Encyclopedia (2026-11-23): click one unit (turning model, drag turns it),
+one advance (glyph on the era card), one terrain (3 x 3 tile patch), one
+wonder (diorama model); governments and concepts have no picture yet.
+K (Studio) shows all 22 wonder models behind the gallery grid. Badges:
+`after-run.js` lists the keys a game earned; a tour run uses debug
+commands, so that game earns none afterwards.
 
 The tour grants gold and advances and adds three units (a debug game: the
 DEBUG mark stays on). The numbered steps below remain the full hand script

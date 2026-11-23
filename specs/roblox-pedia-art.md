@@ -96,8 +96,10 @@ pyramids = {
 ```
 
 - Shapes: box, wedge, cylinder, cone, pyramid, ball, arch (two posts and a
-  lintel). The builder is an extension of `AssetFactory`'s composer, not a
-  second one.
+  lintel). A part takes `yaw` and `tilt` (a cone at tilt 180 is a bowl).
+  As built: `StructureBuilder` is its own small module (the unit composer
+  reads a different recipe format); it reuses the composer's proven
+  pyramid and cone-fan piece placement.
 - Colours by role (sandstone, marble, bronze, brick, timber, glass, water,
   foliage, steel, concrete, gold, lamp). A role table gives colour and
   material; no hex in the model data.
@@ -172,6 +174,15 @@ Shown when the player's own city completes a wonder.
   logged debug command and reports the scene's beats and the camera
   restored.
 - `after-run.js`: scenes played, skipped, and any picture that fell back.
+
+### 2.8 Built so far against this design (2026-11-23)
+
+- Built: 2.2 (except governments and concepts), 2.3, 2.4, 2.5 picture box.
+- Not built yet: the caption line under the picture (2.5); the tour stops
+  and the scene line in `after-run.js` (2.7, with P3); the wonder scene
+  (2.6, P3). `after-run.js` already counts pictures by kind.
+- Nothing of this track has been run in Studio. First ViewportFrame and
+  first use of `StructureBuilder` in the client.
 
 ## 3. Plan
 

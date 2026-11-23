@@ -217,8 +217,12 @@ After any run: `node roblox/tools/after-run.js`.
 - **Treaty actions** (gate 63) and the three big map sizes: section 6.
 - **Camera**: F (follow-avatar) ignored while a walk key is held (gate 46
   pin).
+- **Badge awards** (gate 64, R8.3) and the encyclopedia-picture track
+  P0-P2 (gates 65, 66; `specs/roblox-pedia-art.md`), 2026-11-17 / 23.
+- Not run in Studio since session 2026-11-16 14:51Z: treaty actions, big
+  maps, badge tracking, encyclopedia pictures, the `TileHeight` move.
 
-Sessions: `workitems-roblox.md` 19z-19zg.
+Sessions: `workitems-roblox.md` 19z-19zm.
 
 ## 8. Not in this plan
 

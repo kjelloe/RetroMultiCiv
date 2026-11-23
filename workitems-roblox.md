@@ -274,6 +274,10 @@ Built, pressed by nobody yet (the regent held the seat in every full game; the t
 
 Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts stay as the browser's, big maps offered. Badges ruled and built 2026-11-17 (19zi). Open: badge ids (user, plan 8.4).
 
+Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P2 built 2026-11-23 (19zk-19zm): 130 of 186 entries have a picture. Next: P3 wonder scene, P4 building models (21), P5 government and concept plates (35).
+
+Built since the last Studio run (2026-11-16 14:51Z), not run in Studio: treaty actions panel / envoy / Propose cards, big map sizes, badge tracking (`[RMC-BADGE]` lines), encyclopedia picture box (first ViewportFrame), `StructureBuilder`, the tile-height rule moved to `TileHeight` (map heights must be unchanged).
+
 Earlier open items still standing:
 - Two-player civilization pick contention; owner paths on a published server (need a second account / a published place). Run D.
 - Touch: a long-press on a city catalog row both shows the card and picks. Folded into R5.

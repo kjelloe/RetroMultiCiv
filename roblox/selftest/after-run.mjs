@@ -23,6 +23,12 @@ const lines = [
   '  09:00:07.400  [R4LOG] {"t":"round","turn":1}',
   '  09:00:08.000  [Client] rejected (commandId -1): noReplayYet',
   '  09:00:08.500  [Client] AI regency ON (regent plays your seat)',
+  '  09:00:08.600  [RMC-BADGE] earned first-city user=101 id=0',
+  '  09:00:08.700  [RMC-BADGE] earned first-tech user=101 id=0',
+  '  09:00:08.800  [Pedia] picture units/legion kind=unit box=428x240',
+  '  09:00:08.810  [Pedia] picture wonders/pyramids kind=structure box=428x240',
+  '  09:00:08.820  [Pedia] picture units/militia kind=unit box=428x240',
+  '  09:00:08.830  [Pedia] picture concepts/cities kind=none box=428x0',
 ];
 for (let turn = 1; turn <= 9; turn++) {
   // turns 1-5 one second apart, 5-9 three seconds apart
@@ -54,6 +60,10 @@ check('late turns 3 s', r.turnTimes[3].secs === 3, r.turnTimes[3]);
 const text = render(r, { session: 'session X: 0 errors', replay: 'R4 ACCEPTANCE: ALL HASHES MATCH' });
 check('report: refused share', text.includes('4 logged, 3 refused by the engine (75 %) - zoc 2, techRequired 1'), text);
 check('report: only non-passing stops listed', text.includes('FAIL stats') && text.includes('SKIP city') && !text.includes('PASS research'), text);
+check('badges', r.badges.join() === 'first-city,first-tech', r.badges);
+check('pictures by kind', r.pictures.unit === 2 && r.pictures.structure === 1 && r.pictures.none === 1, r.pictures);
+check('report: badges line', text.includes('badges: 2 earned - first-city, first-tech'), text);
+check('report: pictures line', text.includes('encyclopedia pictures: unit 2, '), text);
 check('report: replay line', text.includes('replay: R4 ACCEPTANCE: ALL HASHES MATCH'));
 check('report: seconds per turn', text.includes('seconds per turn: 1 (turns 1-3)'), text);
 

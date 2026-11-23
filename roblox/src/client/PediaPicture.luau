@@ -46,6 +46,7 @@ local function viewport(box, model, cam, conns)
 	vp.Size = UDim2.fromScale(1, 1)
 	vp.BackgroundColor3 = Color3.fromRGB(18, 21, 29)
 	vp.BorderSizePixel = 0
+	vp.Active = true -- a drag turns the model instead of scrolling the pane
 	vp.Ambient = Color3.fromRGB(150, 150, 156)
 	vp.LightColor = Color3.fromRGB(255, 250, 240)
 	vp.LightDirection = Vector3.new(0.4, -1, -0.6)
