@@ -152,6 +152,7 @@ RunService.RenderStepped:Connect(function(dt)
 
 	local offset = CFrame.fromEulerAnglesYXZ(pitch, yaw, 0):VectorToWorldSpace(Vector3.new(0, 0, dist))
 	camera.CFrame = CFrame.lookAt(focus + offset, focus)
+	ClientState.cameraFocus = focus -- the Resources overlay labels the tiles around it
 	ClientState.cameraDist = dist -- runI item 9: the LOD signal ViewRenderer reads
 end)
 

@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
 local TILE = ClientState.TILE
@@ -55,31 +56,9 @@ local function shim(view)
 		cityOrder = view.cityOrder, units = view.units, wonders = view.wonders }
 end
 
--- runI item 17: tile yields as ICON-PER-POINT rows (the browser §24 pattern; a
--- 3/2/3 tile reads as 3 food + 2 shield + 3 trade glyphs). Roblox stays
--- emoji-free (the flagged divergence), so the shared token vocabulary maps to
--- three DISTINCT colored geometric glyphs — food ● green, shield ▮ gray,
--- trade ◆ gold — the same color roles the numeric line used.
-local function iconRun(n, glyph, color)
-	if n == nil or n <= 0 then
-		return ""
-	end
-	return ('<font color="%s">%s</font>'):format(color, string.rep(glyph, n))
-end
-local function yieldLine(y)
-	local runs = {}
-	for _, r in ipairs({
-		iconRun(y.food, "\u{25CF}", "#7fd08a"),   -- ● food
-		iconRun(y.shields, "\u{25AE}", "#c8c8c8"), -- ▮ shield
-		iconRun(y.trade, "\u{25C6}", "#e0c060"),   -- ◆ trade
-	}) do
-		if r ~= "" then
-			table.insert(runs, r)
-		end
-	end
-	return table.concat(runs, " ")
-end
-
+-- tile yields as icon rows (YieldIcons): one row per resource, one glyph
+-- per point; the label is sized in studs and fills the tile (user 2026-11-24:
+-- the 64 x 30 px label was too small to read)
 -- run-4 live request: WORKED must read unmistakably — bright solid green
 -- with a raised frame + citizen ball; unworked is dark and quiet
 local function quad(c, worked, isCenter, onClick)
@@ -109,7 +88,7 @@ local function quad(c, worked, isCenter, onClick)
 	end
 
 	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.new(0, 64, 0, 30)
+	bb.Size = UDim2.fromScale(TILE * YieldIcons.LABEL.w, TILE * YieldIcons.LABEL.h)
 	bb.StudsOffset = Vector3.new(0, 1.4, 0)
 	bb.AlwaysOnTop = true
 	bb.Active = true -- session-E round 8: WITHOUT this, billboard buttons never
@@ -118,12 +97,14 @@ local function quad(c, worked, isCenter, onClick)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 1, 0)
 	btn.BackgroundColor3 = worked and Color3.fromRGB(20, 60, 35) or Color3.fromRGB(20, 24, 32)
-	btn.BackgroundTransparency = isCenter and 0.1 or (worked and 0.25 or 0.55)
+	btn.BackgroundTransparency = isCenter and 0.3 or (worked and 0.55 or 0.75)
+	btn.TextScaled = true
+	btn.TextStrokeTransparency = 0.3
 	btn.RichText = true
 	btn.TextColor3 = Color3.fromRGB(235, 235, 235)
 	btn.Font = Enum.Font.Code
 	btn.TextSize = 14
-	btn.Text = isCenter and "AUTO" or yieldLine(c.yields)
+	btn.Text = isCenter and "AUTO" or YieldIcons.text(c.yields)
 	btn.Parent = bb
 	bb.Parent = bbHome
 	btn.Activated:Connect(onClick)

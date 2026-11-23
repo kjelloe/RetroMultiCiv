@@ -1055,6 +1055,13 @@ seat/reset flow; JS engine untouched). Delivered:
   = `TurnLogView.rowText` (turn, kind word from the narrator's bracket
   tag, escaped body; the narrator strings themselves are unchanged, so
   the browser parity gates 17 / 22 / 28 / 29 hold); gate 47. The four
+  **Resources overlay / yield labels** - `YieldIcons.luau` (pure, gate
+  68): one row per resource, one glyph per point. `WorkedTiles` sizes the
+  city view's tile label in studs (`YieldIcons.LABEL`, fills the tile).
+  Map overlays has a fourth switch, Resources: a label on every known tile
+  within `YieldIcons.RADIUS` (9) tiles of `ClientState.cameraFocus`,
+  rebuilt after a pan of `STEP` tiles, hidden while a city view is open;
+  log line `[Overlays] resources on: N tile label(s) around x,y`.
   bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
   at x = 206, beside the 190 px button column, not over it.
   Statistics (J): civ cards + wonders + chart (Score, Population, Cities, Techs chips) in one scrolling

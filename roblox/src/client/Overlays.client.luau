@@ -3,6 +3,9 @@
 -- the filtered client view and tints only tiles the viewer has SEEN.
 --   1. City influence  — owner-color tint over each KNOWN city's workable radius.
 --   2. Unit presence   — owner-color tint over tiles holding KNOWN units.
+--   4. Resources       — food / shield / trade icon rows on every KNOWN tile
+--      around the camera focus (YieldIcons; hidden while a city view is open,
+--      which labels its own tiles).
 --   3. Hide unit labels — unit text labels off (the 3D markers stay); coordinates
 --      with the item-9 zoom LOD via ClientState.hideUnitLabels.
 
@@ -12,12 +15,14 @@ local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local Palette = require(script.Parent:WaitForChild("Palette"))
+local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
+local Diag = require(script.Parent:WaitForChild("Diag"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
 local TILE = ClientState.TILE
 local world = workspace:WaitForChild("ClientWorld")
 
-local state = { cityInfluence = false, unitPresence = false, hideLabels = false }
+local state = { cityInfluence = false, unitPresence = false, hideLabels = false, resources = false }
 
 local folder = Instance.new("Folder")
 folder.Name = "MapOverlays"
@@ -55,8 +60,8 @@ do
 end
 
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 232, 0, 116)
-panel.Position = UDim2.new(0, 206, 1, -172) -- beside the 190 px button column (it sat over the buttons), above the action bar
+panel.Size = UDim2.new(0, 232, 0, 150)
+panel.Position = UDim2.new(0, 206, 1, -206) -- beside the 190 px button column (it sat over the buttons), above the action bar
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0
@@ -132,6 +137,91 @@ local function redraw()
 	end
 end
 
+-- Resources: one stud-sized label per known tile in the window around the
+-- camera focus, adorned to the tile's own part; rebuilt when the focus has
+-- moved YieldIcons.STEP tiles, refreshed on every view
+local resHome = Instance.new("Folder")
+resHome.Name = "ResourceLabels"
+resHome.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+local resLabels = {} -- tile index -> { bb, label }
+local resAt = nil -- { x, y } the window was built around
+local function clearResources()
+	resHome:ClearAllChildren()
+	resLabels, resAt = {}, nil
+end
+local function drawResources()
+	local view = ClientState.view
+	if not state.resources or view == nil or ClientState.cityViewOpen then
+		if resAt ~= nil then
+			clearResources()
+		end
+		return
+	end
+	local f = ClientState.cameraFocus
+	local fx = f ~= nil and math.floor(f.X / TILE + 0.5) or 0
+	local fy = f ~= nil and math.floor(f.Z / TILE + 0.5) or 0
+	local rs = ClientState.rulesets()
+	local terrain = world:WaitForChild("Terrain")
+	local x0, x1, y0, y1 = YieldIcons.window(fx, fy, view.map.width, view.map.height)
+	local keep, n = {}, 0
+	for y = y0, y1 do
+		for x = x0, x1 do
+			local idx = y * view.map.width + x + 1
+			local tile = view.map.tiles[idx]
+			local part = terrain:FindFirstChild(("Tile_%d_%d"):format(x, y))
+			if tile ~= nil and tile.t ~= "unknown" and part ~= nil then -- fog-honest
+				local ok, yl = pcall(citiesModule.tileYields, tile, rs)
+				local text = ok and YieldIcons.text(yl) or ""
+				local e = resLabels[idx]
+				if text ~= "" then
+					if e == nil then
+						local bb = Instance.new("BillboardGui")
+						bb.Size = UDim2.fromScale(TILE * YieldIcons.LABEL.w, TILE * YieldIcons.LABEL.h)
+						bb.AlwaysOnTop = true
+						local label = Instance.new("TextLabel")
+						label.Size = UDim2.fromScale(1, 1)
+						label.BackgroundTransparency = 1
+						label.RichText = true
+						label.TextScaled = true
+						label.Font = Enum.Font.Code
+						label.TextColor3 = Color3.fromRGB(235, 235, 235)
+						label.TextStrokeTransparency = 0.25
+						label.Parent = bb
+						bb.Parent = resHome
+						e = { bb = bb, label = label }
+						resLabels[idx] = e
+					end
+					e.bb.Adornee = part
+					e.bb.StudsOffsetWorldSpace = Vector3.new(0, part.Size.Y / 2 + 1.2, 0)
+					if e.label.Text ~= text then
+						e.label.Text = text
+					end
+					keep[idx] = true
+					n += 1
+				end
+			end
+		end
+	end
+	for idx, e in pairs(resLabels) do
+		if not keep[idx] then
+			e.bb:Destroy()
+			resLabels[idx] = nil
+		end
+	end
+	if resAt == nil then
+		print(("[Overlays] resources on: %d tile label(s) around %d,%d"):format(n, fx, fy))
+	end
+	resAt = { x = fx, y = fy }
+end
+local function refreshResources()
+	local ok, err = pcall(drawResources)
+	if not ok then
+		Diag.fail("overlays", "resources (the labels are removed)", err)
+		state.resources = false
+		clearResources()
+	end
+end
+
 -- one toggle row: a checkbox button (green when on) + a label; flips state[key],
 -- redraws, and (for hideLabels) signals the renderer.
 local function toggleRow(y, key, text, onChange)
@@ -169,7 +259,8 @@ end
 
 toggleRow(10, "cityInfluence", "City influence", redraw)
 toggleRow(44, "unitPresence", "Unit presence", redraw)
-toggleRow(78, "hideLabels", "Hide unit labels", function()
+toggleRow(78, "resources", "Resources", refreshResources)
+toggleRow(112, "hideLabels", "Hide unit labels", function()
 	ClientState.hideUnitLabels = state.hideLabels -- item-9 LOD respects this
 end)
 
@@ -189,6 +280,9 @@ ClientState.onView(function()
 	if state.cityInfluence or state.unitPresence then
 		redraw()
 	end
+	if state.resources then
+		refreshResources()
+	end
 end)
 
 -- runJ item 3: redraw when the city view opens/closes so the influence tint
@@ -201,6 +295,15 @@ RunService.Heartbeat:Connect(function()
 		if state.cityInfluence then
 			redraw()
 		end
+		if state.resources then
+			refreshResources()
+		end
+	end
+	if state.resources and not cv then -- follow the camera
+		local f = ClientState.cameraFocus
+		if f ~= nil and YieldIcons.moved(resAt and resAt.x, resAt and resAt.y, math.floor(f.X / TILE + 0.5), math.floor(f.Z / TILE + 0.5)) then
+			refreshResources()
+		end
 	end
 end)
 
@@ -212,4 +315,4 @@ end, function()
 	panel.Visible = false
 end)
 
-print("[Overlays] map-overlays panel up (item 8: city influence / unit presence / hide labels)")
+print("[Overlays] map-overlays panel up (item 8: city influence / unit presence / resources / hide labels)")

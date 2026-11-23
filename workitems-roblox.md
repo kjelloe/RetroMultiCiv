@@ -270,13 +270,15 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 **Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 67 gates. Four regent games replayed hash-exact.
+State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 68 gates. Four regent games replayed hash-exact.
 
 Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 
 Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts stay as the browser's, big maps offered. Badges ruled and built 2026-11-17 (19zi). Open: badge ids (user, plan 8.4).
 
 ## 19zo. Civ gallery scenes + wonder preview switch [done: 2026-11-24 — after Studio session 2026-11-23 23:25Z (195 turns, 0 DIAG FAIL, replay hashes match; pictures structure 22 / unit 6 / plate 2; scenes: 2 own, 3 rival, camera restored both times; user: pyramids, buildings, governments, concepts fine; the Debug menu scene ignored Options > wonder scenes off; the civilization window wants art). `CivEmblems`: a scene per civilization + random in the gallery card (`EMBLEMS.civs`, banner roles tinted with the civ's colours via `StructureBuilder.build` tint), sheets `roblox/art/civs-1-8.png`, `civs-9-15.png`; gallery 780 wide. `WonderScene.ownMode` is the one rule for scene vs card (plan and the Debug preview). Gate 65 pins both. Not run in Studio. gamesim-golden-neutral]
+
+## 19zp. Resources overlay + city view yield labels [done: 2026-11-24 — user request. `YieldIcons` (pure): one row per resource, one glyph per point. City view (`WorkedTiles`): the tile label is sized in studs and fills the tile (was 64 x 30 px, one line at 14 px). Map overlays panel: fourth switch "Resources" labels every known tile within 9 tiles of the camera focus (at most 361 labels, follows the camera, hidden while a city view is open); `ClientState.cameraFocus`. Log line `[Overlays] resources on: N tile label(s) around x,y`. Gate 68. Not run in Studio. gamesim-golden-neutral]
 
 Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P5 built 2026-11-23 (19zk-19zn): 186 of 186 entries have a picture; the wonder scene is built. Left: buildings on the city panel rows, P6 map landmark (needs a ruling), info-18 to yes after the scene has run in Studio.
 
