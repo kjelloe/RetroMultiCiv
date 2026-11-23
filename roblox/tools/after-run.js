@@ -20,7 +20,7 @@ function analyse(text) {
   const r = {
     init: null, lastTurn: 0, final: null, commands: 0, refused: 0, refusedBy: {}, refusedByType: {},
     clientRejects: 0, notSent: 0, diagFail: [], warnings: 0, errors: 0,
-    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null, badges: [],
+    tour: [], tourDone: null, tourAbort: null, tourRuns: 0, turnTimes: [], regent: [], endscreen: null, badges: [], pictures: {},
   };
   const stamp = {};
   for (const line of lines) {
@@ -59,6 +59,7 @@ function analyse(text) {
     else if ((x = /^\[Client\] AI regency (ON|OFF)/.exec(msg))) r.regent.push(x[1]);
     else if (msg.startsWith('[SO7] endscreen sent')) r.endscreen = msg.slice(22);
     else if ((x = /^\[RMC-BADGE\] earned (\S+)/.exec(msg))) r.badges.push(x[1]);
+    else if ((x = /^\[Pedia\] picture \S+ kind=(\S+)/.exec(msg))) r.pictures[x[1]] = (r.pictures[x[1]] || 0) + 1;
   }
   // seconds per turn over four equal spans of the turns that carry a time stamp
   const turns = Object.keys(stamp).map(Number).sort((a, b) => a - b);
@@ -96,6 +97,7 @@ function render(r, extra) {
   out.push(`client: ${r.clientRejects} rejected line(s), ${r.notSent} not sent while the regent held the seat, regency ${r.regent.join(' > ') || 'never on'}`);
   if (r.turnTimes.length) out.push('seconds per turn: ' + r.turnTimes.map(t => `${t.secs} (turns ${t.from}-${t.to})`).join(', '));
   if (r.init) out.push(`badges: ${r.badges.length} earned${r.badges.length ? ' - ' + r.badges.join(', ') : ''}`);
+  if (Object.keys(r.pictures).length) out.push(`encyclopedia pictures: ${top(r.pictures)}`);
   if (extra.replay) out.push(`replay: ${extra.replay}`);
   return out.join('\n');
 }

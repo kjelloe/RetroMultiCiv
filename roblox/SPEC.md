@@ -1169,6 +1169,15 @@ seat/reset flow; JS engine untouched). Delivered:
   --out file.png` draws the same primitive list headless; read the PNG
   before asking for a Studio look. `VARIANTS` holds style candidates, shown
   behind the gallery grid (K).
+  ENCYCLOPEDIA PICTURES (pedia-art P1, gate 66): `PediaArt.resolve(cat,
+  id, have)` names the picture kind (unit / structure / plate / terrain /
+  none) and `PediaArt.layout(paneW, kind)` the box above the text (240 px,
+  150 px under a 360 px pane, none without a picture). `PediaPicture.show`
+  draws it: a ViewportFrame with a slow turn and drag-to-turn, or the tech
+  glyph on its era card; one picture exists at a time; a failure is a
+  `[RMC-DIAG] FAIL pedia` and an empty box. Each show prints `[Pedia]
+  picture <cat>/<id> kind=<k> box=WxH`. `TileHeight.top(palette, id)` is
+  the one tile-top rule (ViewRenderer.tileTop delegates to it).
   MAP SIZES (same ruling): the host setup offers large 104x65, xlarge
   128x80 and huge 160x100 beside the three small sizes, labelled "(slow
   turns)" / "(very slow)". No game on them has been run in Studio.

@@ -252,6 +252,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19zg. Session 2026-11-16 14:51Z + camera F guard [done: 2026-11-16 — 40x25 continents, 3 civs, prince, levels=7, seed 840743, regent on: 546 turns, score victory p1, final 0x9a25f498, replay hash-exact; 0 DIAG FAIL, 0 warnings, 0 errors; tour 20 of 20 (first run with the Economy stop); 893 of 27,966 commands refused (3.2 %: impassable 796, zoc 49, techRequired 48); 0.55-0.76 s per turn. Session 08:11Z: F (follow-avatar) toggled three times in 1.5 s while walking; F is now ignored while W / A / S / D is held (gate 46 pin). The user confirmed the walk is right again. Plan revised: `specs/roblox-parity-plan.md` revision 2. gamesim-golden-neutral]
 
+## 19zl. Pedia art P1 [done: 2026-11-23 — encyclopedia picture box: units as turning models, advances as the glyph on its era card, terrain as a 3 x 3 patch of real tiles with props and the special resource (`PediaArt` pure + `PediaPicture`, gate 66). 108 of 186 entries have a picture; 78 keep the text-only pane until P2 / P4 / P5. `TileHeight` now holds the tile-top rule for the map and the picture; `TileProps.rebuild` takes an uncached flag. First ViewportFrame in this client. Not run in Studio. gamesim-golden-neutral]
+
 ## 19zk. Pedia art P0 [done: 2026-11-23 — rulings: code-built art, rival wonders = small card, scene about 8 s skippable, buildings as 3D models. `StructureModels` (data, 7 shapes, 16 roles, arch expansion, bottom-up order), `StructureBuilder` (Parts), `roblox/tools/model-preview.js` + `.html` + `model-export.luau` (headless contact sheet through the vendored three.js, read only), gate 65. Sheet: `roblox/art/pyramids-styles.png` (A icon 4 parts, B courses 22, C diorama 25); the three also stand behind the gallery grid (K). Builder not run in Studio. Open: USER picks a style. gamesim-golden-neutral]
 
 ## 19zj. Encyclopedia pictures + wonder scene: design and plan [done: 2026-11-18 — `specs/roblox-pedia-art.md`: 186 entries, 108 with reusable art (unit models, tech glyphs, terrain tiles), 78 to draw (22 wonders, 21 buildings, 6 governments, 29 concepts); model data + headless preview sheet; scene beats and rules; steps P0-P6. Nothing built. Open: five user decisions (spec section 4). gamesim-golden-neutral]
@@ -264,7 +266,7 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 **Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 65 gates. Four regent games replayed hash-exact.
+State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 66 gates. Four regent games replayed hash-exact.
 
 Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 

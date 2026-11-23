@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder DiscoveryView CityView EmpireView BarFit UnitOrders; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight DiscoveryView CityView EmpireView BarFit UnitOrders; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -624,7 +624,7 @@ if grep -q 'msg.t == "pickCiv"' roblox/src/server/GameServer.server.luau \
    && grep -q 'Tooltip.attach(btn' roblox/src/client/TechTree.client.luau \
    && grep -q 'TechInfo.card' roblox/src/client/TechTree.client.luau \
    && grep -q 'TechInfo.card' roblox/src/client/ResearchPicker.client.luau \
-   && grep -q 'HEIGHT \* 0.25' roblox/src/client/ViewRenderer.client.luau \
+   && grep -q 'M.HEIGHT \* 0.25' roblox/src/client/TileHeight.luau \
    && grep -q 'REFONT\[gui.Name\]' roblox/src/client/PanelDress.client.luau \
    && ! grep -qE 'size="1[0-3]"|, 1[0-3], (nil|Enum)' roblox/src/client/GovernmentPanel.client.luau roblox/src/client/CityList.client.luau roblox/src/client/ResearchPicker.client.luau roblox/src/client/CivGallery.luau roblox/src/client/TechInfo.luau; then
   note PASS "gate 45: civ pick wiring, panel close X, shared tech info, half-height hills, reading face, no text under 14 px in the new panels (grep pins)"
@@ -961,6 +961,26 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 65: lune absent"
+fi
+
+# gate 66 — encyclopedia pictures (PediaArt, specs/roblox-pedia-art.md P1):
+# every unit, advance and terrain of the real rulesets resolves to a
+# picture; the list still without art is exactly the structures without a
+# model + governments + concepts; pane layout across widths; terrain patch;
+# the tile height rule shared by the map and the picture; panel wiring
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/pedia-art.luau >/dev/null 2>&1 \
+     && grep -q 'PediaArt.layout(paneW, art.kind)' roblox/src/client/Pedia.client.luau \
+     && grep -q 'PediaPicture.show(artBox, catDef.key, id, lay' roblox/src/client/Pedia.client.luau \
+     && grep -q 'return TileHeight.top(TerrainPalette, id)' roblox/src/client/ViewRenderer.client.luau \
+     && grep -q 'TileProps.rebuild, props, { map = map, cities = {} }, top, TILE, 3, true' roblox/src/client/PediaPicture.luau \
+     && grep -q 'if uncached ~= true then' roblox/src/client/TileProps.luau; then
+    note PASS "gate 66: encyclopedia pictures over the real rulesets (lune) + panel wiring"
+  else
+    note FAIL "gate 66: pedia art — run: lune run roblox/selftest/pedia-art.luau"
+  fi
+else
+  note SKIP "gate 66: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

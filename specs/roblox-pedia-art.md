@@ -180,7 +180,7 @@ Each step ends with gates green and a local commit.
 | step | content | new art | needs the user |
 |---|---|---|---|
 | P0 | BUILT 2026-11-23 (gate 65): `StructureModels`, `StructureBuilder`, `roblox/tools/model-preview.js`; the Pyramids in three styles, `roblox/art/pyramids-styles.png`, also behind the Studio gallery grid (K) | 1 x 3 | pick a style |
-| P1 | picture box in the encyclopedia with what exists: units (model), advances (plate), terrain (diorama); coverage gate listing the 78 without art | 0 | look once |
+| P1 | BUILT 2026-11-23 (gate 66): `PediaArt` (rules), `PediaPicture` (drawing), picture box in the encyclopedia for units (model), advances (plate), terrain (3 x 3 patch); 78 entries still without art keep the text-only pane; `after-run.js` counts pictures by kind | 0 | look once |
 | P2 | wonder models in the picked style, four batches with a contact sheet each; encyclopedia shows them | 22 | look at each sheet |
 | P3 | wonder scene: stage, beats, skip, card, rival card, Options switch, tour stops, gate B; info-18 to yes | 0 | one tour run |
 | P4 | building models; city panel rows show them | 21 | look at the sheet |

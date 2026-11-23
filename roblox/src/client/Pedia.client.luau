@@ -12,6 +12,8 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local CatalogText = require(script.Parent:WaitForChild("CatalogText"))
 local CONCEPTS = require(script.Parent:WaitForChild("PediaConcepts"))
 local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs")) -- run-F #9
+local PediaArt = require(script.Parent:WaitForChild("PediaArt"))
+local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCPedia"
@@ -115,6 +117,13 @@ detailText.TextXAlignment = Enum.TextXAlignment.Left
 detailText.TextYAlignment = Enum.TextYAlignment.Top
 detailText.Text = ""
 detailText.Parent = detail
+-- specs/roblox-pedia-art.md P1: the entry's picture, above the text
+local artBox = Instance.new("Frame")
+artBox.Name = "ArtBox"
+artBox.BackgroundTransparency = 1
+artBox.BorderSizePixel = 0
+artBox.Visible = false
+artBox.Parent = detail
 
 local function fmtYields(y)
 	if y == nil then
@@ -253,6 +262,16 @@ local function showEntry(catDef, id, def)
 	end
 	detailText.Text = catDef.render(id, def)
 	detail.CanvasPosition = Vector2.new(0, 0)
+	-- the picture: room from PediaArt.layout, drawing by PediaPicture
+	local paneW = frame.Size.X.Offset + detail.Size.X.Offset -- authored px (PanelDress scales the panel)
+	local art = PediaArt.resolve(catDef.key, id, PediaPicture.have())
+	local lay = PediaArt.layout(paneW, art.kind)
+	artBox.Position = UDim2.fromOffset(lay.box.x, lay.box.y)
+	artBox.Size = UDim2.new(1, -2 * lay.box.x, 0, lay.box.h)
+	artBox.Visible = lay.box.h > 0
+	detailText.Position = UDim2.new(0, 8, 0, lay.textY)
+	local shown = PediaPicture.show(artBox, catDef.key, id, lay, ClientState.rulesets())
+	print(("[Pedia] picture %s/%s kind=%s box=%dx%d"):format(catDef.key, id, shown, lay.box.w, lay.box.h))
 end
 
 local function renderList()

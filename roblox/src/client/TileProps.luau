@@ -263,18 +263,22 @@ function M.resetCache()
 	lastSig = nil
 end
 
-function M.rebuild(folder, view, tileTop, TILE, roadStage)
+-- uncached = true: build into `folder` without reading or writing the map's
+-- signature (the encyclopedia's terrain picture)
+function M.rebuild(folder, view, tileTop, TILE, roadStage, uncached)
 	local map = view.map
 	roadStage = roadStage or 3 -- props.js default: unannotated views get the classic look
 	local joins = {}
 	for _, city in pairs(view.cities or {}) do
 		joins[city.y * map.width + city.x + 1] = true
 	end
-	local sig = signature(map, joins, roadStage)
-	if sig == lastSig then
-		return false
+	if uncached ~= true then
+		local sig = signature(map, joins, roadStage)
+		if sig == lastSig then
+			return false
+		end
+		lastSig = sig
 	end
-	lastSig = sig
 	folder:ClearAllChildren()
 
 	local function tileAt(x, y)

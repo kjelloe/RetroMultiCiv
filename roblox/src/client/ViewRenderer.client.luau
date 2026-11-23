@@ -25,8 +25,9 @@ local Diag = require(script.Parent:WaitForChild("Diag"))
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
+local TileHeight = require(script.Parent:WaitForChild("TileHeight"))
 local TILE = ClientState.TILE
-local HEIGHT = 6 -- studs per 1.0 of TERRAIN base height
+local HEIGHT = TileHeight.HEIGHT -- studs per 1.0 of TERRAIN base height
 local BASIN = 2 -- studs below zero every tile column extends
 local DIM = 0.55 -- explored-but-fogged tiles darken toward black by this factor
 
@@ -72,26 +73,9 @@ local function specFor(id)
 	return TerrainPalette[id] or TerrainPalette.grassland
 end
 
+-- the height rule lives in TileHeight (shared with the encyclopedia picture)
 local function tileTop(id)
-	local spec = specFor(id)
-	-- runI item 7: mountains should be only 2x as tall as hills (was ~4x). The
-	-- generated TerrainPalette mirrors the browser terrain.js source and is
-	-- gate-4 locked, so the ratio is corrected render-side: hills sit at half
-	-- the mountain top. tileTop also seats units/cities/props, so raising it
-	-- here keeps everything on the taller hills.
-	if id == "hills" then
-		local m = specFor("mountains")
-		-- run-S shot16 (user): the hill block at 50 % of that again; the two
-		-- (run-S shot17: no ridges on top; the half block alone is the hill)
-		return (m.base + m.peak * 0.5) * HEIGHT * 0.25
-	end
-	-- T1: the height is carried by a sculpted massif, so the block under it
-	-- drops to a shoulder (0.6) instead of standing as a tower. Every look
-	-- (ruling 2026-11-14: retro and brick get the new mountains too).
-	if id == "mountains" then
-		return (spec.base + spec.peak * 0.5) * HEIGHT * 0.6
-	end
-	return (spec.base + spec.peak * 0.5) * HEIGHT
+	return TileHeight.top(TerrainPalette, id)
 end
 
 -- terrain parts persist and mutate in place (no 1000-part churn per push);
