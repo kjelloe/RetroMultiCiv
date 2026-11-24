@@ -7,7 +7,7 @@ engine port already accepts.
 
 ## 1. State
 
-- 205 browser features: 141 available, 24 partial, 25 missing, 15 n/a
+- 205 browser features: 142 available, 24 partial, 24 missing, 15 n/a
   (revision 1 started at 115 / 37 / 39).
 - 18 scenarios: 11 playable, 3 degraded, 4 blocked (started at 6 / 2 / 10).
 - 68 gates. Four regent games replayed hash-exact. The latest, session
@@ -132,8 +132,9 @@ Result: 3 degraded becomes 0.
 5.3 Touch: long-press shows the card, tap picks; long-press GoTo (uo-21).
 
 ### R6: comfort
-6.1 Wonder-complete card (info-18); civilization card at game start
-    (info-19).
+6.1 Wonder-complete card (info-18): DONE 2026-11-23, ran in Studio
+    23:25Z (wonder scene + card, `specs/roblox-pedia-art.md` P3).
+    Open: civilization card at game start (info-19).
 6.2 Production keys and build cycling (city-20, city-21); fly to the
     capital (map-06).
 6.3 Event banner with a zoom button (hud-11); your-turn banner and its

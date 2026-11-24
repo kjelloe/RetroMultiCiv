@@ -270,7 +270,7 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 **Plan of record: `specs/roblox-parity-plan.md` revision 2 (2026-11-16).** Order: R1 tour action stops, R2 three one-item unblocks (automation priority, encyclopedia search, sound switch and volume), R3 diplomats, R4 degraded scenarios, R5 phone, R6 comfort, R7 housekeeping, R8 badges.
 
-State: 205 browser features = 141 available, 24 partial, 25 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 68 gates. Four regent games replayed hash-exact.
+State: 205 browser features = 142 available, 24 partial, 24 missing, 15 n/a; 18 scenarios = 11 playable, 3 degraded, 4 blocked. 68 gates. Four regent games replayed hash-exact.
 
 Built, pressed by nobody yet (the regent held the seat in every full game; the tour opens panels and presses nothing): city specialists / previous city / food line (step 1), Economy tab and chart chips by hand (step 2), order labels, hover reasons, Disband confirm, route dots and Cancel route, Help Wonder (step 3), bottom bar lift under about 1,300 px. R1 turns these into tour lines; until then the hand list is in `roblox/PLAYTHROUGH-UI.md`.
 
@@ -284,9 +284,11 @@ Rulings 2026-11-16: diplomacy built (19zh), skip vote n/a, statistics charts sta
 
 ## 19zr. Resources overlay lies on the tile [done: 2026-11-24 — user after session 23:46Z ("icons look good"; no grey backdrop, should seem part of the tile, slightly raised). The label is a `SurfaceGui` on the top face of a clear plate 0.2 studs above the tile top; no backdrop; a dark shadow copy of each row for contrast; drawn over props so forests and peaks do not hide it. To check in Studio: which way the rows face from the default camera (turn the plate 180 degrees if upside down). Gate 68. Not run in Studio. gamesim-golden-neutral]
 
-Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P5 built 2026-11-23 (19zk-19zn): 186 of 186 entries have a picture; the wonder scene is built. Left: buildings on the city panel rows, P6 map landmark (needs a ruling), info-18 to yes after the scene has run in Studio.
+Second track: `specs/roblox-pedia-art.md` (encyclopedia pictures + wonder scene). P0-P5 built 2026-11-23 (19zk-19zn): 186 of 186 entries have a picture; the wonder scene is built. Left: buildings on the city panel rows, P6 map landmark (needs a ruling). info-18 is yes since 2026-11-24 (the scene ran in Studio 23:25Z).
 
-Studio sessions 2026-11-23 21:17Z and 23:25Z: encyclopedia pictures of every kind (unit, wonder, building, government, concept, advance, terrain) drew with 0 failures, drag turns the model, the corrected pyramid is solid, the wonder scene and the rival card played and handed the camera back (2 scenes, 3 rival cards), map heights unchanged. Still not run in Studio: civ gallery scenes (19zo), Resources overlay and drawn yield icons (19zp, 19zq), the Debug wonder preview with the Options switch off, tour stop `wonder`, treaty actions panel / envoy / Propose cards, big map sizes, badge tracking past one command.
+Studio sessions 2026-11-23 21:17Z and 23:25Z: encyclopedia pictures of every kind (unit, wonder, building, government, concept, advance, terrain) drew with 0 failures, drag turns the model, the corrected pyramid is solid, the wonder scene and the rival card played and handed the camera back (2 scenes, 3 rival cards), map heights unchanged. Sessions 2026-11-23 23:46Z and 2026-11-24 21:35Z: civ gallery opened with its picture drawn; yield icons drawn as images (user: "icons look good"); Resources overlay switched on (25 labels at that point); 152 turns, 0 DIAG FAIL, replay hashes match. Still not run in Studio or not confirmed by eye: the flat Resources labels (19zr: which way the rows face, contrast without the backdrop), AUTO at 60 %, the Debug wonder preview with the Options switch off, tour stop `wonder` (no tour run since 2026-11-16), treaty actions panel / envoy / Propose cards, big map sizes, badge tracking past one command.
+
+Noticed in session 2026-11-24 21:35Z (other lane, report only): 171 of 602 commands were `moveUnit` refused with `nothingToAttack` under the regent.
 
 Noticed in session 23:25Z (not traced): 486 of 3,684 commands were `startWork` refused with `techRequired` (settler work proposed before its advance); 2.28 s per turn in turns 98-146 against 0.07-0.31 s in the other spans (prince, 40x25, 4 civs).
 

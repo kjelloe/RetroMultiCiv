@@ -127,7 +127,7 @@ info-14 | yes | client/TurnLog.client.luau | ClientState.focusCamera(loc.x, loc.
 info-15 | yes | client/Historian.client.luau | score %d - %d cities |
 info-16 | yes | client/CatalogText.luau | function M.make |
 info-17 | yes | client/PediaBlurbs.luau | M.UNIT_BLURBS |
-info-18 | no | | | no wonder-complete splash (the turn log and a sound cue report it)
+info-18 | yes | client/WonderStage.client.luau | RMCWonderScene |
 info-19 | partial | client/CivGallery.luau | Choose your civilization | the civilization gallery shows the civ before the start; no card at game start
 info-20 | n/a | | | name constant
 gf-01 | yes | client/Select.client.luau | type = "endTurn" |
