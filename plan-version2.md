@@ -319,7 +319,9 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
 Roblox ships browser-first: the v1.0 gate is the browser client, and the Roblox
 pass is a v1.x point release by standing ruling. What is knowingly outstanding:
 
-- **F1 — city naming** (found 2026-07-30 by the UI-playthrough prep): the
+- **F1 — city naming** [BUILT 2026-11-14 by the Roblox lane, workitems-roblox
+  item 11: a found-city name card with a suggested name, server-side text
+  filter, Colony-N fallback; Studio look pending] (found 2026-07-30 by the UI-playthrough prep): the
   browser asks for a city name in a modal; the Roblox client's `doFound()`
   auto-names ("Colony N") with no rename surface. Recorded in docs/13 as a ruled
   v1.0 divergence. Two notes for whoever builds it: the platform shape is a

@@ -4333,3 +4333,19 @@ that no legitimate client command sends a float or null (grep
 ## A119 — Soundtrack: overworld's score player + ten pieces to the brief (architect, 2026-11-16; client only, golden-neutral)  [done: 2026-11-16 — fastengine proposal (pasted by the user) + user ruling "build it now, follow the brief" (specs/game-soundtrack-design.md). client/music/{score,synth,music}.js copied from overworld (MIT; LICENSE-overworld + NOTICE + README.md); changes: gain 0 refused (fastengine's loader refuses it), scores and the output node passed in (pieces fetched from client/music/pieces/, the folder fastengine's native player reads), 4 s cross-fade (brief §6), overworld's themeFor dropped. shared/music-theme.js (pure): PIECES, musicMoment(view, viewer, techs, lastCombatTurn, winnerId), themeFor — screen, then a finished game, then war (a viewer-involved combat this turn or last), then space-flight known, then the viewer's highest tech era. tools/compose-music.js writes the ten pieces from hand-written bar lines (16–24 bars, 32–69 s; every map era opens on the 1-2-5-4 motif; `--check` gate). client/ui/sound.js: TUNES removed; playTune('splash'|'creation') maps to intro-title/loading-age; setTheme + refreshTheme on session.onChange; music level 0.3 × master, off with the Music option. main.js refreshes the theme at boot. options label "Music". debugging/soundboard.html lists every piece. tools/render-sounds.js no longer renders tunes (Roblox keeps its uploaded tune assets). test/music.test.js 6 cases; test-ui/music.spec.js 1 case.]
 
 ## A120 — Soundtrack round 2: era variants + fanfare ducking (architect, 2026-11-17; client only, golden-neutral)  [done: 2026-11-17 — user go on the suggested next items. (1) Longer map listening: four more pieces (`map-ancient-b`, `map-renaissance-b`, `map-industrial-b`, `map-modern-b`; same modes and motif, new progressions and lines; industrial-b carries the ancient tune on the machine) in tools/compose-music.js; shared/music-theme.js alternates an era's two pieces every MAP_VARIANT_TURNS = 4 turns (pure; fastengine copies it). (2) Stings: the brief's sting-wonder / sting-golden already exist as effect cues (`wonder`, `wonder-triumph`, `order` on cityCelebrating); a new cue would break the Roblox SoundMap parity contract, so none added. client/ui/sound.js ducks the music to 35% (gliding) while the `wonder`, `wonder-triumph` and `age` fanfares ring; combat and discovery cues never duck (brief §8). test/music.test.js +4 asserts.]
+
+## B31 — regent seat proposes moves the engine refuses; regent turn time grows (reported by the Roblox lane 2026-11-15; open, unclaimed)
+
+Measured in Roblox Studio logs (workitems-roblox item 20, "Noticed, other
+lanes"): in a 546-turn 60x38 / 6-civ game with the regent playing p1 from
+turn ~128, 3,184 of 27,254 logged p1 commands were refused by the engine
+(moveUnit: zoc 2,116, impassable 834, atPeace 222; startWork techRequired
+12); a 00:00Z game had 1,010 of 2,282. `aiModule.pickCommand` proposes them
+and the regent driver logs them like any command (the browser shape), so
+replays are unaffected; it is AI work spent on moves that cannot happen.
+Turn time under the regent grew 1.9 -> 3.0 -> 3.5 s/turn on that map (a
+40x25 / 3-civ game ran at about 0.54 s/turn). First step: reproduce in the
+browser regent (`client/ui/regent-driver.js`) or a sim with the same seed
+shape and count refusals by reason; the fix likely belongs in the AI's
+move proposal (engine/ai.js + luau/ai.luau, a golden window if behaviour
+changes).

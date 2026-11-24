@@ -205,8 +205,8 @@
   <div class="item"><div class="t">Roblox soundtrack (added 2026-11-17, user ruling "roblox keeps old tunes")</div>
     <div class="d">The browser and native client play the synth soundtrack (<code>client/music</code>, A119); Roblox keeps its two uploaded tunes. Bringing the pieces over would mean offline-rendered audio assets plus a Luau theme rule.</div>
   </div>
-  <div class="item"><div class="t">F1 — city naming diverges</div>
-    <div class="d">The browser asks for a city name in a modal; Roblox's <code>doFound()</code> auto-names ("Colony N") with no rename surface. Ruled a v1.0 divergence (docs/13). For whoever builds it: the platform shape is a TextBox pre-filled with the auto-name plus a confirm button, focus released on close — and do <em>not</em> port the browser modal naively, because that modal had a touch overlay covering its own confirm button (fixed 2026-07-30), a trap harder to see where focus handling is less inspectable.</div>
+  <div class="item"><div class="t">F1 — city naming diverges — built 2026-11-14</div>
+    <div class="d"><strong>Built by the Roblox lane (workitems-roblox item 11):</strong> a found-city name card with a suggested name, server-side text filter, Colony-N fallback; Studio look pending. The browser asks for a city name in a modal; Roblox's <code>doFound()</code> auto-names ("Colony N") with no rename surface. Ruled a v1.0 divergence (docs/13). For whoever builds it: the platform shape is a TextBox pre-filled with the auto-name plus a confirm button, focus released on close — and do <em>not</em> port the browser modal naively, because that modal had a touch overlay covering its own confirm button (fixed 2026-07-30), a trap harder to see where focus handling is less inspectable.</div>
   </div>
   <div class="item"><div class="t">D4–D6 diplomacy client surfaces</div>
     <div class="d">The data layer is already twin-faithful; only the UI is deferred.</div>

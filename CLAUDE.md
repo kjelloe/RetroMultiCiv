@@ -168,11 +168,14 @@ lazily (A45 trap).
 the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
 invocation (summary + failure blocks, no inline pipes).
 **`node --test test/` does NOT run `test-ui/`** — that playwright lane only
-runs in the nightly, so a `client/**` change can pass the whole 1050-test
+runs in the nightly, so a `client/**` change can pass the whole 1000+-test
 suite and still break the real UI. It happened TWICE in two days
 (2026-08-05): the A105 met-gate broke the diplomacy spec, and the compass
 default broke the d-pad spec. **After any client/UI change run
-`npx playwright test test-ui/<spec>` for the area touched** (whole lane
+`npx playwright test test-ui/<spec>` for the area touched**, from the REPO
+ROOT (run from `test-ui/`, the build-queue spec cannot find
+`tools/replay.js` and the mobile-playthrough spec writes screenshots into
+`test-ui/debugging/`, which then get committed — 2026-11-16) (whole lane
 ~11 min, single spec ~30 s). Other tools:
 `debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
 `ss` — never pkill patterns, they self-match the calling shell),
@@ -196,7 +199,7 @@ prints the AI-quality exit-criteria numbers from a soak --stats log
 debugging/logs/ with one verdict line each (B0's mechanized form), and
 `debugging/sync-check.sh [count]` flags stale test counts in the pinned
 docs, and `debugging/soundboard.html` (served only under the server's
-`--debug`) plays every synth cue + tune with per-row comment boxes —
+`--debug`) plays every synth cue + every music piece (client/music/pieces) with per-row comment boxes —
 the PERMANENT audio-review tool (user ruling 2026-07-16); new
 SOUND_IDS rows appear automatically, and `debugging/glyph-sheet.html`
 renders the 68 procedural tech glyphs in a labeled grid (provisional

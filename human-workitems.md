@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-11-17 (tip on `dev_night`; **marker-0137 = A118 + A119 soundtrack, merge-consistent**, on top of **marker-0136 = A117 SDI preference + view.difficulty + Roblox item 10, golden-neutral, merge-consistent**, on top of marker-0135 = P3 nukes + Roblox queue + stricter command door (with P4 and the fastengine batch), merge-consistent**, supersedes 0134 and earlier. v1.0.0 + v1.0.1 are
+_Last synced: 2026-11-24 (tip on `dev_night`, pushed; **marker-0137 = A118 + A119 soundtrack, merge-consistent**, on top of **marker-0136 = A117 SDI preference + view.difficulty + Roblox item 10, golden-neutral, merge-consistent**, on top of marker-0135 = P3 nukes + Roblox queue + stricter command door (with P4 and the fastengine batch), merge-consistent**, supersedes 0134 and earlier. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -22,9 +22,8 @@ RELEASED and live; everything below is post-release.)_
   landed provisionals.
 - [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
   (user). This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A2b. Push, then merge marker-0137 (supersedes 0130-0136)** — first
-  `git push origin dev_night marker-0133 marker-0134 marker-0135 marker-0136 marker-0137` (this
-  session has no GitHub credentials; the tags are local). 0137 = A118 fastengine follow-ups + A119 the
+- [ ] **A2b. Merge marker-0137 (supersedes 0130-0136)** — pushed with its tags
+  2026-11-24 (user); merge remains. 0137 = A118 fastengine follow-ups + A119 the
   soundtrack, golden-neutral (`reports/marker-0137.md`), on top of 0136 = A117 SDI
   preference + view.difficulty + Roblox item 10, golden-neutral
   (`reports/marker-0136.md`), on top of 0135 = P3
@@ -55,14 +54,14 @@ RELEASED and live; everything below is post-release.)_
 
 ## C. Other lanes
 
-- [ ] **C1. Roblox queue: 9 of 10 items landed headless (2026-11-02)** — items
-  1-6, 8, 9 done from the dev PC (parity harnesses green; no rojo/Studio
-  here). Needs your Studio session (fold into C1b): item 7 (`ageChanged`
-  world line), plus a look at the new animals, era roads/rails + city road
-  joins, the wider Encyclopedia button, and a real `buildingSold` line.
-  Item 10 (2026-11-02): the city happiness row + tooltip on a
-  non-medium game.
-  Detail per item in `workitems-roblox.md`.
+- [ ] **C1. Roblox looks to confirm** — items 1-10 landed headless
+  (2026-11-02); the Roblox lane then ran items 11-20 with Studio sessions
+  (2026-11-14/15: city naming, label declutter, native look, panels, deck,
+  civ gallery, tech-tree graph, Military, parity list). Still unseen in
+  Studio: item 7 (`ageChanged` world line), the animals, era roads/rails,
+  a real `buildingSold` line, the happiness row on a non-medium game, and
+  the "waiting on a Studio look" list in item 20. Plan of record:
+  `specs/roblox-parity-plan.md`; feature status: `roblox/PARITY.md`.
 - [ ] **C1b. The ONE Roblox Studio session (the lane's only remaining
   v1 gate, surfaced #2665 but previously untracked here):** verify
   midgame-join live (two clients, B joins with seats full → gets the

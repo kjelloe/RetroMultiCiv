@@ -47,3 +47,15 @@ lanes never tag; sim-runner lands commits, the architect tags.
 8. **Notify**: agent-mail to the involved lanes (subject = first line,
    verdict-first, ≤100 chars) + one short user-facing summary. Commit the
    report + doc syncs; run `debugging/sync-check.sh` if tests were added.
+
+## Traps (measured)
+
+- **A rebase rewrites an unpushed marker's commit.** When dev_night is
+  rebased onto another lane's work (2026-11-24, onto the Roblox lane) before
+  the tags are pushed, the marker tag keeps pointing at the old commit, which
+  is no longer on the branch. Re-run the suites on the rebased tip, re-point
+  with `git tag -f -a marker-NNNN <rebased sha>`, and add a rebase section to
+  the report (old -> new ids). Never move a tag that is already pushed.
+- **Run the playwright lane from the repo root**, not `test-ui/` (one spec
+  fails on a relative `tools/replay.js`, another writes screenshots that get
+  committed).

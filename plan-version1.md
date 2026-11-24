@@ -8,7 +8,7 @@ Companion added 2026-08-05: **`plan-version-1-patch.md`** — the middle tier,
 from a post-release code review: things worth a PATCH, not worth holding a
 release for (alerting, off-host backups, AI nukes, bankruptcy, ai.js size, CI
 branch coverage).
-Last updated: 2026-10-30 — **marker-0133 (merge-consistent)**: the fastengine change requests R1–R14 (@e612651, golden-neutral; door validation, seat-only saves, protocol version, client fixes — `specs/fastengine-requests.md`, `reports/marker-0133.md`). Luau twins + full goldens verified on it. Then marker-0134: P4 bankruptcy (A114, behavioural re-record, 545/p2 held) — **NOT merge-consistent** (one stale unit test red at the tag; fixed after). Then **marker-0135 (merge-consistent)**: P3 retaliation-only AI nukes (A115, stamp-only re-record), the Roblox queue (8/9 headless), A116 stricter command door (`reports/marker-0135.md`). Then **marker-0136 (merge-consistent, 2026-11-05, golden-neutral)**: A117 SDI preference + `view.difficulty` in the seat view, Roblox item 10 + the end-screen headline fix, the first-use nuke evaluation (`reports/marker-0136.md`). Then **marker-0137 (merge-consistent, 2026-11-17, golden-neutral)**: A118 fastengine follow-ups, A119 the soundtrack (`reports/marker-0137.md`).
+Last updated: 2026-11-24 — **marker-0133 (merge-consistent)**: the fastengine change requests R1–R14 (@e612651, golden-neutral; door validation, seat-only saves, protocol version, client fixes — `specs/fastengine-requests.md`, `reports/marker-0133.md`). Luau twins + full goldens verified on it. Then marker-0134: P4 bankruptcy (A114, behavioural re-record, 545/p2 held) — **NOT merge-consistent** (one stale unit test red at the tag; fixed after). Then **marker-0135 (merge-consistent)**: P3 retaliation-only AI nukes (A115, stamp-only re-record), the Roblox queue (8/9 headless), A116 stricter command door (`reports/marker-0135.md`). Then **marker-0136 (merge-consistent, 2026-11-05, golden-neutral)**: A117 SDI preference + `view.difficulty` in the seat view, Roblox item 10 + the end-screen headline fix, the first-use nuke evaluation (`reports/marker-0136.md`). Then **marker-0137 (merge-consistent, 2026-11-17, golden-neutral)**: A118 fastengine follow-ups, A119 the soundtrack (`reports/marker-0137.md`; re-pointed after the rebase onto the Roblox lane, pushed 2026-11-24). After it: A120 soundtrack round 2 (untagged). Roblox lane 2026-11-14/15: F1 city naming and F2 label declutter built (Studio look pending), parity list `roblox/PARITY.md`, plan `specs/roblox-parity-plan.md`.
 --- prior: 2026-08-15 — **v1.0.2 in effect: marker-0129 merged to main and
 deployed by the user** (the graphics ladder G0–H13b: three display tiers, era
 roads, roads-into-cities; client/render-side only, every gamesim golden
@@ -331,7 +331,7 @@ published as a public GHCR image, and live on Roblox. The games portal at
 | v1.0.1 merge + tag + release | prepared on dev_night; user-executed |
 | Container-boot smoke | registry verified public; boot unproven (4 docker commands) |
 | Production-switch penalty compounds | measured + designed, v1.0.1 candidate |
-| Roblox label collision (`PLAYTHROUGH-UI` F2) | legibility defect at close camera range |
+| Roblox label collision (`PLAYTHROUGH-UI` F2) | built 2026-11-14 (workitems-roblox item 12: screen-space label declutter, gate 34); Studio look pending |
 | AI overseas expansion | measured gap, `specs/unit-doctrine-v1x.md` §8 |
 | Barbarian hunt range (`HUNT_RADIUS` 8) | the likelier cause of accumulation; needs its own measurement |
 
