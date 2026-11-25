@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local SoundLevel = require(script.Parent:WaitForChild("SoundLevel"))
+local OptionsLayout = require(script.Parent:WaitForChild("OptionsLayout")) -- plan R7.4 sections
 local UiThemeClock = require(script.Parent:WaitForChild("UiTheme"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
@@ -47,8 +48,8 @@ require(script.Parent:WaitForChild("HudDock")).register(optionsBtn, { id = "opti
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 468)
-panel.Position = UDim2.new(1, -208, 0, 50)
+panel.Size = UDim2.new(0, 220, 0, OptionsLayout.plan().height)
+panel.Position = UDim2.new(1, -228, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0
@@ -75,27 +76,46 @@ local function toggleButton(y, text)
 	return b
 end
 
-local autoNextBtn = toggleButton(8, "")
-local autoEndBtn = toggleButton(32, "")
+-- plan R7.4: the rows stand in sections (OptionsLayout); row(id) builds one
+-- at the place the layout gives it
+local layoutPlan = OptionsLayout.plan()
+local function row(id)
+	return toggleButton(layoutPlan.rows[id] + 2, "")
+end
+for _, h in ipairs(layoutPlan.heads) do
+	local l = Instance.new("TextLabel")
+	l.Name = "Section"
+	l.Size = UDim2.new(1, -16, 0, 20)
+	l.Position = UDim2.new(0, 8, 0, h.y + 2)
+	l.BackgroundTransparency = 1
+	l.TextColor3 = Color3.fromRGB(143, 155, 179)
+	l.Font = Enum.Font.GothamBold
+	l.TextSize = 14
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.Text = h.title
+	l.Parent = panel
+end
+local autoNextBtn = row("autoNext")
+local autoEndBtn = row("autoEnd")
 -- R16: options completion (browser parity where the surface exists)
-local hideFutureBtn = toggleButton(56, "")
-local hideHintBtn = toggleButton(80, "")
-local clockBtn = toggleButton(104, "")
-local voidArtBtn = toggleButton(128, "")
-local ridePadBtn = toggleButton(152, "")
-local lookBtn = toggleButton(176, "")
-local autoResearchBtn = toggleButton(200, "") -- session-E round 7
-local discoveryBtn = toggleButton(224, "") -- SO3 tech-discovery cards
-local paletteBtn = toggleButton(248, "") -- SO14 accessibility palette
-local adviceBtn = toggleButton(272, "") -- SO5 advice nudges
-local wonderBtn = toggleButton(296, "") -- the wonder completion scene (off: the card only)
+local hideFutureBtn = row("hideFuture")
+local hideHintBtn = row("hideHint")
+local clockBtn = row("clock")
+local voidArtBtn = row("voidArt")
+local ridePadBtn = row("ridePad")
+local lookBtn = row("look")
+local autoResearchBtn = row("autoResearch") -- session-E round 7
+local discoveryBtn = row("discovery") -- SO3 tech-discovery cards
+local paletteBtn = row("palette") -- SO14 accessibility palette
+local adviceBtn = row("advice") -- SO5 advice nudges
+local wonderBtn = row("wonder") -- the wonder completion scene (off: the card only)
 -- plan R2.3: sound effects switch (opt-12), volume (opt-11), minimap (opt-16)
-local soundBtn = toggleButton(320, "")
-local volumeBtn = toggleButton(344, "")
-local minimapBtn = toggleButton(368, "")
-local turnBannerBtn = toggleButton(392, "") -- opt-07: the your-turn banner (hot-seat and LAN games)
-local unitMoveBtn = toggleButton(416, "") -- opt-04: pace GoTo steps
-local reduceBtn = toggleButton(440, "") -- opt-08: reduce animation
+local soundBtn = row("sound")
+local volumeBtn = row("volume")
+local minimapBtn = row("minimap")
+local turnBannerBtn = row("turnBanner") -- opt-07: the your-turn banner (hot-seat and LAN games)
+local unitMoveBtn = row("unitMove") -- opt-04: pace GoTo steps
+local reduceBtn = row("reduce") -- opt-08: reduce animation
 local function stepButton(text, x)
 	local b = Instance.new("TextButton")
 	b.Name = "VolumeStep"
