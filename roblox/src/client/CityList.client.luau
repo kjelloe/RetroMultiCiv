@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local EmpireView = require(script.Parent:WaitForChild("EmpireView")) -- plan step 2: city figures, economy statement
+local CityView = require(script.Parent:WaitForChild("CityView")) -- plan R6.2: the capital for Home
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DEPS = { tech = require(Shared:WaitForChild("tech")), cities = require(Shared:WaitForChild("cities")),
 	government = require(Shared:WaitForChild("government")), happiness = require(Shared:WaitForChild("happiness")) }
@@ -287,8 +288,25 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if UserInputService:GetFocusedTextBox() ~= nil then
 		return
 	end
-	if input.KeyCode == Enum.KeyCode.C then
+	-- plan R6.2: C belongs to the city view while a city is open (build cycling)
+	if input.KeyCode == Enum.KeyCode.C and not ClientState.cityViewOpen then
 		setOpen(not gui.Enabled)
+	elseif input.KeyCode == Enum.KeyCode.Home then
+		-- map-06: fly to the capital (the browser's C with no city selected)
+		local view = ClientState.view
+		if view == nil then
+			return
+		end
+		local rs = ClientState.rulesets()
+		for _, cid in ipairs(view.cityOrder or {}) do
+			local c = view.cities[cid]
+			if c ~= nil and c.owner == view.you and c.pop ~= nil and CityView.isCapital(c, rs, view) then
+				print(("[CityList] fly to the capital %s (%d,%d)"):format(c.name, c.x, c.y))
+				ClientState.focusCamera(c.x, c.y)
+				return
+			end
+		end
+		print("[CityList] no capital yet - found a city first")
 	end
 end)
 

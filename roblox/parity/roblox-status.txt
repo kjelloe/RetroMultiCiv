@@ -72,8 +72,8 @@ city-16 | yes | client/CityPanel.client.luau | cycle(-1) |
 city-17 | yes | client/CityView.luau | CIVIL DISORDER - no production or taxes |
 city-18 | yes | client/CityView.luau | We Love the King Day |
 city-19 | yes | client/CityPanel.client.luau | "Trade routes" |
-city-20 | no | | | no quick production keys
-city-21 | no | | | no build cycling key
+city-20 | yes | client/CityKeys.luau | PRODUCTION_KEYS |
+city-21 | yes | client/CityKeys.luau | function M.nextBuild |
 city-22 | yes | client/WorkedTiles.luau | CLOSE CITY VIEW |
 res-01 | yes | client/ResearchPicker.client.luau | setResearch |
 res-02 | yes | client/ResearchPicker.client.luau | setResearch |
@@ -105,7 +105,7 @@ map-02 | yes | client/Minimap.client.luau | Minimap |
 map-03 | yes | client/Overlays.client.luau | map-overlays panel |
 map-04 | yes | client/Overlays.client.luau | city influence |
 map-05 | yes | client/Overlays.client.luau | unit presence |
-map-06 | no | | | no fly-to-capital key (C opens the Cities list; a click there goes to a city)
+map-06 | partial | client/CityList.client.luau | fly to the capital | on Home: C stays the Cities list key
 map-07 | partial | client/RidePad.client.luau | RidePad | a touch pad steers the ridden unit; the camera uses the platform's own touch controls
 map-08 | yes | client/ViewRenderer.client.luau | site stars |
 map-09 | yes | client/Select.client.luau | RMCTileCard |

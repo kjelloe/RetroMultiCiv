@@ -26,6 +26,7 @@ local CatalogInfo = require(script.Parent:WaitForChild("CatalogInfo")) -- which 
 local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs"))
 local CityView = require(script.Parent:WaitForChild("CityView")) -- plan step 1: food, specialists, capital, routes, cycling
 local PediaPicture = require(script.Parent:WaitForChild("PediaPicture")) -- building / wonder row pictures
+local CityKeys = require(script.Parent:WaitForChild("CityKeys")) -- plan R6.2
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -1022,6 +1023,33 @@ ClientState.registerAction("act-city-cycle", function()
 	end
 	reg.close()
 	return out
+end)
+
+-- plan R6.2 (city-20, city-21): with the city open, 1 / 2 / 3 build Militia /
+-- Phalanx / Settlers and C steps to the next building or wonder
+local KEY_NUMBER = { [Enum.KeyCode.One] = 1, [Enum.KeyCode.Two] = 2, [Enum.KeyCode.Three] = 3 }
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+	if processed or not gui.Enabled or openCityId == nil
+		or game:GetService("UserInputService"):GetFocusedTextBox() ~= nil then
+		return
+	end
+	local view = ClientState.view
+	local city = view ~= nil and view.cities[openCityId] or nil
+	if city == nil or city.owner ~= view.you then
+		return
+	end
+	local item = nil
+	local n = KEY_NUMBER[input.KeyCode]
+	if n ~= nil then
+		item = { kind = "unit", id = CityKeys.PRODUCTION_KEYS[n] }
+	elseif input.KeyCode == Enum.KeyCode.C then
+		local me = view.players[view.you]
+		item = CityKeys.nextBuild(city, me and me.techs, ClientState.rulesets(), view.wonders)
+	end
+	if item ~= nil then
+		print(("[CityPanel] key: setProduction %s -> %s %s"):format(openCityId, item.kind, item.id))
+		ClientState.send({ type = "setProduction", cityId = openCityId, item = item })
+	end
 end)
 
 -- plan R4.2 tour: two queued items, the second moved first, both removed;
