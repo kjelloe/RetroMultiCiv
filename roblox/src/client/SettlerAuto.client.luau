@@ -144,12 +144,18 @@ local function drive(view)
 			-- browser checkAutoPause: never wander under a threat
 			ClientState.autoSettlers[id] = nil
 			print(("[SettlerAuto] %s at (%d,%d) pauses - enemy nearby"):format(id, u.x, u.y))
+			if ClientState.banner ~= nil then
+				ClientState.banner("Settlers pause - enemy nearby", { x = u.x, y = u.y })
+			end
 		elseif u.moves > 0 and u.working == nil then
 			local job = findJob(view, u, rs)
 			if job == nil then
 				-- browser: nothing left to improve in range wakes the settler
 				ClientState.autoSettlers[id] = nil
 				print(("[SettlerAuto] %s finished improving at (%d,%d) (%s)"):format(id, u.x, u.y, ClientState.autoPriority))
+				if ClientState.banner ~= nil then
+					ClientState.banner("Settlers finished improving - nothing left in range", { x = u.x, y = u.y })
+				end
 			else
 				if u.x == job.x and u.y == job.y then
 					print(("[SettlerAuto] %s starts %s at (%d,%d)"):format(id, job.work, job.x, job.y))

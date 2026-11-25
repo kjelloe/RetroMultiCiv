@@ -13,7 +13,7 @@ hud-07 | partial | client/Options.client.luau | hideNoMovesHint | the option exi
 hud-08 | partial | client/Sound.client.luau | SoundMap | turn-start sound cue; no banner
 hud-09 | yes | client/ActionBar.client.luau | sentry toggle lives ON the card |
 hud-10 | yes | client/ViewRenderer.client.luau | DISORDER |
-hud-11 | no | | | no event banner with a zoom button; the turn log's target button covers located events
+hud-11 | yes | client/Hud.client.luau | function ClientState.banner |
 hud-12 | yes | client/Options.client.luau | clock |
 hud-13 | partial | server/GameServer.server.luau | spectators | spectators ride the deck; no chip
 hud-14 | yes | client/Lobby.client.luau | GET RESUME CODE |
@@ -188,7 +188,7 @@ opt-03 | yes | client/Options.client.luau | autoNextUnit |
 opt-04 | no | | | no slow-GoTo option
 opt-05 | yes | client/Options.client.luau | hideFuture |
 opt-06 | yes | client/Options.client.luau | hideNoMovesHint |
-opt-07 | no | | | no your-turn banner to mute
+opt-07 | yes | client/Options.client.luau | your-turn banner: %s |
 opt-08 | no | | | no reduce-animation option
 opt-09 | yes | client/Options.client.luau | clock |
 opt-10 | no | | | no slow-player threshold

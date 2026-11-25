@@ -51,6 +51,7 @@ M.ACTIONS = {
 	{ id = "act-city-cycle", owner = "CityPanel.client.luau", title = "Previous / next city", needsCity = true },
 	{ id = "act-queue-reorder", owner = "CityPanel.client.luau", title = "Build queue: earlier, later, remove", needsCity = true },
 	{ id = "act-economy-net", owner = "Hud.client.luau", title = "Economy net equals the gold line", needsCity = true },
+	{ id = "act-banner", owner = "Hud.client.luau", title = "Event banner with Go to", needsCity = true },
 	{ id = "act-chart-chips", owner = "Statistics.client.luau", title = "Each chart chip draws its figure" },
 }
 

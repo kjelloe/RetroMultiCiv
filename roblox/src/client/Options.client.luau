@@ -46,7 +46,7 @@ require(script.Parent:WaitForChild("HudDock")).register(optionsBtn, { id = "opti
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 396)
+panel.Size = UDim2.new(0, 200, 0, 420)
 panel.Position = UDim2.new(1, -208, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
@@ -92,6 +92,7 @@ local wonderBtn = toggleButton(296, "") -- the wonder completion scene (off: the
 local soundBtn = toggleButton(320, "")
 local volumeBtn = toggleButton(344, "")
 local minimapBtn = toggleButton(368, "")
+local turnBannerBtn = toggleButton(392, "") -- opt-07: the your-turn banner (hot-seat and LAN games)
 local function stepButton(text, x)
 	local b = Instance.new("TextButton")
 	b.Name = "VolumeStep"
@@ -136,16 +137,18 @@ hint.Text = "All units moved - press Return or the End Turn button"
 hint.Visible = false
 hint.Parent = gui
 
+local paint -- defined below; the open handler repaints
 optionsBtn.Activated:Connect(function()
 	panel.Visible = not panel.Visible
 	if panel.Visible then
+		paint() -- a banner's Mute may have changed an option meanwhile
 		ClientState.panelOpened("options") -- runI item 18: closes the city view
 	end
 end)
 
 -- XIV §15: `brick` shows to the player as "Studded" (internal id stays brick).
 local LOOK_LABEL = { enhanced = "enhanced", retro = "retro", brick = "Studded" }
-local function paint()
+function paint()
 	local o = ClientState.options
 	autoNextBtn.Text = ("  auto next unit: %s"):format(o.autoNextUnit and "ON" or "off")
 	autoEndBtn.Text = ("  auto end turn: %s"):format(o.autoEndTurn and "ON" or "off")
@@ -164,6 +167,7 @@ local function paint()
 	soundBtn.Text = ("  sound effects: %s"):format(o.sound ~= false and "ON" or "off")
 	volumeBtn.Text = ("  volume: %d%%"):format(SoundLevel.volume(o))
 	minimapBtn.Text = ("  minimap: %s"):format(o.showMinimap ~= false and "ON" or "off")
+	turnBannerBtn.Text = ("  your-turn banner: %s"):format(o.muteTurnBanner == true and "off" or "ON")
 	-- run-S shot16: the state reads by colour - ON green, off grey, a named choice blue
 	for _, b in ipairs(panel:GetChildren()) do
 		if b:IsA("TextButton") and b.Name ~= "PanelClose" and b.Name ~= "VolumeStep" then
@@ -252,6 +256,10 @@ volDown.Activated:Connect(function()
 end)
 volUp.Activated:Connect(function()
 	ClientState.options.soundVolume = SoundLevel.step(ClientState.options, 1)
+	paint()
+end)
+turnBannerBtn.Activated:Connect(function()
+	ClientState.options.muteTurnBanner = ClientState.options.muteTurnBanner ~= true
 	paint()
 end)
 minimapBtn.Activated:Connect(function()

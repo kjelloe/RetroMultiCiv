@@ -9,6 +9,7 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
+local BannerRules = require(script.Parent:WaitForChild("BannerRules")) -- plan R6.3
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
@@ -216,6 +217,138 @@ noticeBanner.TextStrokeTransparency = 0.3
 noticeBanner.Visible = false
 noticeBanner.Parent = gui
 local noticeGen = 0
+
+-- plan R6.3 (hud-11, opt-07): the centre event banner - text, a Go to button
+-- when the message has a map tile, and on the your-turn banner X + Mute
+local eventBanner = Instance.new("Frame")
+eventBanner.Name = "EventBanner"
+eventBanner.AnchorPoint = Vector2.new(0.5, 0)
+eventBanner.Position = UDim2.new(0.5, 0, 0.22, 0)
+eventBanner.Size = UDim2.new(0, 0, 0, 44)
+eventBanner.AutomaticSize = Enum.AutomaticSize.X
+eventBanner.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
+eventBanner.BackgroundTransparency = 0.1
+eventBanner.Visible = false
+eventBanner.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 10)
+	c.Parent = eventBanner
+	local lay = Instance.new("UIListLayout")
+	lay.FillDirection = Enum.FillDirection.Horizontal
+	lay.VerticalAlignment = Enum.VerticalAlignment.Center
+	lay.Padding = UDim.new(0, 8)
+	lay.SortOrder = Enum.SortOrder.LayoutOrder
+	lay.Parent = eventBanner
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 14), UDim.new(0, 8)
+	pad.Parent = eventBanner
+end
+local bannerGen = 0
+local function hideBanner()
+	bannerGen += 1
+	eventBanner.Visible = false
+end
+local function bannerButton(order, text, onClick)
+	local b = Instance.new("TextButton")
+	b.LayoutOrder = order
+	b.Size = UDim2.new(0, 0, 0, 30)
+	b.AutomaticSize = Enum.AutomaticSize.X
+	b.BackgroundColor3 = Color3.fromRGB(60, 74, 104)
+	b.TextColor3 = Color3.fromRGB(240, 240, 240)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 16
+	b.Text = "  " .. text .. "  "
+	b.Parent = eventBanner
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = b
+	b.Activated:Connect(onClick)
+	return b
+end
+-- loc = { x, y } or nil; opts.turn = the your-turn banner (X and Mute)
+function ClientState.banner(text, loc, opts)
+	for _, ch in ipairs(eventBanner:GetChildren()) do
+		if ch:IsA("GuiObject") then
+			ch:Destroy()
+		end
+	end
+	local label = Instance.new("TextLabel")
+	label.LayoutOrder = 0
+	label.Size = UDim2.new(0, 0, 0, 30)
+	label.AutomaticSize = Enum.AutomaticSize.X
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.fromRGB(255, 225, 130)
+	label.Font = Enum.Font.GothamBold
+	label.TextSize = 20
+	label.Text = text
+	label.Parent = eventBanner
+	local view = ClientState.view
+	if BannerRules.hasLoc(loc, view ~= nil and view.map or nil) then
+		bannerButton(1, "Go to", function()
+			ClientState.focusCamera(loc.x, loc.y)
+			hideBanner()
+		end)
+	end
+	if opts ~= nil and opts.turn then
+		bannerButton(2, "Mute", function()
+			ClientState.options.muteTurnBanner = true
+			print("[Hud] your-turn banner muted (Options turns it back on)")
+			hideBanner()
+		end)
+	end
+	bannerButton(3, "X", hideBanner)
+	bannerGen += 1
+	local gen = bannerGen
+	eventBanner.Visible = true
+	print("[Hud] banner: " .. text .. (loc ~= nil and (" at %d,%d"):format(loc.x or -1, loc.y or -1) or ""))
+	task.delay(BannerRules.HOLD, function()
+		if gen == bannerGen then
+			eventBanner.Visible = false
+		end
+	end)
+end
+
+-- plan R6.3 tour: a banner at the first city shows its Go to and X buttons
+ClientState.registerAction("act-banner", function()
+	local view = ClientState.view
+	local city = nil
+	for _, cid in ipairs(view.cityOrder or {}) do
+		local c = view.cities[cid]
+		if c ~= nil and c.owner == view.you then
+			city = c
+			break
+		end
+	end
+	ClientState.banner("Tour: " .. city.name, { x = city.x, y = city.y })
+	task.wait(0.3)
+	local out, buttons = {}, {}
+	for _, ch in ipairs(eventBanner:GetChildren()) do
+		if ch:IsA("TextButton") then
+			buttons[#buttons + 1] = TourPlan.plain(ch.Text)
+		end
+	end
+	if not eventBanner.Visible then
+		out[#out + 1] = "the banner did not show"
+	end
+	if table.find(buttons, "Go to") == nil or table.find(buttons, "X") == nil then
+		out[#out + 1] = "buttons: " .. table.concat(buttons, ", ")
+	end
+	if eventBanner.AbsolutePosition.Y < 0 or eventBanner.AbsoluteSize.X < 100 then
+		out[#out + 1] = "the banner is off screen or empty"
+	end
+	hideBanner()
+	return out
+end)
+
+local prevActive = nil
+ClientState.onView(function(view)
+	if BannerRules.yourTurn(prevActive, view, ClientState.options) then
+		ClientState.banner("Your turn", nil, { turn = true })
+	end
+	prevActive = view.activePlayer
+end)
+
 ClientState.onEvents(function(events, view)
 	for _, e in ipairs(events) do
 		if e.type == "hutEntered" and view ~= nil and e.playerId == view.you then
