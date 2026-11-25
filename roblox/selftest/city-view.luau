@@ -102,6 +102,16 @@ view.cities.c3, view.cities.c4 = nil, nil
 check("one city: no neighbour", V.neighbour(view, "c1", 1) == nil)
 check("unknown city: no neighbour", V.neighbour(view, "zz", 1) == nil)
 
+-- row pictures
+local size, nameX = V.thumb("building", 28, true)
+check("building row picture", size == 22 and nameX == 10 + 22 + V.THUMB_GAP)
+size = V.thumb("wonder", 46, true)
+check("two-line row picture is taller", size == 40)
+size, nameX = V.thumb("unit", 46, true)
+check("unit rows have no picture", size == 0 and nameX == 12)
+size, nameX = V.thumb("building", 28, false)
+check("no model, no picture", size == 0 and nameX == 12)
+
 if fails > 0 then
 	error(fails .. " city view pin(s) failed")
 end

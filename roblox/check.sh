@@ -978,7 +978,9 @@ if command -v lune >/dev/null 2>&1; then
      && grep -q 'PediaPicture.show(artBox, catDef.key, id, lay' roblox/src/client/Pedia.client.luau \
      && grep -q 'return TileHeight.top(TerrainPalette, id)' roblox/src/client/ViewRenderer.client.luau \
      && grep -q 'TileProps.rebuild, props, { map = map, cities = {} }, top, TILE, 3, true' roblox/src/client/PediaPicture.luau \
-     && grep -q 'if uncached ~= true then' roblox/src/client/TileProps.luau; then
+     && grep -q 'if uncached ~= true then' roblox/src/client/TileProps.luau \
+     && grep -q 'CityView.thumb(kind, h, PediaPicture.hasThumb(id))' roblox/src/client/CityPanel.client.luau \
+     && grep -q 'CityView.thumb("building", 28, PediaPicture.hasThumb(id))' roblox/src/client/CityPanel.client.luau; then
     note PASS "gate 66: encyclopedia pictures over the real rulesets (lune) + panel wiring"
   else
     note FAIL "gate 66: pedia art — run: lune run roblox/selftest/pedia-art.luau"

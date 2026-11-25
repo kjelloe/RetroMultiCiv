@@ -151,6 +151,18 @@ function M.neighbour(view, cityId, dir)
 	return own[(at - 1 + dir) % #own + 1]
 end
 
+-- specs/roblox-pedia-art.md 2.1: a building or wonder row carries its
+-- model as a small still picture left of the name. -> picture size in px
+-- (0: no picture) and the x where the name starts
+M.THUMB_GAP = 6
+function M.thumb(kind, rowH, hasModel)
+	if (kind == "building" or kind == "wonder") and hasModel then
+		local size = math.max(22, rowH - 6)
+		return size, 10 + size + M.THUMB_GAP
+	end
+	return 0, 12
+end
+
 -- the line under the city name
 function M.subtitle(city, rs, view)
 	if city.disorder == true then

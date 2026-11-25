@@ -165,6 +165,58 @@ local function drawPlate(box, art, layout, rs)
 	return card
 end
 
+-- city panel rows (specs/roblox-pedia-art.md 2.1): a still picture of a
+-- building or wonder model; each model is built once and cloned per row
+local thumbModels = {}
+function M.hasThumb(id)
+	return StructureModels.MODELS[id] ~= nil
+end
+function M.thumb(parent, id, size, x, y)
+	local def = StructureModels.MODELS[id]
+	if def == nil then
+		return nil
+	end
+	local ok, vp = pcall(function()
+		local template = thumbModels[id]
+		if template == nil then
+			template = Instance.new("Model")
+			StructureBuilder.build(template, def, CFrame.new(), 1)
+			thumbModels[id] = template
+		end
+		local v = Instance.new("ViewportFrame")
+		v.Name = "Thumb"
+		v.Size = UDim2.fromOffset(size, size)
+		v.Position = UDim2.fromOffset(x, y)
+		v.BackgroundColor3 = Color3.fromRGB(18, 21, 29)
+		v.BorderSizePixel = 0
+		v.Ambient = Color3.fromRGB(150, 150, 156)
+		v.LightColor = Color3.fromRGB(255, 250, 240)
+		v.LightDirection = Vector3.new(0.4, -1, -0.6)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 5)
+		corner.Parent = v
+		local model = template:Clone()
+		model.Parent = v
+		local cam = Instance.new("Camera")
+		cam.FieldOfView = 30
+		cam.Parent = v
+		v.CurrentCamera = cam
+		local centre, ext = model:GetBoundingBox()
+		local dist = math.max(1, ext.Magnitude / 2) * PediaArt.CAMERA.structure.fit
+		local yaw, pitch = math.rad(def.camera.yaw), math.rad(def.camera.pitch)
+		local at = centre.Position
+		cam.CFrame = CFrame.lookAt(at + Vector3.new(math.sin(yaw) * math.cos(pitch), math.sin(pitch),
+			math.cos(yaw) * math.cos(pitch)) * dist, at)
+		v.Parent = parent
+		return v
+	end)
+	if not ok then
+		Diag.fail("pedia", ("row picture %s (the row shows no picture)"):format(id), vp)
+		return nil
+	end
+	return vp
+end
+
 -- draws `art` into box without touching the encyclopedia's own picture
 -- (the wonder cards use it); the caller disconnects conns and destroys root
 function M.draw(box, art, layout, rs)

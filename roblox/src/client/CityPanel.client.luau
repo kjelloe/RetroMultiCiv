@@ -25,6 +25,7 @@ local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 local CatalogInfo = require(script.Parent:WaitForChild("CatalogInfo")) -- which rows, and their hover card
 local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs"))
 local CityView = require(script.Parent:WaitForChild("CityView")) -- plan step 1: food, specialists, capital, routes, cycling
+local PediaPicture = require(script.Parent:WaitForChild("PediaPicture")) -- building / wonder row pictures
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -469,7 +470,11 @@ local function addRow(order, kind, id, def, lockReason, effects, current, cardTe
 	stripe.Parent = row
 	-- right side: the lock reason, or the cost and the Q+ chip
 	local rightW = lockReason and 150 or 86
-	local name = text(row, 12, 4, W - 26 - 12 - rightW - 6, 20, 15, Enum.Font.GothamBold,
+	local thumb, nameX = CityView.thumb(kind, h, PediaPicture.hasThumb(id))
+	if thumb > 0 then
+		PediaPicture.thumb(row, id, thumb, 8, math.floor((h - thumb) / 2))
+	end
+	local name = text(row, nameX, 4, W - 26 - nameX - rightW - 6, 20, 15, Enum.Font.GothamBold,
 		lockReason and Color3.fromRGB(130, 134, 146) or INK)
 	name.Text = def.name or id
 	local right = text(row, 0, 4, rightW, 20, 14, lockReason and UiTheme.BODY_FONT or Enum.Font.GothamBold,
@@ -483,7 +488,7 @@ local function addRow(order, kind, id, def, lockReason, effects, current, cardTe
 		right.Text = current and ("building  %d"):format(def.cost or 0) or tostring(def.cost or 0)
 	end
 	if twoLine then
-		local sub = text(row, 12, 24, W - 26 - 24, 18, 14, nil, Color3.fromRGB(157, 178, 200))
+		local sub = text(row, nameX, 24, W - 26 - nameX - 12, 18, 14, nil, Color3.fromRGB(157, 178, 200))
 		sub.Text = effects
 	end
 	if not lockReason then
@@ -558,7 +563,11 @@ local function addBuildingRow(order, id, def, price, sold, cardText)
 	Tooltip.attach(row, function()
 		return cardText, "card"
 	end)
-	local name = text(row, 12, 4, W - 26 - 12 - 100, 20, 15, nil, Color3.fromRGB(210, 218, 230))
+	local thumb, nameX = CityView.thumb("building", 28, PediaPicture.hasThumb(id))
+	if thumb > 0 then
+		PediaPicture.thumb(row, id, thumb, 6, 3)
+	end
+	local name = text(row, nameX, 4, W - 26 - nameX - 100, 20, 15, nil, Color3.fromRGB(210, 218, 230))
 	name.Text = def.name or id
 	if def.effect ~= nil and def.effect.isPalace == true then
 		return -- the Palace is not sellable (engine rule)
