@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local SoundLevel = require(script.Parent:WaitForChild("SoundLevel"))
+local UiThemeClock = require(script.Parent:WaitForChild("UiTheme"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
@@ -124,7 +125,13 @@ clockLabel.Font = Enum.Font.Code
 clockLabel.TextSize = 14
 clockLabel.Text = ""
 clockLabel.Parent = gui
-require(script.Parent:WaitForChild("HudDock")).register(clockLabel, { id = "clock", order = 6, fixedW = 150, fixedH = 18 }) -- U3
+-- design D (2026-11-25): the clock stands under the menu row (on a phone,
+-- whose menu row is at the bottom, in the top-right corner); in the row it
+-- pushed the menu into the top-centre buttons at 1920 px
+local function placeClock()
+	clockLabel.Size = UDim2.new(0, 150, 0, 18)
+	clockLabel.Position = UDim2.new(1, -158, 0, UiThemeClock.phone() and 12 or 56)
+end
 local bootClock = os.clock()
 
 local hint = Instance.new("TextLabel")
@@ -298,6 +305,7 @@ task.spawn(function()
 		else
 			clockLabel.Text = ""
 		end
+		placeClock()
 		task.wait(5)
 	end
 end)

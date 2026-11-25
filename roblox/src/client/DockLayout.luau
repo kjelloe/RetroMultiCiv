@@ -14,7 +14,9 @@ M.TOP = 8
 M.H_DESKTOP = 40
 M.H_TOUCH = 44 -- the platform's minimum comfortable touch target
 M.MAX_SHARE = 0.55 -- of the viewport width (status text owns the left, the wait label the centre)
-M.PHONE_BOTTOM = 58 -- the phone row sits in the slot above End Turn (52 px + 6)
+-- the phone row sits above End Turn and the lifted action bar (8 + 52 lift +
+-- 50 bar + 6; design D, 2026-11-25: at 58 it shared a band with the bar)
+M.PHONE_BOTTOM = 116
 M.CHAR_W = 10 -- FredokaOne at 18 px averages about this per character
 M.ICON_PAD = 47 -- icon (h - 12) + its 7 px inset + 12 px gap, at h = 40
 

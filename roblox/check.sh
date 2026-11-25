@@ -874,7 +874,7 @@ fi
 # (BarFit: shrink between them, else its own strip above them)
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/bar-fit.luau >/dev/null 2>&1 \
-     && grep -q 'BarFit.plan(cam.ViewportSize.X, natural)' roblox/src/client/ActionBar.client.luau; then
+     && grep -q 'BarFit.plan(vw, natural, require' roblox/src/client/ActionBar.client.luau; then
     note PASS "gate 61: bottom bar placement (lune) + ActionBar wiring"
   else
     note FAIL "gate 61: bar fit — run: lune run roblox/selftest/bar-fit.luau"
@@ -1195,6 +1195,31 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 77: lune absent"
+fi
+
+# gate 78 — design D (plan R5.1): the turn chip, top row, menu dock, clock,
+# action bar, toggles, End Turn, AI and minimap placed at 667 / 844 (phone),
+# 1280 / 1920 / 2208 px from the real planners share no pixel; the corner
+# sizes the model uses are pinned to the scripts that build them
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/screen-fit.luau >/dev/null 2>&1 \
+     && grep -q 'endTurn.Size = UDim2.new(0, 150, 0, 44)' roblox/src/client/Hud.client.luau \
+     && grep -q 'endTurn.Position = UDim2.new(1, -158, 1, -52)' roblox/src/client/Hud.client.luau \
+     && grep -q 'regencyBtn.Position = UDim2.new(1, -210, 1, -52)' roblox/src/client/Hud.client.luau \
+     && grep -q 'toggle.Position = UDim2.new(0, 8, 1, -92)' roblox/src/client/Legend.client.luau \
+     && grep -q 'btn.Position = UDim2.new(0, 8, 1, -136)' roblox/src/client/Overlays.client.luau \
+     && grep -q 'Position = UDim2.new(0, 8, 1, -180)' roblox/src/client/Diplomacy.client.luau \
+     && grep -q 'or 116$' roblox/src/client/Minimap.client.luau \
+     && grep -q 'local WIDTH_PX = 200' roblox/src/client/Minimap.client.luau \
+     && grep -q 'M.SIZE = 44' roblox/src/client/LeftStack.luau \
+     && grep -q 'BarFit.plan(vw, natural, require' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'UDim2.new(1, -158, 0, UiThemeClock.phone() and 12 or 56)' roblox/src/client/Options.client.luau; then
+    note PASS "gate 78: design D - no shared pixels at 667 / 844 / 1280 / 1920 / 2208 px (lune) + corner sizes pinned"
+  else
+    note FAIL "gate 78: screen fit — run: lune run roblox/selftest/screen-fit.luau"
+  fi
+else
+  note SKIP "gate 78: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

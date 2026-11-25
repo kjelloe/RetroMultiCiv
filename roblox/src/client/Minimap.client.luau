@@ -11,6 +11,8 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local UiTheme = require(script.Parent:WaitForChild("UiTheme")) -- design D: phone placement
+local DockLayout = require(script.Parent:WaitForChild("DockLayout"))
 local TerrainPalette = require(game:GetService("ReplicatedStorage")
 	:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14
@@ -56,7 +58,10 @@ local function buildGrid(map)
 	gh = math.ceil(map.height / step)
 	local cellPx = math.max(2, math.floor(WIDTH_PX / gw))
 	box.Size = UDim2.new(0, gw * cellPx, 0, gh * cellPx)
-	box.Position = UDim2.new(1, -(gw * cellPx + 8), 1, -(gh * cellPx + 108))
+	-- design D (2026-11-25): above a lifted action bar (8 + 52 + 50 + 6), and
+	-- on a phone above the menu row as well
+	local bottom = UiTheme.phone() and (DockLayout.PHONE_BOTTOM + DockLayout.H_TOUCH + 6) or 116
+	box.Position = UDim2.new(1, -(gw * cellPx + 8), 1, -(gh * cellPx + bottom))
 	box:ClearAllChildren()
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(90, 100, 120)

@@ -73,9 +73,11 @@ do
 			return
 		end
 		natural += (n - 1) * layout.Padding.Offset
-		local plan = BarFit.plan(cam.ViewportSize.X, natural)
+		local vw = cam.ViewportSize.X
+		local plan = BarFit.plan(vw, natural, require(script.Parent:WaitForChild("UiTheme")).phone())
+		local l, r = BarFit.span(vw, natural, plan)
 		barScale.Scale = plan.scale
-		bar.Position = UDim2.new(0.5, 0, 1, -BarFit.BOTTOM - plan.lift)
+		bar.Position = UDim2.new(0.5, math.floor((l + r) / 2 - vw / 2), 1, -BarFit.BOTTOM - plan.lift)
 	end
 	bar.ChildAdded:Connect(function()
 		task.defer(fit)

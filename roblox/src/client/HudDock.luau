@@ -36,13 +36,14 @@ local function layout()
 	end
 	-- U3b (ruling: bottom bar on a phone): the menu row drops to the slot above
 	-- End Turn as 44 px icon squares; members with no icon-only form (the
-	-- clock) keep the place their owner gave them
+	-- clock) go to the top-right corner the row left free (design D,
+	-- 2026-11-25: the owner's desktop offset put the clock on the turn chip)
 	local phone = UiTheme.phone()
 	local h = (phone or UiTheme.touchOnly()) and DockLayout.H_TOUCH or DockLayout.H_DESKTOP
 	local items = {}
 	for id, m in pairs(members) do
 		if phone and m.fixedW ~= nil then
-			m.obj.Position = m.home.pos
+			m.obj.Position = UDim2.new(1, -(m.fixedW + DockLayout.MARGIN), 0, DockLayout.TOP + 4)
 			m.obj.Size = m.home.size
 			continue
 		end
