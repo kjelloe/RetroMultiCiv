@@ -19,6 +19,7 @@ local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- plan step 3: which orders, labels, reasons
 local Tooltip = require(script.Parent:WaitForChild("Tooltip"))
 local SettlerJobs = require(script.Parent:WaitForChild("SettlerJobs"))
+local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
 local ORDER_DEPS = { improvements = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("improvements")) }
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
@@ -677,14 +678,15 @@ governmentBtn.Activated:Connect(function()
 		ClientState.openGovernment()
 	end
 end)
-gotoBtn.Activated:Connect(function()
+local function doGoto()
 	local u = ClientState.view ~= nil and selectedUnit() or nil
 	if u ~= nil and GoToPlan.hasPlan(u.id) then
 		GoToPlan.cancel(u.id) -- plan step 3.2: the button reads "Cancel route" meanwhile
 	elseif ClientState.view ~= nil then
 		GoToPlan.arm() -- toggles target-pick; the next map click is the target
 	end
-end)
+end
+gotoBtn.Activated:Connect(doGoto)
 possessBtn.Activated:Connect(function()
 	-- R12 (6): the button IS the P toggle now — ride the selected unit or
 	-- dismount; Possess.client.luau owns the mode (nil request = dismount)
@@ -904,6 +906,197 @@ end
 Tooltip.attach(priorityBtn, function()
 	return ("Automated settlers favour: %s. Click to cycle Balanced / Food / Shield / Trade (applies to every automated settler)")
 		:format(SettlerJobs.LABELS[ClientState.autoPriority])
+end)
+
+-- ---- plan R1: tour action stops (each presses through the click's own function)
+local function ownUnit(unitType)
+	local view = ClientState.view
+	if view == nil then
+		return nil
+	end
+	local best = nil
+	for _, u in pairs(view.units) do
+		if u.owner == view.you and u.type == unitType and (best == nil or u.id < best.id) then
+			best = u
+		end
+	end
+	return best
+end
+local function pick(u)
+	ClientState.selectedUnitId = u.id
+	task.wait(0.3) -- the bar repaints on the next frames
+end
+
+ClientState.registerAction("act-order-labels", function()
+	local u = ownUnit("settlers")
+	if u == nil then
+		return {}, "no Settlers (the staging spawns one in a debug game)"
+	end
+	pick(u)
+	local out = {}
+	local defaults = { irrigate = "Irr (I)", mine = "Mine (M)", road = "Road (R)" }
+	local shown = {}
+	for _, pair in ipairs({ { irrigateBtn, "irrigate" }, { mineBtn, "mine" }, { roadBtn, "road" } }) do
+		local want = orderOf(pair[2]).label or defaults[pair[2]]
+		shown[#shown + 1] = pair[1].Text
+		if pair[1].Text ~= want then
+			out[#out + 1] = ("%s reads '%s', the rule says '%s'"):format(pair[2], pair[1].Text, want)
+		end
+	end
+	local view = ClientState.view
+	local tile = view.map.tiles[u.y * view.map.width + u.x + 1]
+	print(("[Tour] order labels on %s%s: %s"):format(tile.t, tile.road == true and " (road)" or "", table.concat(shown, " / ")))
+	return out
+end)
+
+ClientState.registerAction("act-greyed-reason", function()
+	local u = ownUnit("settlers") or ownUnit("caravan") or ownUnit("diplomat")
+	if u == nil then
+		return {}, "no unit to select"
+	end
+	pick(u)
+	for _, pair in ipairs({ { fortBtn, "fortress" }, { pillageBtn, "pillage" }, { tradeBtn, "trade" },
+		{ upgradeBtn, "upgrade" }, { foundBtn, "found" }, { fortifyBtn, "fortify" } }) do
+		local o = orderOf(pair[2])
+		if not o.enabled and o.reason ~= nil and pair[1].Parent ~= nil then
+			if not Tooltip.preview(pair[1]) then
+				return { pair[2] .. ": no hover card" }
+			end
+			local card = TourPlan.plain(Tooltip.card().Text)
+			Tooltip.unpin()
+			if not string.find(card, TourPlan.plain(o.reason), 1, true) then
+				return { ("%s card does not give the reason '%s'"):format(pair[2], TourPlan.plain(o.reason)) }
+			end
+			print(("[Tour] greyed %s: %s"):format(pair[2], card))
+			return {}
+		end
+	end
+	return {}, "every order is live for this unit"
+end)
+
+ClientState.registerAction("act-help-wonder", function()
+	local u = ownUnit("caravan")
+	local view = ClientState.view
+	if u == nil then
+		return {}, "no Caravan (the staging spawns one in a debug game)"
+	end
+	local city = nil
+	for _, c in pairs(view.cities) do
+		if c.owner == view.you and c.x == u.x and c.y == u.y then
+			city = c
+		end
+	end
+	if city == nil then
+		return {}, "the Caravan is not in a city"
+	end
+	local rs = ClientState.rulesets()
+	local me = view.players[view.you]
+	local before = city.producing
+	if before == nil or before.kind ~= "wonder" then
+		local ids = {}
+		for id, w in pairs(rs.wonders) do
+			local built = view.wonders ~= nil and view.wonders[id] ~= nil
+			if not built and (w.tech == nil or w.tech == "" or table.find(me.techs or {}, w.tech) ~= nil) then
+				ids[#ids + 1] = id
+			end
+		end
+		table.sort(ids)
+		if ids[1] == nil then
+			return {}, "no wonder is open yet"
+		end
+		ClientState.send({ type = "setProduction", cityId = city.id, item = { kind = "wonder", id = ids[1] } })
+		task.wait(0.8)
+	end
+	pick(u)
+	local o = orderOf("helpWonder")
+	local out = {}
+	if not o.enabled then
+		out[#out + 1] = "Help Wonder stays greyed: " .. tostring(o.reason)
+	else
+		local shields = ClientState.view.cities[city.id].shields or 0
+		doHelpWonder()
+		task.wait(0.8)
+		local after = ClientState.view.cities[city.id]
+		if ClientState.view.units[u.id] ~= nil then
+			out[#out + 1] = "the Caravan is still there"
+		elseif (after.shields or 0) <= shields then
+			out[#out + 1] = ("shields did not rise (%d before, %d after)"):format(shields, after.shields or 0)
+		end
+	end
+	if before ~= nil and before.kind ~= "wonder" then
+		ClientState.send({ type = "setProduction", cityId = city.id, item = { kind = before.kind, id = before.id } })
+		task.wait(0.4)
+	end
+	return out
+end)
+
+ClientState.registerAction("act-goto-route", function()
+	local u = ownUnit("settlers") or ownUnit("diplomat")
+	if u == nil then
+		return {}, "no unit to send"
+	end
+	local view = ClientState.view
+	local rs = ClientState.rulesets()
+	local tx, ty = nil, nil
+	for _, d in ipairs({ { 2, 0 }, { -2, 0 }, { 0, 2 }, { 0, -2 }, { 2, 2 }, { -2, -2 }, { 2, -2 }, { -2, 2 } }) do
+		local x, y = u.x + d[1], u.y + d[2]
+		if x >= 0 and y >= 0 and x < view.map.width and y < view.map.height then
+			local t = view.map.tiles[y * view.map.width + x + 1]
+			local terr = t ~= nil and rs.terrain.terrains[t.t] or nil
+			if terr ~= nil and terr.domain == "land" then
+				tx, ty = x, y
+				break
+			end
+		end
+	end
+	if tx == nil then
+		return {}, "no known land two tiles away"
+	end
+	pick(u)
+	if not GoToPlan.armed then
+		doGoto()
+	end
+	GoToPlan.pick(tx, ty)
+	task.wait(0.4)
+	local out = {}
+	if not GoToPlan.hasPlan(u.id) then
+		return { ("no route to (%d,%d)"):format(tx, ty) }
+	end
+	if GoToPlan.dotsShown() < 1 then
+		out[#out + 1] = "the route has no dots on the map"
+	end
+	if not string.find(gotoBtn.Text, "Cancel", 1, true) then
+		out[#out + 1] = ("the button reads '%s', not Cancel route"):format(gotoBtn.Text)
+	end
+	doGoto()
+	task.wait(0.3)
+	if GoToPlan.hasPlan(u.id) then
+		out[#out + 1] = "Cancel route left the plan in place"
+	end
+	return out
+end)
+
+ClientState.registerAction("act-disband", function()
+	local u = ownUnit("diplomat")
+	if u == nil then
+		return {}, "no Diplomat (the staging spawns one in a debug game)"
+	end
+	pick(u)
+	doDisband()
+	task.wait(0.3)
+	local out = {}
+	if disbandBtn.Text ~= "Sure? (X)" then
+		out[#out + 1] = ("first press: the button reads '%s'"):format(disbandBtn.Text)
+	end
+	if ClientState.view.units[u.id] == nil then
+		return { "the first press disbanded the unit" }
+	end
+	doDisband()
+	task.wait(0.8)
+	if ClientState.view.units[u.id] ~= nil then
+		out[#out + 1] = "second press: the unit is still there"
+	end
+	return out
 end)
 
 print("[ActionBar] action bar up (O fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")

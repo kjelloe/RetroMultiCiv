@@ -37,6 +37,38 @@ M.STOPS = {
 	{ id = "actionbar", gui = "RMCActionBar", title = "Action bar and top row", minTexts = 8, always = true },
 }
 
+-- plan R1: after the panels, the tour presses controls. Each id is
+-- registered with ClientState.registerAction by its owner script, which
+-- presses the control through the same function its click runs.
+M.ACTIONS = {
+	{ id = "act-order-labels", owner = "ActionBar.client.luau", title = "Settler order labels follow the tile" },
+	{ id = "act-greyed-reason", owner = "ActionBar.client.luau", title = "A greyed order says why" },
+	{ id = "act-help-wonder", owner = "ActionBar.client.luau", title = "Help Wonder adds the caravan's shields", needsCity = true },
+	{ id = "act-goto-route", owner = "ActionBar.client.luau", title = "GoTo route dots, then Cancel route" },
+	{ id = "act-disband", owner = "ActionBar.client.luau", title = "Disband asks once more" },
+	{ id = "act-rates", owner = "GovernmentPanel.client.luau", title = "Tax up and back down" },
+	{ id = "act-city-cycle", owner = "CityPanel.client.luau", title = "Previous / next city", needsCity = true },
+	{ id = "act-economy-net", owner = "Hud.client.luau", title = "Economy net equals the gold line", needsCity = true },
+	{ id = "act-chart-chips", owner = "Statistics.client.luau", title = "Each chart chip draws its figure" },
+}
+
+-- rich text -> the words a player reads
+function M.plain(text)
+	local s = tostring(text or ""):gsub("<[^>]*>", ""):gsub("%s+", " ")
+	return (s:gsub("^ ", ""):gsub(" $", ""))
+end
+
+-- the first signed whole number after `label` in plain text, or nil
+function M.numberAfter(text, label)
+	local s = M.plain(text)
+	local at = string.find(s, label, 1, true)
+	if at == nil then
+		return nil
+	end
+	local n = s:sub(at + #label):match("([%+%-]?%d+)")
+	return n ~= nil and tonumber(n) or nil
+end
+
 -- ScreenGuis the tour does not open, each with the run that covers it
 M.EXEMPT = {
 	RMCLobby = "before the game: run A covers it by hand (host setup, seat list)",

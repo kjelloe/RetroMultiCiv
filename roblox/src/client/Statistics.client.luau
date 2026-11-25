@@ -256,6 +256,35 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 -- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
+-- plan R1 tour: every chart chip lights itself and redraws the chart
+ClientState.registerAction("act-chart-chips", function()
+	setOpen(true)
+	task.wait(0.4)
+	local metrics = StatsView.metricsIn(lastSeries)
+	if #metrics == 0 then
+		setOpen(false)
+		return {}, "no samples yet (the server samples every few turns)"
+	end
+	local out, was = {}, chartMetric
+	for _, m in ipairs(metrics) do
+		chartMetric = m.id
+		refresh()
+		local chip = body:FindFirstChild("Metric_" .. m.id)
+		if chip == nil then
+			out[#out + 1] = m.id .. ": no chip"
+		elseif chip.BackgroundColor3 ~= Color3.fromRGB(96, 150, 230) then
+			out[#out + 1] = m.id .. ": the chip did not light"
+		elseif body:FindFirstChild("Chart") == nil then
+			out[#out + 1] = m.id .. ": no chart"
+		end
+	end
+	chartMetric = was
+	refresh()
+	setOpen(false)
+	print(("[Tour] chart chips: %d drawn"):format(#metrics))
+	return out
+end)
+
 ClientState.registerPanel("stats", panel, function()
 	setOpen(true)
 end, function()

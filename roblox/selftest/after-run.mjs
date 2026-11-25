@@ -88,6 +88,15 @@ const twice = analyse([
   '  09:01:03.000  [RMC-TOUR] DONE 2 stops: 2 pass, 0 fail, 0 skipped',
 ].join('\n'));
 check('two tours: the last one is reported', twice.tourRuns === 2 && twice.tour.length === 2 && twice.tour.every(s => s.verdict === 'PASS') && twice.tourDone.includes('2 pass'), twice);
+const acts = analyse([
+  '  09:00:00.000  [DebugMenu] UI tour started',
+  '  09:00:01.000  [RMC-TOUR] 01/03 city PASS',
+  '  09:00:02.000  [RMC-TOUR] 02/03 act-disband PASS',
+  '  09:00:03.000  [RMC-TOUR] 03/03 act-city-cycle SKIP one city: found a second to check previous / next',
+  '  09:00:04.000  [RMC-TOUR] DONE 3 stops: 2 pass, 0 fail, 1 skipped',
+].join('\n'));
+check('tour actions counted apart', render(acts, {}).includes('tour actions: 2 pressed - 1 pass, 0 fail, 1 skipped'), render(acts, {}));
+check('a skipped action shows its reason', render(acts, {}).includes('SKIP act-city-cycle one city'), render(acts, {}));
 check('two tours: the report says so', render(twice, {}).includes('tour (last of 2 runs): DONE 2 stops: 2 pass'), render(twice, {}));
 const aborted = analyse(['  09:00:00.000  [DebugMenu] UI tour started', '  09:00:00.100  [RMC-TOUR] ABORT the regent has the seat'].join('\n'));
 check('aborted tour', aborted.tourAbort === 'ABORT the regent has the seat' && render(aborted, {}).includes('tour: ABORT'), aborted.tourAbort);

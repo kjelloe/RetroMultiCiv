@@ -314,6 +314,12 @@ end
 -- open and close itself, so the tour can walk them without clicks.
 -- root = the frame the tour measures.
 M.tourPanels = {}
+-- plan R1: a tour action presses a control the way a click does and checks
+-- what followed; fn() -> findings (list of strings), skipped reason or nil
+M.tourActions = {}
+function M.registerAction(id, fn)
+	M.tourActions[id] = fn
+end
 function M.registerPanel(id, root, open, close)
 	M.tourPanels[id] = { root = root, open = open, close = close }
 end

@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
+local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
@@ -93,6 +94,37 @@ Tooltip.attach(status, function()
 		lines[#lines + 1] = ('<font face="Code">%s</font>'):format(tostring(ClientState.lastSave.code))
 	end
 	return table.concat(lines, "\n"), "card"
+end)
+
+-- plan R1 tour: the Economy tab's net per turn is the gold line on this card
+ClientState.registerAction("act-economy-net", function()
+	local reg = ClientState.tourPanels.economy
+	if reg == nil then
+		return { "the Economy tab is not registered" }
+	end
+	reg.open()
+	task.wait(0.5)
+	local eco = nil
+	local list = Players.LocalPlayer.PlayerGui:FindFirstChild("RMCCityList")
+	for _, d in ipairs(list ~= nil and list:GetDescendants() or {}) do
+		if d:IsA("TextLabel") and string.sub(d.Text, 1, 7) == "Economy" then
+			eco = TourPlan.numberAfter(d.Text, "Economy")
+		end
+	end
+	reg.close()
+	if not Tooltip.preview(status) then
+		return { "the gold line card did not show" }
+	end
+	local gold = TourPlan.numberAfter(Tooltip.card().Text, "Gold")
+	Tooltip.unpin()
+	if eco == nil or gold == nil then
+		return { ("could not read the figures (economy %s, gold line %s)"):format(tostring(eco), tostring(gold)) }
+	end
+	if eco ~= gold then
+		return { ("Economy says %+d, the gold line %+d"):format(eco, gold) }
+	end
+	print(("[Tour] economy net %+d = gold line %+d"):format(eco, gold))
+	return {}
 end)
 
 local endTurn = Instance.new("TextButton")

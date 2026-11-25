@@ -125,6 +125,17 @@ function M.cancel(unitId)
 	end
 end
 
+-- plan R1 tour: how many route dots stand on the map
+function M.dotsShown()
+	local n = 0
+	for _, c in ipairs(crumbs) do
+		if c.Position.Y > -50 then
+			n += 1
+		end
+	end
+	return n
+end
+
 function M.hasPlan(unitId)
 	return unitId ~= nil and plans[unitId] ~= nil
 end

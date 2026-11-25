@@ -56,6 +56,24 @@ for id in all:gmatch('registerPanel%("([%w%-]+)"') do
 	check("registered panel " .. id .. " has a stop", used)
 end
 
+-- plan R1: every action has an owner that registers it, and nothing else registers
+local seenAct = {}
+for _, a in ipairs(T.ACTIONS) do
+	check("action id unique " .. a.id, not seenAct[a.id] and not seenId[a.id])
+	seenAct[a.id] = true
+	check("action has a title " .. a.id, #a.title > 0)
+	local ok, src = pcall(fs.readFile, "roblox/src/client/" .. a.owner)
+	check("action " .. a.id .. " registered by " .. a.owner, ok and src:find('registerAction("' .. a.id .. '"', 1, true) ~= nil)
+end
+for id in all:gmatch('registerAction%("([%w%-]+)"') do
+	check("registered action " .. id .. " is in ACTIONS", seenAct[id] == true)
+end
+check("plain text", T.plain('<font color="#fff"><b>Gold</b></font>  +5 ') == "Gold +5")
+check("number after a label", T.numberAfter("Economy  -  +12 gold a turn", "Economy") == 12
+	and T.numberAfter("Economy  -  -3 gold", "Economy") == -3
+	and T.numberAfter('<font>Gold</font>  <b>+7</b>  9 earned', "Gold") == 7
+	and T.numberAfter("nothing", "Gold") == nil)
+
 -- judge()
 local vp = { w = 1280, h = 720 }
 local stop = { id = "x", minTexts = 2 }

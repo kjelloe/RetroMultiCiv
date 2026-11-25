@@ -187,13 +187,46 @@ local function sendRates(tax, lux)
 	ClientState.send({ type = "setRates", tax = tax, sci = sci, lux = lux })
 end
 
-rateUi.tax.down.Activated:Connect(function()
+local function taxStep(dir)
 	local tax, _, lux = rates()
-	sendRates(tax - 10, lux)
+	sendRates(tax + 10 * dir, lux)
+end
+rateUi.tax.down.Activated:Connect(function()
+	taxStep(-1)
 end)
 rateUi.tax.up.Activated:Connect(function()
-	local tax, _, lux = rates()
-	sendRates(tax + 10, lux)
+	taxStep(1)
+end)
+
+-- plan R1 tour: Taxes up then down (down then up near the cap); each press
+-- moves the rate by 10 and the value label follows; ends where it started
+ClientState.registerAction("act-rates", function()
+	local reg = ClientState.tourPanels.government
+	if reg ~= nil then
+		reg.open()
+	end
+	task.wait(0.3)
+	local start = rates()
+	local order = start >= 60 and { -1, 1 } or { 1, -1 }
+	local out = {}
+	for _, dir in ipairs(order) do
+		local before = rates()
+		taxStep(dir)
+		task.wait(0.8)
+		local now = rates()
+		if now ~= before + 10 * dir then
+			out[#out + 1] = ("Taxes %s: %d%% became %d%%"):format(dir > 0 and "+" or "-", before, now)
+		elseif not string.find(rateUi.tax.value.Text, tostring(now), 1, true) then
+			out[#out + 1] = ("the Taxes label reads '%s' at %d%%"):format(rateUi.tax.value.Text, now)
+		end
+	end
+	if rates() ~= start then
+		out[#out + 1] = ("Taxes ended at %d%%, started at %d%%"):format(rates(), start)
+	end
+	if reg ~= nil then
+		reg.close()
+	end
+	return out
 end)
 rateUi.lux.down.Activated:Connect(function()
 	local tax, _, lux = rates()

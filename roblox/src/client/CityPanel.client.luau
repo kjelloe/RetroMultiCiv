@@ -926,6 +926,38 @@ buyNo.Activated:Connect(function()
 	buyConfirm.Visible = false
 end)
 
+-- plan R1 tour: > opens the next city, < comes back
+ClientState.registerAction("act-city-cycle", function()
+	local reg = ClientState.tourPanels.city
+	reg.open()
+	task.wait(0.4)
+	local first = openCityId
+	local view = ClientState.view
+	if first == nil then
+		return { "the city panel did not open" }
+	end
+	if CityView.neighbour(view, first, 1) == nil then
+		reg.close()
+		return {}, "one city: found a second to check previous / next"
+	end
+	local out = {}
+	if not nextBtn.Visible then
+		out[#out + 1] = "the > button is hidden with two cities"
+	end
+	cycle(1)
+	task.wait(0.4)
+	if openCityId == first or openCityId == nil then
+		out[#out + 1] = "> stayed on the same city"
+	end
+	cycle(-1)
+	task.wait(0.4)
+	if openCityId ~= first then
+		out[#out + 1] = "< did not come back to the first city"
+	end
+	reg.close()
+	return out
+end)
+
 -- UI tour (specs/roblox-parity-plan.md step 0): open / close without a click
 ClientState.registerPanel("city", panel, function()
 	local view = ClientState.view

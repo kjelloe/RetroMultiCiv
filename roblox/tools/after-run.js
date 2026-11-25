@@ -93,6 +93,12 @@ function render(r, extra) {
   else {
     out.push(`tour${r.tourRuns > 1 ? ` (last of ${r.tourRuns} runs)` : ''}: ${r.tourDone || r.tourAbort || 'started, no DONE line (interrupted?)'}`);
     for (const s of r.tour) if (s.verdict !== 'PASS') out.push(`  ${s.verdict} ${s.id} ${s.detail}`);
+    // plan R1: the action stops (ids act-*) pressed controls; count them apart
+    const acts = r.tour.filter(s => s.id.startsWith('act-'));
+    if (acts.length) {
+      const n = v => acts.filter(s => s.verdict === v).length;
+      out.push(`tour actions: ${acts.length} pressed - ${n('PASS')} pass, ${n('FAIL')} fail, ${n('SKIP')} skipped`);
+    }
   }
   if (r.commands > 0) {
     const pct = Math.round((r.refused * 1000) / r.commands) / 10;

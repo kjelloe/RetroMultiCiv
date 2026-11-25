@@ -155,7 +155,7 @@ local function run()
 		caption.Text = "Tour: staging the game"
 		stage()
 		local results = {}
-		local n = #TourPlan.STOPS
+		local n = #TourPlan.STOPS + #TourPlan.ACTIONS
 		for i, stop in ipairs(TourPlan.STOPS) do
 			caption.Text = ("Tour %02d/%02d  %s"):format(i, n, stop.title)
 			local view = ClientState.view
@@ -219,6 +219,29 @@ local function run()
 			end
 			results[#results + 1] = { id = stop.id, findings = findings, skipped = skipped }
 			print(TourPlan.line(i, n, stop, findings, skipped))
+		end
+		-- plan R1: the action stops press controls and check what followed
+		for j, act in ipairs(TourPlan.ACTIONS) do
+			local i = #TourPlan.STOPS + j
+			caption.Text = ("Tour %02d/%02d  %s"):format(i, n, act.title)
+			local fn = ClientState.tourActions[act.id]
+			local findings, skipped = {}, nil
+			if act.needsCity and ownCity(ClientState.view) == nil then
+				skipped = "no city yet (found one, then run the tour again)"
+			elseif fn == nil then
+				findings = { "action never registered" }
+			else
+				local ok, f, sk = pcall(fn)
+				if not ok then
+					findings = { "error: " .. tostring(f):sub(1, 80) }
+				else
+					findings, skipped = f or {}, sk
+				end
+			end
+			Tooltip.unpin()
+			results[#results + 1] = { id = act.id, findings = findings, skipped = skipped }
+			print(TourPlan.line(i, n, act, findings, skipped))
+			task.wait(TourPlan.HOLD / 2)
 		end
 		local _, _, _, line = TourPlan.summary(results)
 		print(line)
