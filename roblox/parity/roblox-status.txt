@@ -33,7 +33,7 @@ uo-11 | yes | client/ActionBar.client.luau | Fortify |
 uo-12 | yes | client/ActionBar.client.luau | ClientState.toggleSentry(id) |
 uo-13 | yes | client/ClientState.luau | onSentryWake |
 uo-14 | yes | client/SettlerAuto.client.luau | settler automation |
-uo-15 | no | | | no automation priority choice
+uo-15 | yes | client/ActionBar.client.luau | SettlerJobs.nextPriority |
 uo-16 | yes | client/ActionBar.client.luau | Wait |
 uo-17 | yes | client/ActionBar.client.luau | type = "pillage" |
 uo-18 | yes | client/GoToPlan.luau | arm |

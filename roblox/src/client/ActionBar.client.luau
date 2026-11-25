@@ -18,6 +18,7 @@ local EmpireView = require(script.Parent:WaitForChild("EmpireView"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- plan step 3: which orders, labels, reasons
 local Tooltip = require(script.Parent:WaitForChild("Tooltip"))
+local SettlerJobs = require(script.Parent:WaitForChild("SettlerJobs"))
 local ORDER_DEPS = { improvements = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("improvements")) }
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
@@ -313,6 +314,9 @@ local tradeBtn = addButton(11, "Trade", 66, "trade")
 local helpBtn = addButton(12, "Help Wonder", 120, "trade")
 local upgradeBtn = addButton(13, "Upgrade", 82, "upgrade")
 local possessBtn = addButton(14, "Ride (P)", 80, "ride")
+-- uo-15 (plan R2.1): what automation favours, cycled Balanced / Food /
+-- Shield / Trade; in the bar only while the selected settler is automated
+local priorityBtn = addButton(15, "Auto: Balanced", 104, nil)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -626,6 +630,10 @@ local function doHelpWonder()
 	end
 end
 helpBtn.Activated:Connect(doHelpWonder)
+priorityBtn.Activated:Connect(function()
+	ClientState.autoPriority = SettlerJobs.nextPriority(ClientState.autoPriority)
+	print("[ActionBar] automation priority: " .. ClientState.autoPriority)
+end)
 irrigateBtn.Activated:Connect(function()
 	doWork("irrigate")
 end)
@@ -769,6 +777,7 @@ RunService.Heartbeat:Connect(function()
 		.. "|" .. tostring(GoToPlan.armed)
 		.. "|" .. tostring(u and u.x) .. "," .. tostring(u and u.y) .. "|" .. tostring(u and GoToPlan.hasPlan(u.id))
 		.. "|" .. tostring(disbandArmed.id) .. "|" .. tostring(me and me.techs and #me.techs)
+		.. "|" .. tostring(u and ClientState.autoSettlers[u.id]) .. ClientState.autoPriority
 	if key == lastKey then
 		return
 	end
@@ -800,6 +809,15 @@ RunService.Heartbeat:Connect(function()
 	helpBtn.BackgroundColor3 = help.enabled and ENABLED or DISABLED
 	if (helpBtn.Parent ~= nil) ~= help.shown then
 		helpBtn.Parent = help.shown and bar or nil
+		if fitBar ~= nil then
+			fitBar()
+		end
+	end
+	local autoShown = u ~= nil and ClientState.autoSettlers[u.id] == true
+	priorityBtn.Text = "Auto: " .. SettlerJobs.LABELS[ClientState.autoPriority]
+	priorityBtn.BackgroundColor3 = autoShown and ENABLED or DISABLED
+	if (priorityBtn.Parent ~= nil) ~= autoShown then
+		priorityBtn.Parent = autoShown and bar or nil
 		if fitBar ~= nil then
 			fitBar()
 		end
@@ -883,5 +901,9 @@ for action, def in pairs({
 		return UnitOrders.card(def[2], orderOf(action))
 	end)
 end
+Tooltip.attach(priorityBtn, function()
+	return ("Automated settlers favour: %s. Click to cycle Balanced / Food / Shield / Trade (applies to every automated settler)")
+		:format(SettlerJobs.LABELS[ClientState.autoPriority])
+end)
 
 print("[ActionBar] action bar up (O fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")

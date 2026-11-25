@@ -8,6 +8,7 @@
 -- The view is ALREADY filterView output on Roblox, so no filter call here.
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local SettlerJobs = require(script.Parent:WaitForChild("SettlerJobs"))
 
 local function wrapDx(map, ax, bx)
 	local dx = bx - ax
@@ -39,8 +40,8 @@ local function tileAt(map, x, y)
 	return map.tiles[y * map.width + x + 1], x
 end
 
--- nearest un-improved own-city working tile with a legal job (browser findJob:
--- road-first, then mine-vs-irrigate by yield, then railroad; fog never)
+-- nearest own-city working tile with a job (browser findJob; the per-tile
+-- choice is SettlerJobs.chooseWork under ClientState.autoPriority; fog never)
 local function findJob(view, unit, rs)
 	local map = view.map
 	local me = view.players[view.you]
@@ -88,23 +89,8 @@ local function findJob(view, unit, rs)
 											end
 										end
 									end
-									local improved = tile.irrigation == true or tile.mine == true
-									local canIrrigate = not improved and terr.irrigate ~= nil and water
-									local canMine = not improved and terr.mine ~= nil and tile.river ~= true
-									local mineBetter = canMine and (not canIrrigate
-										or terr.mine.shields > terr.irrigate.food)
-									local canRail = knowsRail and tile.road == true and tile.railroad ~= true
-									local roadNeedsBridge = tile.river == true and not knowsBridge
-									local work = nil
-									if tile.road ~= true and not roadNeedsBridge then
-										work = "road"
-									elseif mineBetter then
-										work = "mine"
-									elseif canIrrigate then
-										work = "irrigate"
-									elseif canRail then
-										work = "railroad"
-									end
+									local work = SettlerJobs.chooseWork(tile, terr, { water = water,
+										knowsRail = knowsRail, knowsBridge = knowsBridge, priority = ClientState.autoPriority })
 									if work ~= nil then
 										local dd = dist(map, unit.x, unit.y, tx, ty)
 										if dd < bestD then
@@ -133,6 +119,15 @@ local function stepDir(map, unit, tx, ty)
 	return name ~= "" and name or nil
 end
 
+local function enemyAdjacent(view, u)
+	for _, e in pairs(view.units) do
+		if e.owner ~= view.you and dist(view.map, u.x, u.y, e.x, e.y) <= 1 then
+			return true
+		end
+	end
+	return false
+end
+
 -- drive one step per auto settler per view push (per-unit turn re-check; the
 -- engine arbitrates every command, a rejection just retires that unit's step)
 local function drive(view)
@@ -145,9 +140,17 @@ local function drive(view)
 		local u = view.units[id]
 		if u == nil or u.owner ~= view.you or u.type ~= "settlers" then
 			ClientState.autoSettlers[id] = nil -- gone / not a settler anymore
+		elseif enemyAdjacent(view, u) then
+			-- browser checkAutoPause: never wander under a threat
+			ClientState.autoSettlers[id] = nil
+			print(("[SettlerAuto] %s at (%d,%d) pauses - enemy nearby"):format(id, u.x, u.y))
 		elseif u.moves > 0 and u.working == nil then
 			local job = findJob(view, u, rs)
-			if job ~= nil then
+			if job == nil then
+				-- browser: nothing left to improve in range wakes the settler
+				ClientState.autoSettlers[id] = nil
+				print(("[SettlerAuto] %s finished improving at (%d,%d) (%s)"):format(id, u.x, u.y, ClientState.autoPriority))
+			else
 				if u.x == job.x and u.y == job.y then
 					print(("[SettlerAuto] %s starts %s at (%d,%d)"):format(id, job.work, job.x, job.y))
 					ClientState.send({ type = "startWork", unitId = id, work = job.work })

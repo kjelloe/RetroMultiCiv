@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -1035,6 +1035,26 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 68: lune absent"
+fi
+
+# gate 69 — settler automation priority (uo-15, plan R2.1): SettlerJobs.chooseWork
+# answers what the browser's chooseWork (client/ui/automate.js) answers for
+# every land terrain x tile state x option set; SettlerAuto uses it under
+# ClientState.autoPriority and the action bar cycles it
+if command -v lune >/dev/null 2>&1; then
+  sj=$(mktemp)
+  if node roblox/selftest/settler-jobs.mjs "$sj" >/dev/null 2>&1 \
+     && lune run roblox/selftest/settler-jobs.luau "$sj" >/dev/null 2>&1 \
+     && grep -q 'SettlerJobs.chooseWork(tile, terr' roblox/src/client/SettlerAuto.client.luau \
+     && grep -q 'priority = ClientState.autoPriority' roblox/src/client/SettlerAuto.client.luau \
+     && grep -q 'SettlerJobs.nextPriority(ClientState.autoPriority)' roblox/src/client/ActionBar.client.luau; then
+    note PASS "gate 69: settler automation priority matches the browser's chooseWork (lune) + wiring"
+  else
+    note FAIL "gate 69: settler jobs — run: node roblox/selftest/settler-jobs.mjs /tmp/sj.json && lune run roblox/selftest/settler-jobs.luau /tmp/sj.json"
+  fi
+  rm -f "$sj"
+else
+  note SKIP "gate 69: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

@@ -393,6 +393,7 @@ end
 -- auto unit CANCELS its automation (per-unit, the browser's cancelAuto).
 M.autoSettlers = {} -- unitId -> true
 M.autoDriving = false
+M.autoPriority = "balanced" -- uo-15: SettlerJobs.PRIORITIES, cycled on the action bar
 
 function M.toggleAuto(unitId)
 	M.autoSettlers[unitId] = not M.autoSettlers[unitId] and true or nil
