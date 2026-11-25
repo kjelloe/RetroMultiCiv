@@ -185,11 +185,11 @@ mp-21 | yes | client/ClientState.luau | onRejected |
 opt-01 | yes | client/Options.client.luau | autoEndTurn |
 opt-02 | yes | client/Options.client.luau | autoEndTurn |
 opt-03 | yes | client/Options.client.luau | autoNextUnit |
-opt-04 | no | | | no slow-GoTo option
+opt-04 | yes | client/Options.client.luau | follow GoTo moves: %s |
 opt-05 | yes | client/Options.client.luau | hideFuture |
 opt-06 | yes | client/Options.client.luau | hideNoMovesHint |
 opt-07 | yes | client/Options.client.luau | your-turn banner: %s |
-opt-08 | no | | | no reduce-animation option
+opt-08 | yes | client/Options.client.luau | reduce animation: %s |
 opt-09 | yes | client/Options.client.luau | clock |
 opt-10 | no | | | no slow-player threshold
 opt-11 | yes | client/Options.client.luau | SoundLevel.step |

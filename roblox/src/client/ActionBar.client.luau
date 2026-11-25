@@ -21,6 +21,7 @@ local Tooltip = require(script.Parent:WaitForChild("Tooltip"))
 local SettlerJobs = require(script.Parent:WaitForChild("SettlerJobs"))
 local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
 local DiplomatMissions = require(script.Parent:WaitForChild("DiplomatMissions"))
+local Motion = require(script.Parent:WaitForChild("Motion"))
 local ORDER_DEPS = { improvements = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("improvements")) }
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
@@ -867,7 +868,7 @@ RunService.Heartbeat:Connect(function()
 	local me = view and view.players[view.you]
 	-- session-E: the blink is a bounded 5-cycle burst per turn (set above),
 	-- not the old endless flash
-	local needBlink = ClientState.myTurn() and me ~= nil and me.researching == nil
+	local needBlink = Motion.blink(ClientState.options) and ClientState.myTurn() and me ~= nil and me.researching == nil
 		and os.clock() < blinkBurstUntil
 	-- once-a-second colour swap (user spec), not the old 2 Hz flash
 	local phase = needBlink and (math.floor(os.clock()) % 2) or 0

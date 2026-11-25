@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel DiplomatMissions ReplayPace CityKeys BannerRules; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel DiplomatMissions ReplayPace CityKeys BannerRules Motion; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -1162,6 +1162,23 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 75: lune absent"
+fi
+
+# gate 76 — motion options (opt-04, opt-08; plan R6.4): GoTo steps paced
+# 0.2 s unless switched off or reduced; reduce animation stops the Research
+# blink and plays the wonder card instead of the scene
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/motion.luau >/dev/null 2>&1 \
+     && grep -q 'Motion.gotoDelay(ClientState.options)' roblox/src/client/GoToPlan.luau \
+     && grep -q 'Motion.blink(ClientState.options)' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'scenes = Motion.scenes(ClientState.options)' roblox/src/client/WonderStage.client.luau \
+     && grep -q 'reduce animation: %s' roblox/src/client/Options.client.luau; then
+    note PASS "gate 76: motion options (lune) + GoTo, Research blink, wonder scene, Options wiring"
+  else
+    note FAIL "gate 76: motion — run: lune run roblox/selftest/motion.luau"
+  fi
+else
+  note SKIP "gate 76: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

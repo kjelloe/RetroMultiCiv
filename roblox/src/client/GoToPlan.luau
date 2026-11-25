@@ -11,6 +11,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local Motion = require(script.Parent:WaitForChild("Motion")) -- plan R6.4 GoTo pace
 local StepLegality = require(script.Parent:WaitForChild("StepLegality"))
 local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- routeDots
 local pathfind = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("pathfind"))
@@ -192,7 +193,15 @@ ClientState.onView(function(view)
 					end
 					local dir = DIR_BY_DELTA[dx .. "," .. (nxt.y - u.y)]
 					if dir ~= nil then
-						ClientState.send({ type = "moveUnit", unitId = id, dir = dir })
+						-- opt-04 (plan R6.4): a short pause per step so the eye can follow
+						local pace = Motion.gotoDelay(ClientState.options)
+						local fromX, fromY = u.x, u.y
+						task.delay(pace, function()
+							local now = ClientState.view ~= nil and ClientState.view.units[id] or nil
+							if plans[id] ~= nil and now ~= nil and now.x == fromX and now.y == fromY and ClientState.myTurn() then
+								ClientState.send({ type = "moveUnit", unitId = id, dir = dir })
+							end
+						end)
 					end
 				end
 			end

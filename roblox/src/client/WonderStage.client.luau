@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local WonderScene = require(script.Parent:WaitForChild("WonderScene"))
+local Motion = require(script.Parent:WaitForChild("Motion")) -- plan R6.4: reduce animation plays the card
 local StructureModels = require(script.Parent:WaitForChild("StructureCatalog"))
 local StructureBuilder = require(script.Parent:WaitForChild("StructureBuilder"))
 local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
@@ -460,7 +461,7 @@ ClientState.onEvents(function(events, view)
 	end
 	local items = WonderScene.plan(events, {
 		you = view.you, cities = view.cities, models = StructureModels.MODELS,
-		scenes = ClientState.options.wonderScenes, away = ClientState.away == true,
+		scenes = Motion.scenes(ClientState.options), away = ClientState.away == true,
 		tour = ClientState.tourRunning == true, fastForward = ClientState.fastForwardActive == true,
 		theater = ClientState.theaterActive == true, gameOver = ClientState.gameOver == true,
 	})
