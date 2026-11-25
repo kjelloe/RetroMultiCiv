@@ -238,45 +238,102 @@ local buyNo = confirmBtn(86, "No", Color3.fromRGB(60, 60, 66))
 
 local openCityId = nil -- declared before paintQueue: it was read as a global there (always nil)
 
--- CP8: the queue strip along the panel bottom — click trims the LAST item
--- (v1 divergence from the browser: no per-item remove/reorder yet)
-local queueStrip = Instance.new("TextButton")
-queueStrip.Size = UDim2.new(1, -16, 0, 24)
-queueStrip.Position = UDim2.new(0, 8, 1, -30)
+-- CP8: the queue strip along the panel bottom; city-14 (plan R4.2): each
+-- item has earlier / later / remove buttons (the browser's queue line)
+local queueStrip = Instance.new("ScrollingFrame")
+queueStrip.Name = "QueueStrip"
+queueStrip.Size = UDim2.new(1, -16, 0, 26)
+queueStrip.Position = UDim2.new(0, 8, 1, -32)
 queueStrip.BackgroundColor3 = Color3.fromRGB(30, 40, 32)
 queueStrip.BackgroundTransparency = 0.05
-queueStrip.TextColor3 = Color3.fromRGB(190, 225, 190)
-queueStrip.Font = Enum.Font.GothamMedium
-queueStrip.TextSize = 14
-queueStrip.TextXAlignment = Enum.TextXAlignment.Left
-queueStrip.TextTruncate = Enum.TextTruncate.AtEnd
+queueStrip.BorderSizePixel = 0
+queueStrip.ScrollBarThickness = 3
+queueStrip.ScrollingDirection = Enum.ScrollingDirection.X
+queueStrip.AutomaticCanvasSize = Enum.AutomaticSize.X
+queueStrip.CanvasSize = UDim2.new(0, 0, 0, 0)
 queueStrip.Visible = false
-queueStrip.Text = ""
 queueStrip.Parent = panel
+do
+	local lay = Instance.new("UIListLayout")
+	lay.FillDirection = Enum.FillDirection.Horizontal
+	lay.VerticalAlignment = Enum.VerticalAlignment.Center
+	lay.Padding = UDim.new(0, 4)
+	lay.SortOrder = Enum.SortOrder.LayoutOrder
+	lay.Parent = queueStrip
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 6)
+	pad.Parent = queueStrip
+end
+
+local function queueLabel(order, text, color)
+	local l = Instance.new("TextLabel")
+	l.LayoutOrder = order
+	l.AutomaticSize = Enum.AutomaticSize.X
+	l.Size = UDim2.new(0, 0, 0, 22)
+	l.BackgroundTransparency = 1
+	l.TextColor3 = color or Color3.fromRGB(190, 225, 190)
+	l.Font = Enum.Font.GothamMedium
+	l.TextSize = 14
+	l.Text = text
+	l.Parent = queueStrip
+	return l
+end
+local function queueButton(order, text, onClick)
+	local b = Instance.new("TextButton")
+	b.Name = "Queue_" .. text
+	b.LayoutOrder = order
+	b.Size = UDim2.new(0, 20, 0, 20)
+	b.BackgroundColor3 = Color3.fromRGB(56, 80, 58)
+	b.BorderSizePixel = 0
+	b.TextColor3 = Color3.fromRGB(220, 240, 220)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.Text = text
+	b.Parent = queueStrip
+	round(b, 5)
+	b.Activated:Connect(onClick)
+	return b
+end
 
 local function paintQueue()
+	for _, ch in ipairs(queueStrip:GetChildren()) do
+		if ch:IsA("GuiObject") then
+			ch:Destroy()
+		end
+	end
 	local q = openCityId ~= nil and BuildQueue.get(openCityId) or {}
 	if #q == 0 then
 		queueStrip.Visible = false
 		return
 	end
 	local rs = ClientState.rulesets()
-	local names = {}
-	for _, it in ipairs(q) do
+	local cid = openCityId
+	queueLabel(0, "Queue:")
+	for i, it in ipairs(q) do
+		if i > CityView.QUEUE_SHOWN then
+			queueLabel(i * 10, ("+%d more"):format(#q - CityView.QUEUE_SHOWN), Color3.fromRGB(150, 170, 150))
+			break
+		end
 		local table_ = it.kind == "unit" and rs.units
 			or it.kind == "wonder" and rs.wonders or rs.buildings
-		table.insert(names, (table_[it.id] and table_[it.id].name) or it.id)
+		queueLabel(i * 10, ("%d. %s"):format(i, (table_[it.id] and table_[it.id].name) or it.id))
+		if i > 1 then
+			queueButton(i * 10 + 1, "<", function()
+				BuildQueue.move(cid, i, -1)
+			end)
+		end
+		if i < #q then
+			queueButton(i * 10 + 2, ">", function()
+				BuildQueue.move(cid, i, 1)
+			end)
+		end
+		queueButton(i * 10 + 3, "x", function()
+			BuildQueue.removeAt(cid, i)
+		end)
 	end
-	queueStrip.Text = ("  Queue: %s  (click removes the last)"):format(table.concat(names, " > "))
 	queueStrip.Visible = true
 end
 BuildQueue.onChanged(paintQueue)
-queueStrip.Activated:Connect(function()
-	if openCityId ~= nil then
-		local q = BuildQueue.get(openCityId)
-		BuildQueue.removeAt(openCityId, #q)
-	end
-end)
 
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -16, 1, -226)
@@ -964,6 +1021,38 @@ ClientState.registerAction("act-city-cycle", function()
 		out[#out + 1] = "< did not come back to the first city"
 	end
 	reg.close()
+	return out
+end)
+
+-- plan R4.2 tour: two queued items, the second moved first, both removed;
+-- the strip shows the buttons the way a click finds them
+ClientState.registerAction("act-queue-reorder", function()
+	ClientState.tourPanels.city.open()
+	task.wait(0.4)
+	local cid = openCityId
+	if cid == nil then
+		return { "the city panel did not open" }
+	end
+	local had = #BuildQueue.get(cid)
+	BuildQueue.add(cid, "unit", "settlers")
+	BuildQueue.add(cid, "unit", "militia")
+	task.wait(0.2)
+	local out = {}
+	local q = BuildQueue.get(cid)
+	if not queueStrip.Visible or queueStrip:FindFirstChild("Queue_<") == nil then
+		out[#out + 1] = "the strip shows no earlier button"
+	end
+	BuildQueue.move(cid, #q, -1)
+	q = BuildQueue.get(cid)
+	if q[#q - 1] == nil or q[#q - 1].id ~= "militia" then
+		out[#out + 1] = "earlier did not move the last item up"
+	end
+	BuildQueue.removeAt(cid, #q)
+	BuildQueue.removeAt(cid, #BuildQueue.get(cid))
+	if #BuildQueue.get(cid) ~= had then
+		out[#out + 1] = ("the queue holds %d item(s), had %d"):format(#BuildQueue.get(cid), had)
+	end
+	ClientState.tourPanels.city.close()
 	return out
 end)
 

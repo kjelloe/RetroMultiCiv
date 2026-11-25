@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel DiplomatMissions; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel DiplomatMissions ReplayPace; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -1109,6 +1109,25 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 72: lune absent"
+fi
+
+# gate 73 — plan R4: replay play / pause + speed (ReplayPace, gf-24), build
+# queue reorder (CityView.queueMove, city-14), specialists on the Cities row
+# (EmpireView.cityRow from the engine's cityMood, ov-01; gate 60 checks it)
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/replay-pace.luau >/dev/null 2>&1 \
+     && grep -q 'ReplayPace.nextRound(atRound, #rounds)' roblox/src/client/ReplayTheater.client.luau \
+     && grep -q 'speed = ReplayPace.nextSpeed(speed)' roblox/src/client/ReplayTheater.client.luau \
+     && grep -q 'CityView.queueMove(q, idx, dir)' roblox/src/client/BuildQueue.luau \
+     && grep -q 'BuildQueue.move(cid, i, -1)' roblox/src/client/CityPanel.client.luau \
+     && grep -q 'EmpireView.specialistText(fig)' roblox/src/client/CityList.client.luau \
+     && grep -q 'happiness = require(Shared:WaitForChild("happiness"))' roblox/src/client/CityList.client.luau; then
+    note PASS "gate 73: replay play / speed (lune) + queue reorder + Cities row specialists wiring"
+  else
+    note FAIL "gate 73: plan R4 — run: lune run roblox/selftest/replay-pace.luau"
+  fi
+else
+  note SKIP "gate 73: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

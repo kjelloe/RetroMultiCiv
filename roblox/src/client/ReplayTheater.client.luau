@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local ReplayPace = require(script.Parent:WaitForChild("ReplayPace")) -- plan R4.3
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local engineModule = require(shared:WaitForChild("index"))
@@ -53,8 +54,8 @@ openBtn.Parent = gui
 require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "space", icon = "theater", radius = 8 }) -- U1
 
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 780, 0, 116) -- runK item 3: 50% wider + 2x taller
-bar.Position = UDim2.new(0.5, -390, 1, -150)
+bar.Size = UDim2.new(0, 940, 0, 116) -- runK item 3: 50% wider + 2x taller; R4.3: play + speed
+bar.Position = UDim2.new(0.5, -470, 1, -150)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.1
 bar.BorderSizePixel = 0
@@ -92,9 +93,13 @@ local firstBtn = barButton(8, 56, "\u{23EE}") -- back to start
 local backBtn = barButton(70, 56, "\u{25C0}") -- prev
 local fwdBtn = barButton(132, 56, "\u{25B6}") -- next
 local lastBtn = barButton(194, 56, "\u{23ED}") -- to end
+-- plan R4.3 (gf-24): play / pause and speed, the browser's playback controls
+local playBtn = barButton(256, 80, ReplayPace.playText(false))
+local speedBtn = barButton(342, 64, ReplayPace.speedText(ReplayPace.DEFAULT))
+playBtn.TextSize, speedBtn.TextSize = 18, 18
 local jumpBar = Instance.new("TextButton") -- click-to-jump (no drag slider)
 jumpBar.Size = UDim2.new(0, 320, 0, 48)
-jumpBar.Position = UDim2.new(0, 260, 0, 56)
+jumpBar.Position = UDim2.new(0, 416, 0, 56)
 jumpBar.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
 jumpBar.Text = ""
 jumpBar.Parent = bar
@@ -108,8 +113,8 @@ jumpFill.BackgroundColor3 = Color3.fromRGB(120, 100, 180)
 jumpFill.BorderSizePixel = 0
 jumpFill.Size = UDim2.new(0, 0, 1, 0)
 jumpFill.Parent = jumpBar
-local viewBtn = barButton(590, 140, "view: all \u{25BE}") -- runK item 3: dropdown trigger
-local closeBtn = barButton(736, 40, "X")
+local viewBtn = barButton(746, 140, "view: all \u{25BE}") -- runK item 3: dropdown trigger
+local closeBtn = barButton(892, 40, "X")
 
 -- ---- the mini-stage ---------------------------------------------------------
 local stage = nil
@@ -320,7 +325,51 @@ local function repaint()
 end
 
 -- ---- wiring -----------------------------------------------------------------
+local playing, speed, playGen = false, ReplayPace.DEFAULT, 0
+local function stopPlay()
+	playing = false
+	playGen += 1
+	playBtn.Text = ReplayPace.playText(false)
+end
+local function startPlay()
+	if record == nil or #rounds == 0 then
+		return
+	end
+	playing = true
+	playGen += 1
+	local gen = playGen
+	playBtn.Text = ReplayPace.playText(true)
+	atRound = ReplayPace.startAt(atRound, #rounds)
+	print(("[Theater] play from round %d at %s"):format(atRound, ReplayPace.speedText(speed)))
+	task.spawn(function()
+		while playing and gen == playGen and bar.Visible do
+			local nxt = ReplayPace.nextRound(atRound, #rounds)
+			if nxt == nil then
+				break
+			end
+			atRound = nxt
+			repaint()
+			task.wait(ReplayPace.delay(speed))
+		end
+		if gen == playGen then
+			stopPlay()
+		end
+	end)
+end
+playBtn.Activated:Connect(function()
+	if playing then
+		stopPlay()
+	else
+		startPlay()
+	end
+end)
+speedBtn.Activated:Connect(function()
+	speed = ReplayPace.nextSpeed(speed)
+	speedBtn.Text = ReplayPace.speedText(speed)
+end)
+
 local function close()
+	stopPlay()
 	bar.Visible = false
 	ClientState.theaterActive = false -- runJ item 7: the map camera resumes control
 	if stage ~= nil then
@@ -386,14 +435,17 @@ local function step(d)
 	if record == nil then
 		return
 	end
+	stopPlay() -- a manual step pauses playback (the browser's scrub rule)
 	atRound = math.clamp(atRound + d, 0, #rounds)
 	repaint()
 end
 firstBtn.Activated:Connect(function()
+	stopPlay()
 	atRound = 0
 	repaint()
 end)
 lastBtn.Activated:Connect(function()
+	stopPlay()
 	atRound = #rounds
 	repaint()
 end)
@@ -407,6 +459,7 @@ jumpBar.Activated:Connect(function(input)
 	if record == nil or #rounds == 0 then
 		return
 	end
+	stopPlay()
 	local rel = (input.Position.X - jumpBar.AbsolutePosition.X) / jumpBar.AbsoluteSize.X
 	atRound = math.clamp(math.floor(rel * #rounds + 0.5), 0, #rounds)
 	repaint()
@@ -417,7 +470,7 @@ local viewList = Instance.new("Frame")
 viewList.Size = UDim2.new(0, 200, 0, 0)
 viewList.AutomaticSize = Enum.AutomaticSize.Y
 viewList.AnchorPoint = Vector2.new(0, 1)
-viewList.Position = UDim2.new(0, 590, 0, 52) -- rises above the view button
+viewList.Position = UDim2.new(0, 746, 0, 52) -- rises above the view button
 viewList.BackgroundColor3 = Color3.fromRGB(30, 36, 50)
 viewList.BorderSizePixel = 0
 viewList.Visible = false

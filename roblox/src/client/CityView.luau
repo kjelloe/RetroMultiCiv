@@ -163,6 +163,21 @@ function M.thumb(kind, rowH, hasModel)
 	return 0, 12
 end
 
+-- build queue reorder (city-14, plan R4.2; the browser's build-queue.js
+-- move): item idx goes one place earlier (dir -1) or later (1). -> a new
+-- list, or nil when it would leave the queue
+M.QUEUE_SHOWN = 5 -- items with their buttons; the rest read "+N more"
+function M.queueMove(q, idx, dir)
+	local j = idx + dir
+	if q[idx] == nil or j < 1 or j > #q then
+		return nil
+	end
+	local out = table.clone(q)
+	local it = table.remove(out, idx)
+	table.insert(out, j, it)
+	return out
+end
+
 -- the line under the city name
 function M.subtitle(city, rs, view)
 	if city.disorder == true then

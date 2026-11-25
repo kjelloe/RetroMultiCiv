@@ -8,7 +8,7 @@ local fastforward = require("../../luau/fastforward")
 local statehash = require("../../luau/statehash")
 local visibility = require("../../luau/visibility")
 local deps = { tech = require("../../luau/tech"), cities = require("../../luau/cities"),
-	government = require("../../luau/government") }
+	government = require("../../luau/government"), happiness = require("../../luau/happiness") }
 local E = require("../src/client/EmpireView")
 
 local fails = 0
@@ -46,7 +46,7 @@ local function sums(eco)
 	return income, cost
 end
 
-local cityCount, costRows, upkeepSeen = 0, 0, 0
+local cityCount, costRows, upkeepSeen, specialistsSeen = 0, 0, 0, 0
 for _, pid in ipairs(state.playerOrder) do
 	local inc = deps.tech.playerIncome(state, pid, rs)
 	local eco = E.economy(state, pid, rs, deps)
@@ -79,6 +79,10 @@ for _, pid in ipairs(state.playerOrder) do
 				and row.trade == full.trade and row.gold == full.gold and row.upkeep.shields == full.upkeep.shields)
 			local y = deps.cities.cityYields(state, state.cities[cid], rs, deps.cities.resolveAllWorked(state, rs)[cid])
 			check(cid .. ": yields are the engine's", row.food == y.food and row.shields == y.shields and row.trade == y.trade)
+			local mood = deps.happiness.cityMood(state, state.cities[cid], rs)
+			check(cid .. ": specialists are the engine's", row.entertainers == mood.entertainers and row.taxmen == mood.taxmen
+				and row.scientists == mood.scientists, ("%s/%s/%s"):format(tostring(row.entertainers), tostring(row.taxmen), tostring(row.scientists)))
+			specialistsSeen += (row.entertainers or 0) + (row.taxmen or 0) + (row.scientists or 0)
 			goldSum += row.gold
 			upGold += row.upkeep.gold
 			upkeepSeen += row.upkeep.shields + row.upkeep.food
@@ -98,6 +102,24 @@ end
 -- activity: the game must actually exercise the figures
 check("the game has cities", cityCount >= 6, cityCount)
 check("the game has building costs", costRows > 0, costRows)
+-- the sampled game is early (no specialists yet): a crafted city has some
+do
+	local pid = state.playerOrder[1]
+	local view = visibility.filterView(state, pid, rs)
+	local shim = E.shim(view)
+	local cid = shim.cityOrder[1]
+	local c = table.clone(shim.cities[cid])
+	c.pop, c.workers, c.taxmen, c.scientists = 7, {}, 1, 1
+	shim.cities[cid] = c
+	local row = E.cityRow(shim, c, rs, deps)
+	local mood = deps.happiness.cityMood(shim, c, rs)
+	specialistsSeen += (row.entertainers or 0) + row.taxmen + row.scientists
+	check("crafted city: specialists are the engine's", row.entertainers == mood.entertainers and row.taxmen == 1
+		and row.scientists == 1, ("%s/%s/%s"):format(tostring(row.entertainers), tostring(row.taxmen), tostring(row.scientists)))
+end
+check("specialists exercised", specialistsSeen > 0, specialistsSeen)
+check("specialist text", E.specialistText({ entertainers = 2, taxmen = 1, scientists = 0 }) == "2 entertainers, 1 tax collector"
+	and E.specialistText({ entertainers = 0, taxmen = 0, scientists = 0 }) == "no specialists" and E.specialistText({}) == nil)
 
 -- upkeep on a crafted city (despotism rules from the real ruleset)
 local gov = rs.governments.despotism

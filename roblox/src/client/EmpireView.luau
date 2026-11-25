@@ -19,7 +19,8 @@ function M.shim(view)
 		end
 	end
 	return { map = view.map, players = view.players, cities = cities,
-		cityOrder = order, units = view.units, wonders = view.wonders }
+		cityOrder = order, units = view.units, wonders = view.wonders,
+		difficulty = view.difficulty, playerOrder = view.playerOrder }
 end
 
 local function ownCities(state, pid)
@@ -105,12 +106,35 @@ function M.cityRow(state, city, rs, deps, worked)
 	local eco = deps.tech.cityEconOutput(state, city, tax, sci, rs.rules.specialistOutput, rs, idx)
 	local quiet = city.disorder == true or deps.government.governmentOf(state, city.owner, rs).id == "anarchy"
 	local up = M.upkeep(state, city, rs, deps)
-	return {
+	local row = {
 		id = city.id, capital = isCapital(state, city, rs),
 		food = y.food, shields = y.shields, trade = y.trade,
 		gold = quiet and 0 or eco.gold, bulbs = quiet and 0 or eco.bulbs,
 		upkeep = up, upkeepText = M.upkeepText(up),
 	}
+	-- ov-01 (plan R4.1): the specialists, from the engine's cityMood
+	if deps.happiness ~= nil then
+		local mood = deps.happiness.cityMood(state, city, rs)
+		row.entertainers, row.taxmen, row.scientists = mood.entertainers or 0, mood.taxmen or 0, mood.scientists or 0
+	end
+	return row
+end
+
+-- "2 entertainers, 1 tax collector" / "no specialists"; nil without the figures
+function M.specialistText(row)
+	if row.entertainers == nil then
+		return nil
+	end
+	local bits = {}
+	local function add(n, one, many)
+		if n > 0 then
+			bits[#bits + 1] = ("%d %s"):format(n, n == 1 and one or many)
+		end
+	end
+	add(row.entertainers, "entertainer", "entertainers")
+	add(row.taxmen, "tax collector", "tax collectors")
+	add(row.scientists, "scientist", "scientists")
+	return #bits > 0 and table.concat(bits, ", ") or "no specialists"
 end
 
 -- the Economy statement. rows: { kind, label, amount, unit }

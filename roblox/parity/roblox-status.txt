@@ -66,7 +66,7 @@ city-10 | yes | client/CityPanel.client.luau | type = "sellBuilding" |
 city-11 | yes | client/CityPanel.client.luau | Rush buy |
 city-12 | yes | client/CityPanel.client.luau | CatalogInfo.availability |
 city-13 | yes | client/CatalogInfo.luau | function M.card |
-city-14 | partial | client/BuildQueue.luau | removeAt | add with Q+, remove the last; no reorder
+city-14 | yes | client/BuildQueue.luau | function M.move |
 city-15 | yes | client/BuildQueue.luau | onChanged |
 city-16 | yes | client/CityPanel.client.luau | cycle(-1) |
 city-17 | yes | client/CityView.luau | CIVIL DISORDER - no production or taxes |
@@ -86,7 +86,7 @@ res-08 | partial | client/TechTree.client.luau | Beeline | the goal clears when 
 res-09 | yes | client/DiscoveryCard.client.luau | ADVANCE DISCOVERED |
 res-10 | yes | client/TechGlyphs.luau | return M |
 res-11 | yes | client/DiscoveryCard.client.luau | techBlurbs |
-ov-01 | partial | client/EmpireView.luau | function M.cityRow | population, build, progress, yields, gold and science, upkeep per city; no specialists column
+ov-01 | yes | client/EmpireView.luau | function M.specialistText |
 ov-02 | yes | client/MilitaryView.luau | military-overview.js twin |
 ov-03 | yes | client/EmpireView.luau | function M.economy | Economy tab of the Cities panel; sums pinned to playerIncome (gate 60)
 ov-04 | n/a | | | browser component; Roblox panels share PanelDress + UiTheme instead
@@ -147,7 +147,7 @@ gf-20 | yes | client/EndScreen.client.luau | ClientState.toggleStats(true) |
 gf-21 | yes | client/ClientState.luau | onReshowEndScreen |
 gf-22 | yes | client/StatsView.luau | M.METRICS | one chart with Score / Population / Cities / Techs chips, battles and wonders, available during play too
 gf-23 | yes | server/GameServer.server.luau | statsBattles |
-gf-24 | partial | client/ReplayTheater.client.luau | perspective | jump bar and view-as; no play / pause or speed control
+gf-24 | yes | client/ReplayTheater.client.luau | ReplayPace.nextSpeed |
 gf-25 | no | | | no replay event feed
 gf-26 | yes | client/Ship.client.luau | launchShip |
 gf-27 | yes | client/Ship.client.luau | irreversible |

@@ -11,7 +11,7 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local EmpireView = require(script.Parent:WaitForChild("EmpireView")) -- plan step 2: city figures, economy statement
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DEPS = { tech = require(Shared:WaitForChild("tech")), cities = require(Shared:WaitForChild("cities")),
-	government = require(Shared:WaitForChild("government")) }
+	government = require(Shared:WaitForChild("government")), happiness = require(Shared:WaitForChild("happiness")) }
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityList"
@@ -94,7 +94,7 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 6)
 layout.Parent = list
 
-local ROW_H = 76
+local ROW_H = 94 -- plan R4.1: a fourth line carries the specialists
 local ECO_H = 28
 local KIND_COLOR = { unit = Color3.fromRGB(255, 160, 110), building = Color3.fromRGB(120, 190, 255),
 	wonder = Color3.fromRGB(255, 225, 130) }
@@ -247,6 +247,12 @@ refresh = function()
 				figures.Text = ('<font color="#96dc8c">%d food</font>  <font color="#ffa06e">%d shields</font>  <font color="#8cc4ff">%d trade</font>'
 					.. '   <font color="#ffe182">+%d gold</font>  <font color="#b4a0ff">+%d science</font>   upkeep %s'):format(
 					fig.food, fig.shields, fig.trade, fig.gold, fig.bulbs, fig.upkeepText)
+				local spec = EmpireView.specialistText(fig)
+				if spec ~= nil then
+					local specLine = text(row, 58, 70, W - 90, 18, 14, nil, Color3.fromRGB(143, 155, 179))
+					specLine.Name = "Specialists"
+					specLine.Text = "Specialists: " .. spec
+				end
 			end
 			row.Activated:Connect(function()
 				print(("[CityList] jump to %s (%d,%d)"):format(c.name, c.x, c.y))

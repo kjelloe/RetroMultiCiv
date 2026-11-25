@@ -9,6 +9,7 @@
 -- is dropped and the next tried, correlated by commandId.
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local CityView = require(script.Parent:WaitForChild("CityView"))
 
 local M = {}
 
@@ -46,6 +47,16 @@ function M.removeAt(cityId, idx)
 		if #q == 0 then
 			queues[cityId] = nil
 		end
+		fireChanged()
+	end
+end
+
+-- city-14 (plan R4.2): reorder by the pure rule in CityView
+function M.move(cityId, idx, dir)
+	local q = queues[cityId]
+	local moved = q ~= nil and CityView.queueMove(q, idx, dir) or nil
+	if moved ~= nil then
+		queues[cityId] = moved
 		fireChanged()
 	end
 end

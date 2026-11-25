@@ -49,6 +49,7 @@ M.ACTIONS = {
 	{ id = "act-disband", owner = "ActionBar.client.luau", title = "Disband asks once more" },
 	{ id = "act-rates", owner = "GovernmentPanel.client.luau", title = "Tax up and back down" },
 	{ id = "act-city-cycle", owner = "CityPanel.client.luau", title = "Previous / next city", needsCity = true },
+	{ id = "act-queue-reorder", owner = "CityPanel.client.luau", title = "Build queue: earlier, later, remove", needsCity = true },
 	{ id = "act-economy-net", owner = "Hud.client.luau", title = "Economy net equals the gold line", needsCity = true },
 	{ id = "act-chart-chips", owner = "Statistics.client.luau", title = "Each chart chip draws its figure" },
 }

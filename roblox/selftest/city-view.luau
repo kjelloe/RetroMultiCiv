@@ -102,6 +102,16 @@ view.cities.c3, view.cities.c4 = nil, nil
 check("one city: no neighbour", V.neighbour(view, "c1", 1) == nil)
 check("unknown city: no neighbour", V.neighbour(view, "zz", 1) == nil)
 
+-- build queue reorder
+local q = { "a", "b", "c" }
+local moved = V.queueMove(q, 2, -1)
+check("earlier", moved ~= nil and table.concat(moved) == "bac" and table.concat(q) == "abc")
+moved = V.queueMove(q, 2, 1)
+check("later", moved ~= nil and table.concat(moved) == "acb")
+check("first cannot go earlier", V.queueMove(q, 1, -1) == nil)
+check("last cannot go later", V.queueMove(q, 3, 1) == nil)
+check("no such item", V.queueMove(q, 9, -1) == nil)
+
 -- row pictures
 local size, nameX = V.thumb("building", 28, true)
 check("building row picture", size == 22 and nameX == 10 + 22 + V.THUMB_GAP)
