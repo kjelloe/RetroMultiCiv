@@ -1077,6 +1077,33 @@ seat/reset flow; JS engine untouched). Delivered:
   icons drawn: ...`; `after-run.js` reports both and the civ gallery
   line. Headless sheet: `node roblox/tools/icon-preview.js --out
   roblox/art/yield-icons.png`.
+  **Plan R1-R7 (2026-11-25, gates 69-80; `specs/roblox-parity-plan.md`
+  section 4)** - tour action stops: `ClientState.registerAction(id, fn)`,
+  `TourPlan.ACTIONS` (12; each owner presses through the click's own
+  function), `[RMC-TOUR] NN/NN act-* PASS|FAIL|SKIP`, `after-run.js`
+  counts them apart. Settler automation priority (`SettlerJobs`, the
+  browser's chooseWork, 6480 cases each run; "Auto: ..." bar button;
+  pause beside an enemy, wake when done). Encyclopedia search
+  (`PediaSearch`). Options sound effects / volume -/+ (`SoundLevel`),
+  minimap, your-turn banner, follow GoTo moves, reduce animation
+  (`Motion`), in four sections (`OptionsLayout`). Diplomat missions
+  (`DiplomatMissions`, prices = `luau/diplomat-missions` on all
+  difficulties; Missions button + picker, paid ones ask twice; turn log
+  `[spy]` lines). Cities row specialists (`EmpireView.specialistText` from
+  `cityMood`); build queue earlier / later / remove (`CityView.queueMove`,
+  `BuildQueue.move`); replay Play / Pause and 1-8 rounds/s (`ReplayPace`).
+  City keys 1 / 2 / 3, C (city open) and Home (`CityKeys`). Centre event
+  banner `ClientState.banner(text, loc, opts)` with Go to / Mute / X
+  (`BannerRules`). Civilization card at game start (`CivIntro`, in
+  `DiscoveryCard`). Building / wonder pictures on city rows
+  (`PediaPicture.thumb`, `CityView.thumb`). Design D screen fit
+  (`selftest/screen-fit.luau`): `BarFit.SIDE` 214, a lifted desktop bar
+  starts right of the toggle column, `DockLayout.PHONE_BOTTOM` 116, the
+  minimap 116 px up (phone: above the menu row), the clock under the menu
+  row (phone: top-right). Touch on the map (`TouchPick`): tap = click,
+  long press = odds / GoTo. Tour fixes: auto end turn holds during the
+  tour, `Tooltip.preview` pins until `Tooltip.unpin`, the on-screen check
+  counts the top-bar inset.
   bottom-left panels (Turn log, Legend, Diplomacy, Map overlays) open
   at x = 206, beside the 190 px button column, not over it.
   Statistics (J): civ cards + wonders + chart (Score, Population, Cities, Techs chips) in one scrolling

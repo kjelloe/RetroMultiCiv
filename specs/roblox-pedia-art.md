@@ -182,7 +182,7 @@ Shown when the player's own city completes a wonder.
   scenes in `EmblemModels`), not 2D plates - one pipeline, one preview
   sheet, and they turn like the rest. The tour stop opens the scene at its
   card (the build beats are played from the Debug menu, not the tour).
-  Buildings are not yet shown on the city panel rows.
+  Buildings and wonders show on the city panel rows (2026-11-25).
 - Studio 2026-11-23 (session 21:17Z): unit, structure, plate and terrain
   pictures drew, 0 failures; drag turns the model; map heights unchanged.
   The user reported every pyramid as four outward spikes: the corner
@@ -200,7 +200,7 @@ Each step ends with gates green and a local commit.
 | P1 | BUILT 2026-11-23 (gate 66): `PediaArt` (rules), `PediaPicture` (drawing), picture box in the encyclopedia for units (model), advances (plate), terrain (3 x 3 patch); 78 entries still without art keep the text-only pane; `after-run.js` counts pictures by kind | 0 | look once |
 | P2 | BUILT 2026-11-23: style C (diorama) picked; the 22 wonder models in `StructureModels.MODELS` (20-54 parts each), sheets `roblox/art/wonders-1..4.png`; the encyclopedia shows them; `tilt` added to the part format (bowls, telescopes, sloped walls) | 22 | look at each sheet |
 | P3 | BUILT 2026-11-23 (gate 67): `WonderScene` (rules, blurbs), `WonderStage.client` (stage, beats, skip, card, rival card), Options switch, Debug menu rows, tour stop `wonder`, `after-run.js` scene line; info-18 is yes since 2026-11-24 (ran in Studio 23:25Z) | 0 | one tour run |
-| P4 | BUILT 2026-11-23: 21 building models (`BuildingModels`), sheets `roblox/art/buildings-1..2.png`. City panel rows: not built | 21 | look at the sheet |
+| P4 | BUILT 2026-11-23: 21 building models (`BuildingModels`), sheets `roblox/art/buildings-1..2.png`. City panel rows: BUILT 2026-11-25 (`PediaPicture.thumb`, a still picture per building / wonder row) | 21 | look at a city's rows |
 | P5b | BUILT 2026-11-24: a scene per civilization in the "Choose your civilization" gallery (`CivEmblems`, `EMBLEMS.civs`, 14 + random; banner tinted with the civ's colours), sheets `roblox/art/civs-1-8.png`, `civs-9-15.png`; the Debug menu wonder preview follows the Options switch (`WonderScene.ownMode`) | 15 | look at the gallery before a game |
 | P5 | BUILT 2026-11-23: 6 government and 29 concept emblem models (`EmblemModels`), sheets `roblox/art/governments.png`, `concepts-*.png`; caption line under the picture | 35 | look at the sheet |
 | P6 | optional: the wonder as a landmark on its city tile | 0 | ruling |

@@ -7,10 +7,12 @@ engine port already accepts.
 
 ## 1. State
 
-- 205 browser features: 142 available, 24 partial, 24 missing, 15 n/a
-  (revision 1 started at 115 / 37 / 39).
-- 18 scenarios: 11 playable, 3 degraded, 4 blocked (started at 6 / 2 / 10).
-- 68 gates. Four regent games replayed hash-exact. The latest, session
+- 205 browser features: 164 available, 21 partial, 5 missing, 15 n/a
+  (revision 1 started at 115 / 37 / 39; 2026-11-24: 142 / 24 / 24).
+- 18 scenarios: 18 playable, 0 degraded, 0 blocked (started at 6 / 2 / 10).
+- 80 gates. 2026-11-25: R1-R4, R5.1, R5.3, R6, R7.2-R7.4 built (section 4);
+  open: R5.2 (user's emulator run), R7.1 (script splits), Diplomacy panel
+  card style (R7.4), R8.4 (user). Four regent games replayed hash-exact. The latest, session
   2026-11-16 14:51Z: 546 turns, 0 errors, 0 diagnostics failures, tour 20
   of 20.
 - Built under revision 1: step 0 (tour, `after-run.js`, top-row pins),
@@ -91,7 +93,7 @@ no longer reads the same as one with nothing.
 Each step ends with gates green and a local commit. A step that adds a
 control adds its action stop and its parity row in the same commit.
 
-### R1: tour action stops
+### R1: tour action stops (BUILT 2026-11-25: 12 actions incl. diplomat, queue, banner; `ClientState.registerAction`)
 1.1 `registerControls` on the action bar, city panel, Cities list,
     Statistics; `TourPlan.ACTIONS` + `judge`, pinned headless.
 1.2 Stops for what steps 1-3 built: tile labels (swamp, forest, roaded
@@ -103,7 +105,7 @@ control adds its action stop and its parity row in the same commit.
 Result: the "pressed by nobody" list in `workitems-roblox.md` 20 is empty
 after one tour run.
 
-### R2: three blocked scenarios, one item each
+### R2: three blocked scenarios, one item each (BUILT 2026-11-25, gates 69-71)
 2.1 Settler automation priority: Balanced / Food / Shield / Trade (uo-15,
     S04). `SettlerAuto` is client-side; twin of `client/ui/automate.js`,
     its choice rule in a pure module checked against the browser's table.
@@ -112,14 +114,14 @@ after one tour run.
     minimap switch (opt-16) rides along.
 Result: 4 blocked becomes 1 (S07).
 
-### R3: diplomats (S07)
+### R3: diplomats (S07) (BUILT 2026-11-25, gate 72)
 3.1 Six missions with a target pick; the gold cost shown before
     confirming. Rule module checked against `luau/diplomat-missions`.
     Action stops with the staged Diplomat.
 Result: 4 blocked becomes 0 after R2 and R3 (S11 and S17 closed by the
 rulings of 2026-11-16).
 
-### R4: degraded scenarios
+### R4: degraded scenarios (BUILT 2026-11-25, gate 73)
 4.1 Cities row: specialists (ov-01, S10).
 4.2 Build queue reorder (city-14, S03).
 4.3 Replay theater: play / pause and speed (gf-24, S15).
@@ -127,28 +129,35 @@ rulings of 2026-11-16).
 Result: 3 degraded becomes 0.
 
 ### R5: phone
-5.1 The width check of design D.
+5.1 BUILT 2026-11-25 (gate 78): the width check of design D; it found and
+    fixed four overlaps (AI button vs bar reserve, lifted bar vs the toggle
+    column at 1280, phone menu row and minimap vs the lifted bar, clock).
 5.2 Run B in the device emulator; narrow layouts for what it shows.
-5.3 Touch: long-press shows the card, tap picks; long-press GoTo (uo-21).
+5.3 BUILT 2026-11-25 (gate 79): touch tap picks on the map (touch never
+    reached the pick before), long-press odds / GoTo (uo-21); catalog
+    long-press shows the card only.
 
 ### R6: comfort
 6.1 Wonder-complete card (info-18): DONE 2026-11-23, ran in Studio
     23:25Z (wonder scene + card, `specs/roblox-pedia-art.md` P3).
-    Open: civilization card at game start (info-19).
-6.2 Production keys and build cycling (city-20, city-21); fly to the
-    capital (map-06).
-6.3 Event banner with a zoom button (hud-11); your-turn banner and its
-    mute (opt-07).
-6.4 Remaining options: slow GoTo, reduce animation (opt-04, opt-08).
+    Civilization card at game start (info-19): BUILT 2026-11-25, gate 77.
+6.2 BUILT 2026-11-25 (gate 74): production keys and build cycling
+    (city-20, city-21); fly to the capital on Home (map-06 partial: C stays
+    the Cities list).
+6.3 BUILT 2026-11-25 (gate 75): event banner with Go to (hud-11);
+    your-turn banner and its mute (opt-07).
+6.4 BUILT 2026-11-25 (gate 76): follow GoTo moves, reduce animation
+    (opt-04, opt-08).
 
 ### R7: housekeeping
 7.1 Split the four scripts over 750 lines along their seams (`ActionBar`
     887, `CityPanel` 943, `Lobby` 863, `ViewRenderer` 851); `GameServer`
     (2,042) by the same rule.
-7.2 Weighted scenario score in the parity report (design E).
-7.3 A second list for Roblox-only features (ride a unit, start deck,
-    gallery, tour).
-7.4 Diplomacy and Options panels in the card style.
+7.2 BUILT 2026-11-25: steps available per scenario in the report.
+7.3 BUILT 2026-11-25: `roblox/parity/roblox-only.txt` (11 rows, gate 51).
+7.4 Options in sections: BUILT 2026-11-25 (gate 80). Diplomacy: open.
+7.1 is held until a Studio run has covered the 2026-11-25 features, so a
+    fault found there points at a feature, not at the split.
 
 ### R8: badges
 8.3 DONE 2026-11-17 (gate 64): `BadgeTrack` (pure, per seated user),
