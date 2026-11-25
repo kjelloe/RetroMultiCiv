@@ -73,7 +73,8 @@ M.STAGE = {
 }
 
 -- item: { text, size, fits, truncates, visible }; root / viewport: { x, y, w, h }
--- -> list of finding strings (empty = the stop passes)
+-- (viewport x/y = the screen's top-left in AbsolutePosition terms, -inset;
+-- default 0) -> list of finding strings (empty = the stop passes)
 function M.judge(stop, root, viewport, items)
 	local out = {}
 	if root == nil then
@@ -82,7 +83,8 @@ function M.judge(stop, root, viewport, items)
 	if root.w <= 0 or root.h <= 0 then
 		out[#out + 1] = "has no size"
 	end
-	if root.x < -1 or root.y < -1 or root.x + root.w > viewport.w + 1 or root.y + root.h > viewport.h + 1 then
+	local vx, vy = viewport.x or 0, viewport.y or 0
+	if root.x < vx - 1 or root.y < vy - 1 or root.x + root.w > vx + viewport.w + 1 or root.y + root.h > vy + viewport.h + 1 then
 		out[#out + 1] = ("off screen (%d,%d %dx%d in %dx%d)"):format(root.x, root.y, root.w, root.h, viewport.w, viewport.h)
 	end
 	local texts, clipped, small = 0, {}, {}

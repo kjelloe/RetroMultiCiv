@@ -253,6 +253,8 @@ local function toggleRow(y, key, text, onChange)
 	box.BackgroundColor3 = Color3.fromRGB(60, 66, 82)
 	box.BorderSizePixel = 0
 	box.Text = ""
+	box.Font = Enum.Font.GothamBold
+	box.TextSize = 18 -- 2026-11-25 tour: the default 14 px tick failed the size check
 	box.Parent = panel
 	local lbl = Instance.new("TextLabel")
 	lbl.Size = UDim2.new(1, -44, 0, 24)

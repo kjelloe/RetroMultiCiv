@@ -67,6 +67,10 @@ check("clean panel passes", #T.judge(stop, { x = 100, y = 50, w = 400, h = 300 }
 check("not opened", T.judge(stop, nil, vp, good)[1] == "did not open")
 check("off screen right", T.judge(stop, { x = 1000, y = 50, w = 400, h = 300 }, vp, good)[1]:find("off screen") ~= nil)
 check("off screen top", T.judge(stop, { x = 10, y = -40, w = 400, h = 300 }, vp, good)[1]:find("off screen") ~= nil)
+local insetVp = { x = 0, y = -58, w = 2208, h = 969 }
+check("a full-screen gui that ignores the inset is on screen", #T.judge(stop, { x = 0, y = -58, w = 2208, h = 969 }, insetVp, good) == 0)
+check("above the inset is off screen", T.judge(stop, { x = 0, y = -70, w = 400, h = 300 }, insetVp, good)[1]:find("off screen") ~= nil)
+check("below the screen with an inset is off screen", T.judge(stop, { x = 0, y = 700, w = 400, h = 300 }, insetVp, good)[1]:find("off screen") ~= nil)
 check("flush with the edge is on screen", #T.judge(stop, { x = 0, y = 0, w = 1280, h = 720 }, vp, good) == 0)
 check("no size", T.judge(stop, { x = 10, y = 10, w = 0, h = 0 }, vp, good)[1] == "has no size")
 check("empty", T.judge(stop, { x = 1, y = 1, w = 10, h = 10 }, vp, { item("Cities", 22, true) })[1]:find("only 1 text") ~= nil)

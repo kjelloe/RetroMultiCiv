@@ -69,9 +69,19 @@ local function showAt(target, text, style)
 	card.Visible = true
 end
 
+-- a tour preview stays up until unpin(): pointer MouseLeave events from
+-- other widgets must not hide the card being measured
+local pinned = false
 function M.hide()
+	if pinned then
+		return
+	end
 	gen += 1
 	card.Visible = false
+end
+function M.unpin()
+	pinned = false
+	M.hide()
 end
 
 -- UI tour: show the card a target would show on hover, without a pointer
@@ -82,7 +92,10 @@ function M.preview(target)
 		return false
 	end
 	gen += 1
+	pinned = false
+	card.Visible = false
 	showAt(target, textFn())
+	pinned = card.Visible
 	return card.Visible
 end
 function M.card()
@@ -96,7 +109,7 @@ function M.attach(target, textFn)
 		gen += 1
 		local myGen = gen
 		task.delay(0.35, function()
-			if gen == myGen and target.Visible ~= false and target.Parent ~= nil then
+			if gen == myGen and not pinned and target.Visible ~= false and target.Parent ~= nil then
 				showAt(target, textFn())
 			end
 		end)
@@ -107,7 +120,7 @@ function M.attach(target, textFn)
 			gen += 1
 			local myGen = gen
 			task.delay(0.5, function()
-				if gen == myGen then
+				if gen == myGen and not pinned then
 					showAt(target, textFn())
 				end
 			end)

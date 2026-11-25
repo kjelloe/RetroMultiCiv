@@ -7,6 +7,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GuiService = game:GetService("GuiService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
@@ -74,10 +75,13 @@ local function itemsOf(root)
 	return items
 end
 
+-- the whole screen in AbsolutePosition terms: a ScreenGui that ignores the
+-- top-bar inset reports its top edge at -inset (the wonder card, 2026-11-25)
 local function viewport()
 	local cam = workspace.CurrentCamera
 	local v = cam ~= nil and cam.ViewportSize or Vector2.new(1280, 720)
-	return { w = math.floor(v.X), h = math.floor(v.Y) }
+	local inset = GuiService:GetGuiInset()
+	return { x = -math.floor(inset.X), y = -math.floor(inset.Y), w = math.floor(v.X), h = math.floor(v.Y) }
 end
 
 local function ownCity(view)
@@ -173,7 +177,7 @@ local function run()
 				else
 					-- an always-on gui has no single root: judge its texts in the viewport
 					local vp = viewport()
-					findings = TourPlan.judge(stop, { x = 0, y = 0, w = vp.w, h = vp.h }, vp, itemsOf(sg))
+					findings = TourPlan.judge(stop, { x = 0, y = 0, w = vp.w, h = vp.h + vp.y }, vp, itemsOf(sg))
 				end
 				task.wait(TourPlan.HOLD / 2)
 			elseif reg == nil then
@@ -210,7 +214,7 @@ local function run()
 					findings = TourPlan.judge(stop, visible and rectOf(root) or nil, viewport(), visible and itemsOf(root) or {})
 				end
 				task.wait(TourPlan.HOLD)
-				Tooltip.hide()
+				Tooltip.unpin()
 				pcall(reg.close)
 			end
 			results[#results + 1] = { id = stop.id, findings = findings, skipped = skipped }
