@@ -566,22 +566,9 @@ local function addRow(order, kind, id, def, lockReason, effects, current, cardTe
 			end
 			lastProdClick = { key = key, t = now }
 		end)
-		-- touch: LONG-PRESS (>=0.5s) selects and closes (the double-click twin)
-		local touchStart = nil
-		row.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.Touch then
-				touchStart = os.clock()
-			end
-		end)
-		row.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.Touch and touchStart ~= nil then
-				if os.clock() - touchStart >= 0.5 then
-					pick()
-					closePanel()
-				end
-				touchStart = nil
-			end
-		end)
+		-- touch (plan R5.3): a tap picks (Activated), a long press shows the
+		-- card only (Tooltip), a double tap picks and closes; the long press
+		-- used to pick and close as well (the card flashed and the panel left)
 		-- CP8: the Q+ chip enqueues instead of setting (child button sinks
 		-- the click, so the row's set-production never double-fires)
 		local qBtn = Instance.new("TextButton")

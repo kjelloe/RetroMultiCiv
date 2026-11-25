@@ -12,6 +12,7 @@ local Players = game:GetService("Players")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local TouchPick = require(script.Parent:WaitForChild("TouchPick")) -- plan R5.3
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- R14
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local YieldIcons = require(script.Parent:WaitForChild("YieldIcons"))
@@ -288,6 +289,60 @@ UserInputService.InputEnded:Connect(function(input)
 	local tx = math.clamp(math.floor(p.X / TILE + 0.5), 0, map.width - 1)
 	local ty = math.clamp(math.floor(p.Z / TILE + 0.5), 0, map.height - 1)
 	handlePick(tx, ty)
+end)
+
+-- ---- touch (uo-21, plan R5.3): a tap picks like a click; a long press shows
+-- the odds beside an enemy or sets a GoTo further away (TouchPick)
+local touchAt, touchT = nil, 0
+local function tileAt(screen)
+	local ray = camera:ScreenPointToRay(screen.X, screen.Y)
+	refreshFilter()
+	local hit = workspace:Raycast(ray.Origin, ray.Direction * 1000, rayParams)
+	if not hit then
+		return nil
+	end
+	local p = hit.Position - hit.Normal * 0.05
+	local map = ClientState.view.map
+	return math.clamp(math.floor(p.X / TILE + 0.5), 0, map.width - 1), math.clamp(math.floor(p.Z / TILE + 0.5), 0, map.height - 1)
+end
+UserInputService.InputBegan:Connect(function(input, processed)
+	if not processed and input.UserInputType == Enum.UserInputType.Touch then
+		touchAt, touchT = Vector2.new(input.Position.X, input.Position.Y), os.clock()
+	end
+end)
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType ~= Enum.UserInputType.Touch or touchAt == nil then
+		return
+	end
+	local at = Vector2.new(input.Position.X, input.Position.Y)
+	local kind = TouchPick.kind(os.clock() - touchT, (at - touchAt).Magnitude)
+	touchAt = nil
+	local view = ClientState.view
+	if kind == "drag" or view == nil then
+		return
+	end
+	local tx, ty = tileAt(at)
+	if tx == nil then
+		return
+	end
+	if kind == "tap" then
+		handlePick(tx, ty)
+		return
+	end
+	local u = ClientState.selectedUnitId and view.units[ClientState.selectedUnitId] or nil
+	local action = TouchPick.longAction(view, u, tx, ty, ClientState.myTurn())
+	if action == "odds" then
+		local line = ClientState.oddsLine ~= nil and ClientState.oddsLine(tx, ty) or nil
+		if ClientState.banner ~= nil then
+			ClientState.banner((line or "This unit cannot attack") .. " - tap the tile to attack", { x = tx, y = ty })
+		end
+	elseif action == "goto" then
+		GoToPlan.armed = true
+		GoToPlan.pick(tx, ty)
+		print(("[Select] long press: GoTo (%d,%d)"):format(tx, ty))
+	else
+		handlePick(tx, ty)
+	end
 end)
 
 -- ---- keys: B found city, O GoTo, Return end turn ---------------------------

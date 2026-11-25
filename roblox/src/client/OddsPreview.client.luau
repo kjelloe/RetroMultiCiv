@@ -120,6 +120,17 @@ local function previewText(view, attacker, tx, ty)
 		#parts > 0 and (" (" .. table.concat(parts, ", ") .. ")") or "")
 end
 
+-- plan R5.3: a long press beside an enemy reads the same line
+ClientState.oddsLine = function(tx, ty)
+	local view = ClientState.view
+	local u = view ~= nil and ClientState.selectedUnitId and view.units[ClientState.selectedUnitId] or nil
+	if u == nil or not adjacent(view, u, tx, ty) then
+		return nil
+	end
+	local ok, line = pcall(previewText, view, u, tx, ty)
+	return ok and line or nil
+end
+
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 
