@@ -16,6 +16,7 @@ local PediaArt = require(script.Parent:WaitForChild("PediaArt"))
 local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs"))
 local WonderScene = require(script.Parent:WaitForChild("WonderScene"))
+local PediaSearch = require(script.Parent:WaitForChild("PediaSearch"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCPedia"
@@ -86,9 +87,34 @@ catLayout.SortOrder = Enum.SortOrder.LayoutOrder
 catLayout.Padding = UDim.new(0, 6)
 catLayout.Parent = catBar
 
+-- info-04 (plan R2.2): search every category by name, above the list
+local searchBox = Instance.new("TextBox")
+searchBox.Name = "Search"
+searchBox.Size = UDim2.new(0, 240, 0, 32)
+searchBox.Position = UDim2.new(0, 178, 0, 50)
+searchBox.BackgroundColor3 = Color3.fromRGB(34, 40, 54)
+searchBox.BorderSizePixel = 0
+searchBox.ClearTextOnFocus = false
+searchBox.TextColor3 = Color3.fromRGB(235, 238, 245)
+searchBox.PlaceholderText = "Search by name"
+searchBox.PlaceholderColor3 = Color3.fromRGB(140, 150, 170)
+searchBox.Font = UiThemeMod.BODY_FONT
+searchBox.TextSize = 16
+searchBox.TextXAlignment = Enum.TextXAlignment.Left
+searchBox.Text = ""
+searchBox.Parent = frame
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = searchBox
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 10)
+	pad.Parent = searchBox
+end
+
 local listPane = Instance.new("ScrollingFrame")
-listPane.Size = UDim2.new(0, 240, 1, -58)
-listPane.Position = UDim2.new(0, 178, 0, 50)
+listPane.Size = UDim2.new(0, 240, 1, -96)
+listPane.Position = UDim2.new(0, 178, 0, 88)
 listPane.BackgroundColor3 = Color3.fromRGB(26, 30, 40)
 listPane.BorderSizePixel = 0
 listPane.ScrollBarThickness = 6
@@ -295,16 +321,15 @@ local function showEntry(catDef, id, def)
 	print(("[Pedia] picture %s/%s kind=%s box=%dx%d"):format(catDef.key, id, shown, lay.box.w, lay.box.h))
 end
 
-local function renderList()
+-- rows = { { catDef, id, def, text } }
+local function fillRows(rows)
 	for _, child in ipairs(listPane:GetChildren()) do
-		if child:IsA("TextButton") then
+		if child:IsA("TextButton") or child:IsA("TextLabel") then
 			child:Destroy()
 		end
 	end
-	local catDef = cats[curCat]
-	local entries = catDef.list()
 	rowOf = {}
-	for i, pair in ipairs(entries) do
+	for i, r in ipairs(rows) do
 		local row = Instance.new("TextButton")
 		row.Size = UDim2.new(1, -10, 0, 30)
 		row.LayoutOrder = i
@@ -316,17 +341,28 @@ local function renderList()
 		row.TextSize = 16
 		row.TextXAlignment = Enum.TextXAlignment.Left
 		row.TextTruncate = Enum.TextTruncate.AtEnd
-		row.Text = "   " .. (pair[2].name or pair[1])
+		row.RichText = true
+		row.Text = "   " .. r[4]
 		row.Parent = listPane
 		local rcorner = Instance.new("UICorner")
 		rcorner.CornerRadius = UDim.new(0, 6)
 		rcorner.Parent = row
-		rowOf[pair[1]] = row
+		rowOf[r[2]] = row
 		row.Activated:Connect(function()
-			showEntry(catDef, pair[1], pair[2])
+			showEntry(r[1], r[2], r[3])
 		end)
 	end
-	listPane.CanvasSize = UDim2.new(0, 0, 0, #entries * 32)
+	listPane.CanvasSize = UDim2.new(0, 0, 0, math.max(1, #rows) * 32)
+end
+
+local function renderList()
+	local catDef = cats[curCat]
+	local entries = catDef.list()
+	local rows = {}
+	for i, pair in ipairs(entries) do
+		rows[i] = { catDef, pair[1], pair[2], pair[2].name or pair[1] }
+	end
+	fillRows(rows)
 	for ci, b in ipairs(catButtons) do
 		b.BackgroundColor3 = ci == curCat and ROW_PICKED or CAT_IDLE
 	end
@@ -334,6 +370,49 @@ local function renderList()
 		showEntry(catDef, entries[1][1], entries[1][2])
 	end
 end
+
+local function runSearch()
+	local groups, defs = {}, {}
+	for gi, catDef in ipairs(cats) do
+		local entries = {}
+		defs[gi] = {}
+		for _, pair in ipairs(catDef.list()) do
+			entries[#entries + 1] = { id = pair[1], name = pair[2].name or pair[1] }
+			defs[gi][pair[1]] = pair[2]
+		end
+		groups[gi] = { key = catDef.key, label = catDef.label, entries = entries }
+	end
+	local hits = PediaSearch.find(groups, searchBox.Text)
+	if hits == nil then
+		renderList()
+		return
+	end
+	local rows = {}
+	for i, h in ipairs(hits) do
+		rows[i] = { cats[h.cat], h.id, defs[h.cat][h.id],
+			("%s  <font color=\"#8f9bb3\" size=\"13\">%s</font>"):format(h.name, h.label) }
+	end
+	fillRows(rows)
+	if #rows == 0 then
+		local none = Instance.new("TextLabel")
+		none.Size = UDim2.new(1, -10, 0, 30)
+		none.BackgroundTransparency = 1
+		none.TextColor3 = Color3.fromRGB(160, 168, 186)
+		none.Font = UiThemeMod.BODY_FONT
+		none.TextSize = 16
+		none.Text = "No matches"
+		none.Parent = listPane
+	end
+	for _, b in ipairs(catButtons) do
+		b.BackgroundColor3 = CAT_IDLE
+	end
+	print(("[Pedia] search '%s': %d match(es)"):format(PediaSearch.normalize(searchBox.Text), #rows))
+end
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+	if cats ~= nil then
+		runSearch()
+	end
+end)
 
 local function buildCatButtons()
 	for i, catDef in ipairs(cats) do
@@ -354,6 +433,7 @@ local function buildCatButtons()
 		catButtons[i] = b
 		b.Activated:Connect(function()
 			curCat = i
+			searchBox.Text = "" -- a category pick ends the search
 			renderList()
 		end)
 	end

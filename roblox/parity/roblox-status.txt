@@ -113,7 +113,7 @@ map-10 | yes | client/ClientState.luau | mutually |
 info-01 | yes | client/LegendData.luau | M.SECTIONS |
 info-02 | partial | client/PediaConcepts.luau | return | the same topics are Encyclopedia concept entries; no separate help panel
 info-03 | yes | client/Pedia.client.luau | key = "concepts" |
-info-04 | no | | | no encyclopedia search
+info-04 | yes | client/Pedia.client.luau | PediaSearch.find |
 info-05 | yes | client/PediaConcepts.luau | return |
 info-06 | yes | client/Tooltip.luau | function M.attach |
 info-07 | yes | client/CityPanel.client.luau | worked-tile totals |
