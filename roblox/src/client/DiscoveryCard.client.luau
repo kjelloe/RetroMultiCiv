@@ -13,6 +13,9 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: era colouring
+local CivIntro = require(script.Parent:WaitForChild("CivIntro")) -- info-19: the start card
+local PediaPicture = require(script.Parent:WaitForChild("PediaPicture"))
+local leadersModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("leaders"))
 
 -- CONTENT RULES (license boundary, CLAUDE.md): original prose only — never
 -- wiki sentences. Ported 1:1 from the browser's client/ui/tech-blurbs.js (the
@@ -327,12 +330,149 @@ local function show(techId)
 		#m.nowOpen, m.auto ~= nil and ", auto-dismiss" or ""))
 end
 
+-- info-19 (plan R6.1): once at the game start, the civilization card - the
+-- civ's scene in its colours, the leader and stance, the people's strength,
+-- the specialty unit's encyclopedia entry, Begin your reign
+local introShown = false
+local introPicture = nil
+local function hex(s, fallback)
+	local ok, c = pcall(Color3.fromHex, s or "")
+	return ok and c or fallback
+end
+local function showCivIntro(view)
+	local rs = ClientState.rulesets()
+	local civId = view.players[view.you].civ
+	local civ = rs.civs[civId]
+	if civ == nil then
+		return false
+	end
+	introShown = true
+	local ok, stance = pcall(leadersModule.stanceFromPersonality, civ.personality or {})
+	local m = CivIntro.card(civ, ok and stance or "balanced", rs.units)
+	if card ~= nil then
+		card:Destroy()
+	end
+	local W, PAD = DiscoveryView.W, DiscoveryView.PAD
+	local INNER = W - 2 * PAD
+	local primary = hex(m.color, Color3.fromRGB(143, 168, 204))
+	local secondary = hex(m.secondary, primary:Lerp(Color3.new(1, 1, 1), 0.4))
+
+	local backdrop = Instance.new("TextButton")
+	backdrop.Name = "Splash"
+	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.BackgroundColor3 = Color3.fromRGB(6, 8, 14)
+	backdrop.BackgroundTransparency = 0.45
+	backdrop.AutoButtonColor = false
+	backdrop.Text = ""
+	backdrop.Parent = gui
+	card = backdrop
+	local box = Instance.new("Frame")
+	box.Name = "Card"
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.Position = UDim2.fromScale(0.5, 0.48)
+	box.BackgroundColor3 = Color3.fromRGB(26, 30, 44)
+	box.BorderSizePixel = 0
+	box.Parent = backdrop
+	round(box, 14)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = primary
+	stroke.Thickness = 3
+	stroke.Parent = box
+	local scale = Instance.new("UIScale")
+	scale.Parent = box
+
+	local PIC = 150
+	local pic = Instance.new("Frame")
+	pic.Name = "CivPicture"
+	pic.Position = UDim2.new(0, PAD, 0, PAD)
+	pic.Size = UDim2.new(0, PIC, 0, PIC)
+	pic.BackgroundTransparency = 1
+	pic.Parent = box
+	local TX = PAD + PIC + 16
+	local function line(y, h, size, font, color, text)
+		local l = label(box, y, h, size, font, color, text)
+		l.Position = UDim2.new(0, TX, 0, y)
+		l.Size = UDim2.new(0, W - TX - PAD, 0, h)
+		return l
+	end
+	line(PAD, 18, 15, Enum.Font.GothamBold, secondary, m.kicker)
+	local heading = line(PAD + 22, 40, 32, UiTheme.FONT, Color3.fromRGB(250, 250, 250), m.name)
+	heading.Name = "Heading"
+	local bh = measure(m.blurb, 17, UiTheme.BODY_FONT, W - TX - PAD)
+	line(PAD + 68, bh, 17, UiTheme.BODY_FONT, Color3.fromRGB(226, 231, 242), m.blurb)
+	local y = math.max(PAD + 68 + bh + 12, PAD + PIC + 12)
+	label(box, y, 18, 14, Enum.Font.GothamBold, primary:Lerp(Color3.new(1, 1, 1), 0.35), m.strengthHead)
+	y += 22
+	local sh = measure(m.strength, 18, UiTheme.BODY_FONT, INNER)
+	label(box, y, sh, 18, UiTheme.BODY_FONT, Color3.fromRGB(240, 242, 248), m.strength)
+	y += sh + 16
+
+	local buttons = {}
+	if m.unit ~= nil then
+		buttons[#buttons + 1] = { id = "pedia", label = m.unitName, color = "menu" }
+	end
+	buttons[#buttons + 1] = { id = "begin", label = CivIntro.BEGIN, color = "go" }
+	local bw, gap = 200, 10
+	local x = W - PAD - (#buttons * bw + (#buttons - 1) * gap)
+	for _, def in ipairs(buttons) do
+		local b = Instance.new("TextButton")
+		b.Name = "Do_" .. def.id
+		b.Position = UDim2.new(0, x, 0, y)
+		b.Size = UDim2.new(0, bw, 0, 42)
+		b.BackgroundColor3 = UiTheme.COLOR[def.color]
+		b.TextColor3 = Color3.fromRGB(250, 250, 250)
+		b.Font = UiTheme.FONT
+		b.TextSize = 18
+		b.Text = def.label
+		b.Parent = box
+		UiTheme.apply(b, { color = def.color, radius = 10 })
+		b.Activated:Connect(function()
+			close()
+			if def.id == "pedia" then
+				ClientState.openPedia("units", m.unit)
+			end
+		end)
+		x += bw + gap
+	end
+	y += 42 + PAD
+	box.Size = UDim2.new(0, W, 0, y)
+	local cam = workspace.CurrentCamera
+	local v = cam ~= nil and cam.ViewportSize or Vector2.new(1280, 720)
+	scale.Scale = math.clamp(math.min((v.X - 24) / W, (v.Y - 80) / y, v.Y / 720 * 1.1), 0.5, 1.5)
+
+	local root, conns = PediaPicture.draw(pic, { kind = "structure", set = "civs", id = civId,
+		tint = { civPrimary = primary, civSecondary = secondary } }, nil, nil)
+	if root ~= nil then
+		introPicture = conns
+	end
+	cardGen += 1
+	print(("[DiscoveryCard] civilization card: %s (%s, picture %s)"):format(civ.name, ok and stance or "balanced",
+		root ~= nil and "on" or "none"))
+	return true
+end
+
 pump = function()
+	if introPicture ~= nil and card == nil then
+		for _, c in ipairs(introPicture) do
+			c:Disconnect()
+		end
+		introPicture = nil
+	end
 	if card ~= nil or #queue == 0 then
 		return
 	end
 	show(table.remove(queue, 1))
 end
+
+-- the civilization card comes first, on the first view of a new game
+ClientState.onView(function(view)
+	if not CivIntro.shouldShow(view, introShown, ClientState.away == true) or ClientState.tourRunning == true then
+		return
+	end
+	if card == nil then
+		showCivIntro(view)
+	end
+end)
 
 ClientState.onEvents(function(events, view)
 	-- the UI tour grants advances while staging: no splashes over its stops

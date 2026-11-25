@@ -128,7 +128,7 @@ info-15 | yes | client/Historian.client.luau | score %d - %d cities |
 info-16 | yes | client/CatalogText.luau | function M.make |
 info-17 | yes | client/PediaBlurbs.luau | M.UNIT_BLURBS |
 info-18 | yes | client/WonderStage.client.luau | RMCWonderScene |
-info-19 | partial | client/CivGallery.luau | Choose your civilization | the civilization gallery shows the civ before the start; no card at game start
+info-19 | yes | client/DiscoveryCard.client.luau | civilization card |
 info-20 | n/a | | | name constant
 gf-01 | yes | client/Select.client.luau | type = "endTurn" |
 gf-03 | yes | client/RegentDialog.client.luau | regent stance picker |

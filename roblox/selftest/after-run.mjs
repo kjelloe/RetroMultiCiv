@@ -88,6 +88,12 @@ const twice = analyse([
   '  09:01:03.000  [RMC-TOUR] DONE 2 stops: 2 pass, 0 fail, 0 skipped',
 ].join('\n'));
 check('two tours: the last one is reported', twice.tourRuns === 2 && twice.tour.length === 2 && twice.tour.every(s => s.verdict === 'PASS') && twice.tourDone.includes('2 pass'), twice);
+const cc = analyse([
+  '  09:00:00.000  [DiscoveryCard] civilization card: Romans (aggressive, picture on)',
+  '  09:00:01.000  [Hud] banner: Your turn',
+].join('\n'));
+check('civilization card line', render(cc, {}).includes('civilization card: Romans (aggressive, picture on)'), render(cc, {}));
+check('banner count', render(cc, {}).includes('banners shown: 1'), render(cc, {}));
 const acts = analyse([
   '  09:00:00.000  [DebugMenu] UI tour started',
   '  09:00:01.000  [RMC-TOUR] 01/03 city PASS',
