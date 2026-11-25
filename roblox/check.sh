@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery TechInfo LegendData TurnLogView StatsView CatalogInfo MilitaryView Military TourPlan UiTour TopRowPlan BadgeRules BadgeTrack BadgeIds BadgeAward StructureModels StructureBuilder PediaArt PediaPicture TileHeight StructureCatalog BuildingModels EmblemModels CivEmblems WonderScene WonderStage DiscoveryView CityView EmpireView BarFit UnitOrders YieldIcons YieldLabel SettlerJobs PediaSearch SoundLevel DiplomatMissions; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -1090,6 +1090,25 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 71: lune absent"
+fi
+
+# gate 72 — diplomat missions (uo-27..32, plan R3): the menu's prices are what
+# luau/diplomat-missions charges on every difficulty (through at the price,
+# refused one gold short); the picker sends the menu's command; outcome lines
+# in the turn log; refusal reasons on the banner
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/diplomat-missions.luau >/dev/null 2>&1 \
+     && grep -q 'DiplomatMissions.menu(view, u, ClientState.rulesets())' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'ClientState.send(m.cmd)' roblox/src/client/ActionBar.client.luau \
+     && grep -q 'DiplomatMissions.outcome(e, view, rs)' roblox/src/client/TurnLog.client.luau \
+     && grep -q 'DiplomatMissions")).REASONS' roblox/src/client/Hud.client.luau \
+     && grep -q '"diplomatMission"' roblox/src/server/GameServer.server.luau; then
+    note PASS "gate 72: diplomat missions priced as the engine charges (lune) + picker, turn log, banner wiring"
+  else
+    note FAIL "gate 72: diplomat missions — run: lune run roblox/selftest/diplomat-missions.luau"
+  fi
+else
+  note SKIP "gate 72: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

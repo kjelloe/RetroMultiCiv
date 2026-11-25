@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local DiplomatMissions = require(script.Parent:WaitForChild("DiplomatMissions")) -- plan R3 outcome lines
 local TurnLogClasses = require(script.Parent:WaitForChild("TurnLogClasses"))
 local TurnLogView = require(script.Parent:WaitForChild("TurnLogView"))
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
@@ -321,6 +322,16 @@ end
 -- reduced to the view's vocabulary; nil = not narrated)
 local function narrate(view, e, rs)
 	local you = view.you
+	-- plan R3: diplomat mission outcomes, for the two civs involved
+	local spy = DiplomatMissions.outcome(e, view, rs)
+	if spy ~= nil then
+		if e.byCivId == you then
+			return spy, (e.type == "SABOTAGE" and not e.success or e.type == "TECH_STOLEN" and e.tech == nil) and "loss" or "win"
+		elseif e.atCivId == you or e.fromCivId == you then
+			return spy, "loss"
+		end
+		return nil
+	end
 	if e.type == "regentTurn" then
 		-- MP4 narration (browser turnlog.js twin): the seat owner's per-turn audit
 		-- line — what the armed regent did with their empire. Own seat only.

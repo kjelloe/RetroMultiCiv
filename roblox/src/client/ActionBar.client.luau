@@ -20,6 +20,7 @@ local UnitOrders = require(script.Parent:WaitForChild("UnitOrders")) -- plan ste
 local Tooltip = require(script.Parent:WaitForChild("Tooltip"))
 local SettlerJobs = require(script.Parent:WaitForChild("SettlerJobs"))
 local TourPlan = require(script.Parent:WaitForChild("TourPlan"))
+local DiplomatMissions = require(script.Parent:WaitForChild("DiplomatMissions"))
 local ORDER_DEPS = { improvements = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("improvements")) }
 local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
@@ -318,6 +319,8 @@ local possessBtn = addButton(14, "Ride (P)", 80, "ride")
 -- uo-15 (plan R2.1): what automation favours, cycled Balanced / Food /
 -- Shield / Trade; in the bar only while the selected settler is automated
 local priorityBtn = addButton(15, "Auto: Balanced", 104, nil)
+-- plan R3: a Diplomat beside a rival city or unit opens its mission picker
+local spyBtn = addButton(16, "Missions", 84, nil)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -631,6 +634,103 @@ local function doHelpWonder()
 	end
 end
 helpBtn.Activated:Connect(doHelpWonder)
+-- plan R3: the mission picker - one button per mission with its price; a
+-- paid mission asks once more ("Pay N gold?") before it is sent
+local picker = Instance.new("Frame")
+picker.Name = "DiplomatPicker"
+picker.AnchorPoint = Vector2.new(0.5, 1)
+picker.Position = UDim2.new(0.5, 0, 1, -120)
+picker.Size = UDim2.new(0, 360, 0, 0)
+picker.AutomaticSize = Enum.AutomaticSize.Y
+picker.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
+picker.BorderSizePixel = 0
+picker.Visible = false
+picker.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 10)
+	c.Parent = picker
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 8), UDim.new(0, 8)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 8), UDim.new(0, 8)
+	pad.Parent = picker
+	local lay = Instance.new("UIListLayout")
+	lay.Padding = UDim.new(0, 4)
+	lay.SortOrder = Enum.SortOrder.LayoutOrder
+	lay.Parent = picker
+end
+local pickerArmed = nil -- mission id waiting for its second click
+local function closePicker()
+	picker.Visible = false
+	pickerArmed = nil
+end
+local function openPicker()
+	local u = selectedUnit()
+	local view = ClientState.view
+	local menu = (u ~= nil and view ~= nil) and DiplomatMissions.menu(view, u, ClientState.rulesets()) or {}
+	for _, ch in ipairs(picker:GetChildren()) do
+		if ch:IsA("GuiObject") then
+			ch:Destroy()
+		end
+	end
+	if #menu == 0 then
+		closePicker()
+		return menu
+	end
+	local head = Instance.new("TextLabel")
+	head.LayoutOrder = 0
+	head.Size = UDim2.new(1, 0, 0, 24)
+	head.BackgroundTransparency = 1
+	head.TextColor3 = Color3.fromRGB(255, 225, 130)
+	head.Font = UiTheme.FONT
+	head.TextSize = 18
+	head.TextXAlignment = Enum.TextXAlignment.Left
+	head.Text = "Diplomat beside " .. tostring(menu[1].targetName)
+	head.Parent = picker
+	for i, m in ipairs(menu) do
+		local b = Instance.new("TextButton")
+		b.Name = "Mission_" .. m.id
+		b.LayoutOrder = i
+		b.Size = UDim2.new(1, 0, 0, 34)
+		b.BorderSizePixel = 0
+		b.Font = Enum.Font.GothamBold
+		b.TextSize = 16
+		b.TextColor3 = m.affordable and Color3.fromRGB(240, 240, 240) or Color3.fromRGB(140, 140, 150)
+		b.BackgroundColor3 = pickerArmed == m.id and Color3.fromRGB(150, 60, 50)
+			or (m.affordable and ENABLED or DISABLED)
+		b.Text = pickerArmed == m.id and ("Pay %d gold? Click again"):format(m.cost) or DiplomatMissions.buttonText(m)
+		b.Parent = picker
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 8)
+		c.Parent = b
+		Tooltip.attach(b, function()
+			return m.title .. (m.affordable and "" or "\nNot enough gold."), "card"
+		end)
+		b.Activated:Connect(function()
+			if not m.affordable then
+				return
+			end
+			if m.cost ~= nil and pickerArmed ~= m.id then
+				pickerArmed = m.id
+				openPicker()
+				return
+			end
+			print(("[ActionBar] diplomatMission %s %s"):format(m.id, m.cmd.unitId))
+			ClientState.send(m.cmd)
+			closePicker()
+		end)
+	end
+	picker.Visible = true
+	return menu
+end
+spyBtn.Activated:Connect(function()
+	if picker.Visible then
+		closePicker()
+	else
+		openPicker()
+	end
+end)
+
 priorityBtn.Activated:Connect(function()
 	ClientState.autoPriority = SettlerJobs.nextPriority(ClientState.autoPriority)
 	print("[ActionBar] automation priority: " .. ClientState.autoPriority)
@@ -780,6 +880,7 @@ RunService.Heartbeat:Connect(function()
 		.. "|" .. tostring(u and u.x) .. "," .. tostring(u and u.y) .. "|" .. tostring(u and GoToPlan.hasPlan(u.id))
 		.. "|" .. tostring(disbandArmed.id) .. "|" .. tostring(me and me.techs and #me.techs)
 		.. "|" .. tostring(u and ClientState.autoSettlers[u.id]) .. ClientState.autoPriority
+		.. "|" .. tostring(me and me.gold)
 	if key == lastKey then
 		return
 	end
@@ -814,6 +915,18 @@ RunService.Heartbeat:Connect(function()
 		if fitBar ~= nil then
 			fitBar()
 		end
+	end
+	local spyShown = u ~= nil and u.type == "diplomat" and view ~= nil
+		and #DiplomatMissions.menu(view, u, ClientState.rulesets()) > 0
+	spyBtn.BackgroundColor3 = spyShown and ENABLED or DISABLED
+	if (spyBtn.Parent ~= nil) ~= spyShown then
+		spyBtn.Parent = spyShown and bar or nil
+		if fitBar ~= nil then
+			fitBar()
+		end
+	end
+	if not spyShown and picker.Visible then
+		closePicker()
 	end
 	local autoShown = u ~= nil and ClientState.autoSettlers[u.id] == true
 	priorityBtn.Text = "Auto: " .. SettlerJobs.LABELS[ClientState.autoPriority]
@@ -1073,6 +1186,34 @@ ClientState.registerAction("act-goto-route", function()
 	if GoToPlan.hasPlan(u.id) then
 		out[#out + 1] = "Cancel route left the plan in place"
 	end
+	return out
+end)
+
+ClientState.registerAction("act-diplomat", function()
+	local u = ownUnit("diplomat")
+	if u == nil then
+		return {}, "no Diplomat (the staging spawns one in a debug game)"
+	end
+	pick(u)
+	local menu = openPicker()
+	if #menu == 0 then
+		return {}, "no rival city or unit beside the Diplomat (move it next to one, then run the tour again)"
+	end
+	task.wait(0.3)
+	local out = {}
+	if not spyBtn.Visible or spyBtn.Parent == nil then
+		out[#out + 1] = "the Missions button is not in the bar"
+	end
+	for _, m in ipairs(menu) do
+		local b = picker:FindFirstChild("Mission_" .. m.id)
+		if b == nil then
+			out[#out + 1] = m.id .. ": no button"
+		elseif m.cost ~= nil and not string.find(b.Text, tostring(m.cost), 1, true) then
+			out[#out + 1] = ("%s: the price %d is not on the button"):format(m.id, m.cost)
+		end
+	end
+	closePicker()
+	print(("[Tour] diplomat missions offered: %d"):format(#menu))
 	return out
 end)
 

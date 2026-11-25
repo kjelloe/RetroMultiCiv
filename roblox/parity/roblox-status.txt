@@ -45,12 +45,12 @@ uo-23 | yes | client/UnitOrders.luau | function M.disbandPress | first press arm
 uo-24 | yes | client/UnitOrders.luau | function M.helpWonderCity | button and H key; shown for units that can help
 uo-25 | yes | client/ActionBar.client.luau | type = "upgradeUnit" |
 uo-26 | yes | client/ActionBar.client.luau | type = "establishTradeRoute" |
-uo-27 | no | | | no diplomat missions
-uo-28 | no | | | no diplomat missions
-uo-29 | no | | | no diplomat missions
-uo-30 | no | | | no diplomat missions
-uo-31 | no | | | no diplomat missions
-uo-32 | no | | | no diplomat missions
+uo-27 | yes | client/DiplomatMissions.luau | id = "establishEmbassy" |
+uo-28 | yes | client/DiplomatMissions.luau | id = "investigateCity" |
+uo-29 | yes | client/DiplomatMissions.luau | id = "stealTech" |
+uo-30 | yes | client/DiplomatMissions.luau | id = "sabotage" |
+uo-31 | yes | client/DiplomatMissions.luau | id = "inciteRevolt" |
+uo-32 | yes | client/DiplomatMissions.luau | id = "bribeUnit" |
 uo-33 | yes | client/ActionBar.client.luau | card.LayoutOrder = i |
 uo-35 | yes | client/MoveHints.client.luau | move hints |
 city-01 | yes | client/Select.client.luau | open city |

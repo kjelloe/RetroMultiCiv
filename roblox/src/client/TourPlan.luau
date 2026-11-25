@@ -45,6 +45,7 @@ M.ACTIONS = {
 	{ id = "act-greyed-reason", owner = "ActionBar.client.luau", title = "A greyed order says why" },
 	{ id = "act-help-wonder", owner = "ActionBar.client.luau", title = "Help Wonder adds the caravan's shields", needsCity = true },
 	{ id = "act-goto-route", owner = "ActionBar.client.luau", title = "GoTo route dots, then Cancel route" },
+	{ id = "act-diplomat", owner = "ActionBar.client.luau", title = "Diplomat missions with their prices" },
 	{ id = "act-disband", owner = "ActionBar.client.luau", title = "Disband asks once more" },
 	{ id = "act-rates", owner = "GovernmentPanel.client.luau", title = "Tax up and back down" },
 	{ id = "act-city-cycle", owner = "CityPanel.client.luau", title = "Previous / next city", needsCity = true },

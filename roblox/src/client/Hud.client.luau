@@ -175,6 +175,12 @@ local REJECT_TEXT = {
 	noUpgrade = "This unit has no successor to upgrade to",
 	techMissing = "You have not discovered the successor's tech yet",
 }
+-- plan R3: the diplomat mission refusals, in the browser's words
+for code, line in pairs(require(script.Parent:WaitForChild("DiplomatMissions")).REASONS) do
+	if REJECT_TEXT[code] == nil then
+		REJECT_TEXT[code] = line:sub(1, 1):upper() .. line:sub(2)
+	end
+end
 local rejectBanner = Instance.new("TextLabel")
 rejectBanner.Size = UDim2.new(0, 800, 0, 44)
 rejectBanner.Position = UDim2.new(0.5, -400, 0.35, 0)
