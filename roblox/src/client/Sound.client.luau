@@ -12,6 +12,7 @@ local SoundService = game:GetService("SoundService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local SoundMap = require(script.Parent:WaitForChild("SoundMap"))
 local SoundAssets = require(script.Parent:WaitForChild("SoundAssets"))
+local SoundLevel = require(script.Parent:WaitForChild("SoundLevel"))
 
 -- cue -> rbxassetid string + per-cue volume, from the generated table (empty
 -- asset = silent until the uploader has run). SOUND_IDS stays the cue roster.
@@ -23,7 +24,7 @@ for _, cue in ipairs(SoundMap.SOUND_IDS) do
 end
 
 local function muted()
-	return ClientState.options ~= nil and ClientState.options.sound == false
+	return SoundLevel.master(ClientState.options) <= 0
 end
 
 local function play(cue)
@@ -33,7 +34,7 @@ local function play(cue)
 	end
 	local s = Instance.new("Sound")
 	s.SoundId = asset
-	s.Volume = CUE_VOLUME[cue] or 1
+	s.Volume = (CUE_VOLUME[cue] or 1) * SoundLevel.master(ClientState.options)
 	s.Parent = SoundService
 	s.Ended:Connect(function()
 		s:Destroy()

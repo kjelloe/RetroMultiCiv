@@ -109,10 +109,14 @@ local function paint(view)
 			end
 		end
 	end
-	box.Visible = true
+	box.Visible = ClientState.options.showMinimap ~= false
 end
 
 ClientState.onView(paint)
+-- opt-16 (plan R2.3): Options > minimap hides the box (HudGate owns the gui)
+ClientState.setMinimapShown = function(on)
+	box.Visible = on and cells ~= nil
+end
 
 -- click or drag jumps the camera (browser pointer contract)
 local dragging = false

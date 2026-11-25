@@ -192,12 +192,12 @@ opt-07 | no | | | no your-turn banner to mute
 opt-08 | no | | | no reduce-animation option
 opt-09 | yes | client/Options.client.luau | clock |
 opt-10 | no | | | no slow-player threshold
-opt-11 | no | | | no volume control in Options (the platform's own volume applies)
-opt-12 | no | | | no sound-effects switch
+opt-11 | yes | client/Options.client.luau | SoundLevel.step |
+opt-12 | yes | client/Options.client.luau | sound effects: %s |
 opt-13 | n/a | | | no music in this client
 opt-14 | yes | client/Options.client.luau | adviceCards |
 opt-15 | yes | client/Options.client.luau | discoveryCards |
-opt-16 | no | | | no minimap switch
+opt-16 | yes | client/Options.client.luau | setMinimapShown |
 opt-17 | yes | client/Options.client.luau | civPalette |
 opt-18 | partial | client/Options.client.luau | look | a look choice (retro / enhanced), not graphics levels
 opt-22 | yes | client/Palette.luau | deuteranopia |

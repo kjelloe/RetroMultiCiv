@@ -27,7 +27,10 @@ local M = {
 		-- session-E: pick research after 2 idle turns (Options acts on it)
 		autoResearch = true,
 		discoveryCards = true, -- SO3: the tech-discovery card toggle
-		adviceCards = true }, -- SO5: first-timer advice nudges
+		adviceCards = true, -- SO5: first-timer advice nudges
+		-- plan R2.3 (opt-11/12/16): sound = effects switch, soundVolume 0-100
+		-- (100: the uploaded mix was approved at full level), showMinimap
+		sound = true, soundVolume = 100, showMinimap = true },
 }
 
 local viewCallbacks = {}

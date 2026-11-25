@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local SoundLevel = require(script.Parent:WaitForChild("SoundLevel"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
@@ -45,7 +46,7 @@ require(script.Parent:WaitForChild("HudDock")).register(optionsBtn, { id = "opti
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 324)
+panel.Size = UDim2.new(0, 200, 0, 396)
 panel.Position = UDim2.new(1, -208, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
@@ -87,6 +88,27 @@ local discoveryBtn = toggleButton(224, "") -- SO3 tech-discovery cards
 local paletteBtn = toggleButton(248, "") -- SO14 accessibility palette
 local adviceBtn = toggleButton(272, "") -- SO5 advice nudges
 local wonderBtn = toggleButton(296, "") -- the wonder completion scene (off: the card only)
+-- plan R2.3: sound effects switch (opt-12), volume (opt-11), minimap (opt-16)
+local soundBtn = toggleButton(320, "")
+local volumeBtn = toggleButton(344, "")
+local minimapBtn = toggleButton(368, "")
+local function stepButton(text, x)
+	local b = Instance.new("TextButton")
+	b.Name = "VolumeStep"
+	b.Size = UDim2.new(0, 22, 0, 18)
+	b.Position = UDim2.new(1, x, 0, 2)
+	b.BackgroundColor3 = Color3.fromRGB(60, 70, 92)
+	b.TextColor3 = Color3.fromRGB(240, 240, 240)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 16
+	b.Text = text
+	b.Parent = volumeBtn
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 4)
+	c.Parent = b
+	return b
+end
+local volDown, volUp = stepButton("-", -52), stepButton("+", -26)
 
 -- always-visible clock readout, left of the top-right button row
 local clockLabel = Instance.new("TextLabel")
@@ -139,9 +161,12 @@ local function paint()
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")
 	adviceBtn.Text = ("  advice tips: %s"):format(o.adviceCards ~= false and "ON" or "off")
 	wonderBtn.Text = ("  wonder scenes: %s"):format(o.wonderScenes ~= false and "ON" or "off")
+	soundBtn.Text = ("  sound effects: %s"):format(o.sound ~= false and "ON" or "off")
+	volumeBtn.Text = ("  volume: %d%%"):format(SoundLevel.volume(o))
+	minimapBtn.Text = ("  minimap: %s"):format(o.showMinimap ~= false and "ON" or "off")
 	-- run-S shot16: the state reads by colour - ON green, off grey, a named choice blue
 	for _, b in ipairs(panel:GetChildren()) do
-		if b:IsA("TextButton") and b.Name ~= "PanelClose" then
+		if b:IsA("TextButton") and b.Name ~= "PanelClose" and b.Name ~= "VolumeStep" then
 			local name, value = b.Text:match("^%s*(.-): (.*)$")
 			if name ~= nil then
 				local color = value == "ON" and "#7fe08f" or (value == "off" and "#8f9bb3" or "#8fd0ff")
@@ -214,6 +239,26 @@ paletteBtn.Activated:Connect(function()
 end)
 wonderBtn.Activated:Connect(function()
 	ClientState.options.wonderScenes = ClientState.options.wonderScenes == false
+	paint()
+end)
+soundBtn.Activated:Connect(function()
+	ClientState.options.sound = ClientState.options.sound == false
+	print("[Options] sound effects " .. (ClientState.options.sound and "on" or "off"))
+	paint()
+end)
+volDown.Activated:Connect(function()
+	ClientState.options.soundVolume = SoundLevel.step(ClientState.options, -1)
+	paint()
+end)
+volUp.Activated:Connect(function()
+	ClientState.options.soundVolume = SoundLevel.step(ClientState.options, 1)
+	paint()
+end)
+minimapBtn.Activated:Connect(function()
+	ClientState.options.showMinimap = ClientState.options.showMinimap == false
+	if ClientState.setMinimapShown ~= nil then
+		ClientState.setMinimapShown(ClientState.options.showMinimap)
+	end
 	paint()
 end)
 adviceBtn.Activated:Connect(function()
