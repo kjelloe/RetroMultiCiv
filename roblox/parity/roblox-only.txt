@@ -1,0 +1,13 @@
+# Features the Roblox client has that the browser client does not (plan R7.3).
+# id | feature | roblox file (under roblox/src/) | proof (a literal string in that file)
+ro-01 | Ride a unit: walk the map as the selected unit | client/Possess.client.luau | P ride/dismount toggle
+ro-02 | The start deck: the 3D place you stand in before a game | server/Deck.luau | Deck
+ro-03 | Civilization gallery with a scene per civilization | client/CivGallery.luau | set = "civs"
+ro-04 | Encyclopedia pictures: a turning model or glyph for every entry | client/PediaPicture.luau | function M.show
+ro-05 | Wonder completion scene: the model assembles while the camera circles | client/WonderStage.client.luau | own wonder: scene
+ro-06 | Badges for milestones (award in a published place) | server/BadgeAward.luau | AwardBadge
+ro-07 | Studded world look | client/Options.client.luau | Studded
+ro-08 | Self-checking UI tour with action stops (Debug menu) | client/UiTour.client.luau | Run UI tour
+ro-09 | Resources map overlay lying on the tiles | client/Overlays.client.luau | resources
+ro-10 | Building and wonder pictures on the city panel rows | client/CityPanel.client.luau | PediaPicture.thumb
+ro-11 | Boot intro: one city through time | client/Intro.client.luau | One City Through Time

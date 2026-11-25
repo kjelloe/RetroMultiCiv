@@ -10,20 +10,20 @@ Of the 190 that apply: 86 % available, 11 % partial, 3 % missing.
 
 18 scenarios: 18 playable, 0 degraded, 0 blocked.
 
-### S01 Start a game as host: PLAYABLE
+### S01 Start a game as host: PLAYABLE (3 of 3 steps available)
 
 - ok: choose a civilization
 - ok: set map, civs, difficulty, combat, age, seed
 - ok: start
 
-### S02 First turn: found a capital: PLAYABLE
+### S02 First turn: found a capital: PLAYABLE (4 of 4 steps available)
 
 - ok: select the settlers and read the site rating
 - ok: found the city and name it
 - ok: choose research
 - ok: end the turn
 
-### S03 Run a city: PLAYABLE
+### S03 Run a city: PLAYABLE (8 of 8 steps available)
 
 - ok: open the city and read food, mood, production
 - ok: pick a build with its description
@@ -34,89 +34,89 @@ Of the 190 that apply: 86 % available, 11 % partial, 3 % missing.
 - ok: sell a building
 - ok: go to the next and previous city
 
-### S04 Improve the land with settlers: PLAYABLE
+### S04 Improve the land with settlers: PLAYABLE (3 of 3 steps available)
 
 - ok: irrigate, mine, road, fortress
 - ok: automate the settlers
 - ok: choose what automation favours
 
-### S05 Move and fight: PLAYABLE
+### S05 Move and fight: PLAYABLE (4 of 4 steps available)
 
 - ok: move, go to, wait, fortify, sentry
 - ok: see the route a unit will take
 - ok: read the odds and attack
 - ok: pillage, disband, upgrade
 
-### S06 Trade and wonders: PLAYABLE
+### S06 Trade and wonders: PLAYABLE (2 of 2 steps available)
 
 - ok: establish a trade route with a caravan
 - ok: help build a wonder with a caravan
 
-### S07 Diplomats: PLAYABLE
+### S07 Diplomats: PLAYABLE (1 of 1 steps available)
 
 - ok: embassy, investigate, steal, sabotage, incite, bribe
 
-### S08 Govern: PLAYABLE
+### S08 Govern: PLAYABLE (2 of 2 steps available)
 
 - ok: set tax / science / luxury
 - ok: change government
 
-### S09 Research toward a goal: PLAYABLE
+### S09 Research toward a goal: PLAYABLE (3 of 3 steps available)
 
 - ok: open the tech tree and read a tech
 - ok: set a beeline goal
 - ok: see the discovery card
 
-### S10 Review the empire: PLAYABLE
+### S10 Review the empire: PLAYABLE (4 of 4 steps available)
 
 - ok: all cities at a glance
 - ok: all units at a glance
 - ok: why the treasury changes
 - ok: how the civs compare
 
-### S11 Foreign affairs: PLAYABLE
+### S11 Foreign affairs: PLAYABLE (4 of 4 steps available)
 
 - ok: see who is at war or peace
 - ok: declare war, offer and accept peace
 - ok: propose a deal
 - ok: answer an envoy
 
-### S12 Find your way around: PLAYABLE
+### S12 Find your way around: PLAYABLE (4 of 4 steps available)
 
 - ok: minimap, overlays, tile card
 - ok: controls list and encyclopedia
 - ok: search the encyclopedia
 - ok: turn log with filters and jump
 
-### S13 Hand the seat to the AI and take it back: PLAYABLE
+### S13 Hand the seat to the AI and take it back: PLAYABLE (2 of 2 steps available)
 
 - ok: pick a stance
 - ok: take back control
 
-### S14 Space race: PLAYABLE
+### S14 Space race: PLAYABLE (2 of 2 steps available)
 
 - ok: read the ship screen
 - ok: launch
 
-### S15 Finish the game: PLAYABLE
+### S15 Finish the game: PLAYABLE (3 of 3 steps available)
 
 - ok: end screen with the score table
 - ok: statistics, replay, new game
 - ok: reopen the summary
 
-### S16 Save and come back: PLAYABLE
+### S16 Save and come back: PLAYABLE (2 of 2 steps available)
 
 - ok: get a resume code
 - ok: resume by code
 
-### S17 Play with others: PLAYABLE
+### S17 Play with others: PLAYABLE (4 of 4 steps available)
 
 - ok: join and take a seat
 - ok: see who is moving
 - ok: skip an absent player
 - ok: spectate
 
-### S18 Set preferences: PLAYABLE
+### S18 Set preferences: PLAYABLE (3 of 3 steps available)
 
 - ok: auto end turn, auto next unit, hide future items
 - ok: sound volume
@@ -153,6 +153,22 @@ Of the 190 that apply: 86 % available, 11 % partial, 3 % missing.
 - opt-18 Graphics level — a look choice (retro / enhanced), not graphics levels
 - dbg-03 Diagnostics recording download — the server prints the recording to the log; node roblox/acceptance/assemble.js replays it
 - dbg-06 Mobile on-screen log — diagnostics go to the log; the host can enable the log for players
+
+## Roblox only
+
+11 features the browser client does not have:
+
+- ro-01 Ride a unit: walk the map as the selected unit — `Possess.client.luau`
+- ro-02 The start deck: the 3D place you stand in before a game — `server/Deck.luau`
+- ro-03 Civilization gallery with a scene per civilization — `CivGallery.luau`
+- ro-04 Encyclopedia pictures: a turning model or glyph for every entry — `PediaPicture.luau`
+- ro-05 Wonder completion scene: the model assembles while the camera circles — `WonderStage.client.luau`
+- ro-06 Badges for milestones (award in a published place) — `server/BadgeAward.luau`
+- ro-07 Studded world look — `Options.client.luau`
+- ro-08 Self-checking UI tour with action stops (Debug menu) — `UiTour.client.luau`
+- ro-09 Resources map overlay lying on the tiles — `Overlays.client.luau`
+- ro-10 Building and wonder pictures on the city panel rows — `CityPanel.client.luau`
+- ro-11 Boot intro: one city through time — `Intro.client.luau`
 
 ## Full list
 

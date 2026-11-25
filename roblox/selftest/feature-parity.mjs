@@ -60,6 +60,16 @@ for (const [id, st, file, proof, note] of rowsOf('roblox/parity/roblox-status.tx
 }
 for (const id of features.keys()) if (!status.has(id)) errs.push(`roblox-status: no row for ${id}`);
 
+// ---- Roblox-only features (plan R7.3): each row's proof must be in its file
+const robloxOnly = [];
+for (const [id, name, file, proof] of rowsOf('roblox/parity/roblox-only.txt', 4)) {
+  if (robloxOnly.some(r => r.id === id)) errs.push(`roblox-only: duplicate id ${id}`);
+  robloxOnly.push({ id, name, file, proof });
+  const text = src('roblox/src/' + file);
+  if (text === null) errs.push(`roblox-only ${id}: roblox/src/${file} does not exist`);
+  else if (!text.includes(proof)) errs.push(`roblox-only ${id}: proof ${JSON.stringify(proof)} is not in roblox/src/${file}`);
+}
+
 // ---- scenarios
 const scenarios = [];
 for (const line of read('roblox/parity/scenarios.txt').split('\n')) {
@@ -104,7 +114,9 @@ function report() {
   for (const s of scenarios) tally[s.verdict] += 1;
   out.push(`${scenarios.length} scenarios: ${tally.PLAYABLE} playable, ${tally.DEGRADED} degraded, ${tally.BLOCKED} blocked.`, '');
   for (const s of scenarios) {
-    out.push(`### ${s.id} ${s.name}: ${s.verdict}`, '');
+    // plan R7.2: the share of steps available beside the verdict
+    const ok = s.steps.filter(st => st.verdict === 'PLAYABLE').length;
+    out.push(`### ${s.id} ${s.name}: ${s.verdict} (${ok} of ${s.steps.length} steps available)`, '');
     for (const step of s.steps) {
       const gaps = step.ids.filter(id => stOf(id) === 'no' || stOf(id) === 'partial')
         .map(id => `${features.get(id).name} (${WORD[stOf(id)]}: ${status.get(id).note})`);
@@ -116,6 +128,8 @@ function report() {
   for (const [id, f] of features) if (stOf(id) === 'no') out.push(`- ${id} ${f.name} — ${status.get(id).note}`);
   out.push('', '## Partial', '');
   for (const [id, f] of features) if (stOf(id) === 'partial') out.push(`- ${id} ${f.name} — ${status.get(id).note}`);
+  out.push('', '## Roblox only', '', `${robloxOnly.length} features the browser client does not have:`, '');
+  for (const r of robloxOnly) out.push(`- ${r.id} ${r.name} — \`${r.file.replace(/^client\//, '')}\``);
   out.push('', '## Full list', '');
   let group = null;
   for (const [id, f] of features) {
